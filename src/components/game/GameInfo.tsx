@@ -1,24 +1,19 @@
 import { Button } from '@/components/ui/button';
-import { ArrowLeftRight, MousePointerClick, RotateCcw, List, Send, X } from 'lucide-react';
+import { RotateCcw, List } from 'lucide-react';
 
 interface GameInfoProps {
   movesLeft: number;
   score: number;
-  mode: 'swap' | 'select';
   gameOver: boolean;
-  currentWord: string;
-  selectedWordLength: number;
-  onToggleMode: () => void;
-  onSubmitWord: () => void;
-  onClearSelection: () => void;
+  lastFoundWord: string | null;
   onResetGame: () => void;
   onShowWords: () => void;
   usedWordsCount: number;
 }
 
 export function GameInfo({
-  movesLeft, score, mode, gameOver, currentWord, selectedWordLength,
-  onToggleMode, onSubmitWord, onClearSelection, onResetGame, onShowWords, usedWordsCount,
+  movesLeft, score, gameOver, lastFoundWord,
+  onResetGame, onShowWords, usedWordsCount,
 }: GameInfoProps) {
   return (
     <div className="flex flex-col gap-4 w-full max-w-xs">
@@ -36,49 +31,17 @@ export function GameInfo({
         </div>
       </div>
 
-      {/* Mode Toggle */}
-      <Button
-        onClick={onToggleMode}
-        variant="outline"
-        className="w-full gap-2 border-white/20 text-white hover:bg-white/10"
-        disabled={gameOver}
-      >
-        {mode === 'swap' ? (
-          <><ArrowLeftRight className="w-4 h-4" /> Byt-läge (Swap)</>
-        ) : (
-          <><MousePointerClick className="w-4 h-4" /> Välj ord-läge (Select)</>
-        )}
-      </Button>
-
-      {/* Current word preview */}
-      {mode === 'select' && selectedWordLength > 0 && (
-        <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-          <div className="text-xs uppercase tracking-wider opacity-70 text-white mb-1">Valt ord</div>
-          <div className="text-2xl font-bold tracking-widest text-yellow-300">{currentWord}</div>
-          <div className="flex gap-2 mt-2">
-            <Button
-              onClick={onSubmitWord}
-              size="sm"
-              className="flex-1 gap-1 bg-green-600 hover:bg-green-700 text-white"
-              disabled={selectedWordLength < 3}
-            >
-              <Send className="w-3 h-3" /> Skicka
-            </Button>
-            <Button
-              onClick={onClearSelection}
-              size="sm"
-              variant="outline"
-              className="gap-1 border-white/20 text-white hover:bg-white/10"
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
+      {/* Last found word */}
+      {lastFoundWord && (
+        <div className="rounded-xl p-3 text-center animate-pulse" style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)' }}>
+          <div className="text-xs uppercase tracking-wider opacity-70 text-green-300 mb-1">Ord hittat!</div>
+          <div className="text-2xl font-bold tracking-widest text-green-300">{lastFoundWord}</div>
         </div>
       )}
 
       {/* Game Over */}
       {gameOver && (
-        <div className="rounded-xl p-4 text-center bg-red-900/50 border border-red-500/30">
+        <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(220,38,38,0.2)', border: '1px solid rgba(220,38,38,0.3)' }}>
           <div className="text-xl font-bold text-white mb-2">Game Over!</div>
           <div className="text-white/70 mb-3">Slutpoäng: {score}</div>
           <Button onClick={onResetGame} className="gap-2">
@@ -107,9 +70,9 @@ export function GameInfo({
 
       {/* Instructions */}
       <div className="rounded-xl p-3 text-xs text-white/60 space-y-1" style={{ background: 'rgba(0,0,0,0.2)' }}>
-        <p><strong className="text-white/80">Swap-läge:</strong> Klicka två intilliggande bubblor för att byta plats (1 drag).</p>
-        <p><strong className="text-white/80">Välj ord-läge:</strong> Klicka samma-färg bubblor i rad/kolumn för att bilda ord. Tryck Skicka.</p>
-        <p><strong className="text-white/80">Regler:</strong> Minst 3 bokstäver. Bara samma färg. Ej diagonalt.</p>
+        <p><strong className="text-white/80">Så spelar du:</strong> Klicka på en bubbla, sedan en intilliggande bubbla för att byta plats (1 drag).</p>
+        <p><strong className="text-white/80">Ord:</strong> Bildas automatiskt av samma-färg bubblor i rad (→) eller kolumn (↓). Minst 3 bokstäver.</p>
+        <p><strong className="text-white/80">Mål:</strong> Få så många poäng som möjligt på 50 drag!</p>
       </div>
     </div>
   );

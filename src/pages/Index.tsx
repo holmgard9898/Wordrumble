@@ -6,14 +6,14 @@ import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 
 const Index = () => {
-  const { isValidWord, loading, wordCount } = useDictionary();
+  const { isValidWord, loading } = useDictionary();
   const game = useGameState(isValidWord);
   const [showWords, setShowWords] = useState(false);
 
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 game-bg">
-        <div className="text-white text-2xl font-bold">Bubble Words</div>
+        <div className="text-white text-2xl font-bold">🫧 Bubble Words</div>
         <div className="text-white/60">Laddar ordlista...</div>
         <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
           <div className="h-full bg-blue-500 rounded-full animate-pulse w-2/3" />
@@ -32,7 +32,6 @@ const Index = () => {
         <GameBoard
           grid={game.grid}
           selectedBubble={game.selectedBubble}
-          selectedWord={game.selectedWord}
           poppingCells={game.poppingCells}
           onBubbleClick={game.handleBubbleClick}
         />
@@ -40,13 +39,8 @@ const Index = () => {
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
-          mode={game.mode}
           gameOver={game.gameOver}
-          currentWord={game.getSelectedWordString()}
-          selectedWordLength={game.selectedWord.length}
-          onToggleMode={game.toggleMode}
-          onSubmitWord={game.submitWord}
-          onClearSelection={game.clearSelection}
+          lastFoundWord={game.lastFoundWord}
           onResetGame={game.resetGame}
           onShowWords={() => setShowWords(true)}
           usedWordsCount={game.usedWords.length}
