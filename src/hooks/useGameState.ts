@@ -183,7 +183,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       const wordLen = word.positions.length;
       if (word.score >= 40 || wordLen >= 10) {
         setMovesLeft((prev) => prev + 25);
-      } else if (word.score >= 25 || wordLen >= 8) {
+      } else if (word.score >= 10 || wordLen >= 8) {
         setMovesLeft((prev) => prev + 10);
       }
     }
