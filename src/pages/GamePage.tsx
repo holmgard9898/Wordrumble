@@ -95,6 +95,7 @@ const GamePage = () => {
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
+          onSwipe={game.handleSwipe}
         />
 
         <GameInfo
