@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createGrid, createRandomBubble, BubbleColor,
+  createGrid, createRandomBubble,
 } from '@/data/gameConstants';
+import type { GameMode } from '@/pages/GamePage';
 
 interface UsedWord {
   word: string;
@@ -15,8 +16,64 @@ interface FoundWord {
   score: number;
 }
 
-export function useGameState(isValidWord: (word: string) => boolean) {
-  const [grid, setGrid] = useState<BubbleData[][]>(createGrid);
+// Ensure no valid words exist on the initial grid
+function createCleanGrid(isValidWord: (w: string) => boolean): BubbleData[][] {
+  let attempts = 0;
+  while (attempts < 50) {
+    const grid = createGrid();
+    if (!gridHasWords(grid, isValidWord)) return grid;
+    attempts++;
+  }
+  // Fallback: just return a grid (very rare to still have words)
+  return createGrid();
+}
+
+function gridHasWords(grid: BubbleData[][], isValidWord: (w: string) => boolean): boolean {
+  // Horizontal
+  for (let r = 0; r < ROWS; r++) {
+    let c = 0;
+    while (c < COLS) {
+      const color = grid[r][c].color;
+      let end = c;
+      while (end < COLS && grid[r][end].color === color) end++;
+      const run = end - c;
+      if (run >= MIN_WORD_LENGTH) {
+        for (let len = MIN_WORD_LENGTH; len <= Math.min(run, MAX_WORD_LENGTH); len++) {
+          for (let s = c; s + len <= end; s++) {
+            let word = '';
+            for (let i = s; i < s + len; i++) word += grid[r][i].letter;
+            if (isValidWord(word.toLowerCase())) return true;
+          }
+        }
+      }
+      c = end;
+    }
+  }
+  // Vertical
+  for (let c = 0; c < COLS; c++) {
+    let r = 0;
+    while (r < ROWS) {
+      const color = grid[r][c].color;
+      let end = r;
+      while (end < ROWS && grid[end][c].color === color) end++;
+      const run = end - r;
+      if (run >= MIN_WORD_LENGTH) {
+        for (let len = MIN_WORD_LENGTH; len <= Math.min(run, MAX_WORD_LENGTH); len++) {
+          for (let s = r; s + len <= end; s++) {
+            let word = '';
+            for (let i = s; i < s + len; i++) word += grid[i][c].letter;
+            if (isValidWord(word.toLowerCase())) return true;
+          }
+        }
+      }
+      r = end;
+    }
+  }
+  return false;
+}
+
+export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic') {
+  const [grid, setGrid] = useState<BubbleData[][]>(() => createCleanGrid(isValidWord));
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
   const [movesLeft, setMovesLeft] = useState(MAX_MOVES);
   const [score, setScore] = useState(0);
@@ -35,23 +92,19 @@ export function useGameState(isValidWord: (word: string) => boolean) {
     return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
   };
 
-  // Scan the grid for valid words formed by same-color bubbles
   const findWords = useCallback((currentGrid: BubbleData[][]): FoundWord[] => {
     const found: FoundWord[] = [];
     const usedWordSet = new Set(usedWordsRef.current.map((w) => w.word.toLowerCase()));
 
-    // Horizontal scan (left to right)
+    // Horizontal scan
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
         const color = currentGrid[r][c].color;
-        // Find run of same color
         let end = c;
         while (end < COLS && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
-
         if (runLength >= MIN_WORD_LENGTH) {
-          // Check all substrings of length 3..min(runLength, MAX_WORD_LENGTH)
           for (let len = MIN_WORD_LENGTH; len <= Math.min(runLength, MAX_WORD_LENGTH); len++) {
             for (let start = c; start + len <= end; start++) {
               const positions: Position[] = [];
@@ -73,7 +126,7 @@ export function useGameState(isValidWord: (word: string) => boolean) {
       }
     }
 
-    // Vertical scan (top to bottom)
+    // Vertical scan
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
@@ -81,7 +134,6 @@ export function useGameState(isValidWord: (word: string) => boolean) {
         let end = r;
         while (end < ROWS && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
-
         if (runLength >= MIN_WORD_LENGTH) {
           for (let len = MIN_WORD_LENGTH; len <= Math.min(runLength, MAX_WORD_LENGTH); len++) {
             for (let start = r; start + len <= end; start++) {
@@ -104,15 +156,11 @@ export function useGameState(isValidWord: (word: string) => boolean) {
       }
     }
 
-    // Pick the longest/highest-scoring word to pop (prioritize longest, then score)
     if (found.length === 0) return [];
-
     found.sort((a, b) => {
       if (b.positions.length !== a.positions.length) return b.positions.length - a.positions.length;
       return b.score - a.score;
     });
-
-    // Return only the best non-overlapping word to pop one at a time
     return [found[0]];
   }, [isValidWord]);
 
@@ -127,15 +175,23 @@ export function useGameState(isValidWord: (word: string) => boolean) {
     setPoppingCells(popKeys);
     setLastFoundWord(word.word);
 
-    // Add to used words and score
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
+
+    // Surge mode: bonus moves
+    if (mode === 'surge') {
+      const wordLen = word.positions.length;
+      if (word.score >= 40 || wordLen >= 10) {
+        setMovesLeft((prev) => prev + 25);
+      } else if (word.score >= 25 || wordLen >= 8) {
+        setMovesLeft((prev) => prev + 10);
+      }
+    }
 
     setTimeout(() => {
       setPoppingCells(new Set());
       setLastFoundWord(null);
 
-      // Remove popped bubbles and cascade
       const newGrid = currentGrid.map((row) => [...row]);
       const colsAffected = new Set(word.positions.map((p) => p.col));
 
@@ -153,7 +209,6 @@ export function useGameState(isValidWord: (word: string) => boolean) {
 
       setGrid(newGrid);
 
-      // Check for cascading words after a short delay
       setTimeout(() => {
         const nextWords = findWords(newGrid);
         if (nextWords.length > 0) {
@@ -163,7 +218,7 @@ export function useGameState(isValidWord: (word: string) => boolean) {
         }
       }, 300);
     }, 500);
-  }, [findWords]);
+  }, [findWords, mode]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
@@ -183,7 +238,6 @@ export function useGameState(isValidWord: (word: string) => boolean) {
       if (selectedBubble.row === row && selectedBubble.col === col) {
         setSelectedBubble(null);
       } else if (isAdjacent(selectedBubble, pos)) {
-        // Swap
         const newGrid = grid.map((r) => [...r]);
         const temp = newGrid[selectedBubble.row][selectedBubble.col];
         newGrid[selectedBubble.row][selectedBubble.col] = newGrid[row][col];
@@ -197,7 +251,6 @@ export function useGameState(isValidWord: (word: string) => boolean) {
           return next;
         });
 
-        // Check for words after swap
         setTimeout(() => checkForWords(newGrid), 200);
       } else {
         setSelectedBubble(pos);
@@ -205,8 +258,31 @@ export function useGameState(isValidWord: (word: string) => boolean) {
     }
   }, [gameOver, isProcessing, selectedBubble, grid, checkForWords]);
 
+  // Touch swipe: swap by dragging one bubble toward an adjacent one
+  const handleSwipe = useCallback((fromRow: number, fromCol: number, direction: 'up' | 'down' | 'left' | 'right') => {
+    if (gameOver || isProcessing) return;
+    const toRow = fromRow + (direction === 'down' ? 1 : direction === 'up' ? -1 : 0);
+    const toCol = fromCol + (direction === 'right' ? 1 : direction === 'left' ? -1 : 0);
+    if (toRow < 0 || toRow >= ROWS || toCol < 0 || toCol >= COLS) return;
+
+    const newGrid = grid.map((r) => [...r]);
+    const temp = newGrid[fromRow][fromCol];
+    newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
+    newGrid[toRow][toCol] = temp;
+    setGrid(newGrid);
+    setSelectedBubble(null);
+
+    setMovesLeft((prev) => {
+      const next = prev - 1;
+      if (next <= 0) setGameOver(true);
+      return next;
+    });
+
+    setTimeout(() => checkForWords(newGrid), 200);
+  }, [gameOver, isProcessing, grid, checkForWords]);
+
   const resetGame = useCallback(() => {
-    const newGrid = createGrid();
+    const newGrid = createCleanGrid(isValidWord);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(MAX_MOVES);
@@ -216,17 +292,7 @@ export function useGameState(isValidWord: (word: string) => boolean) {
     setPoppingCells(new Set());
     setLastFoundWord(null);
     setIsProcessing(false);
-  }, []);
-
-  // Check for words on initial grid load
-  useEffect(() => {
-    if (!isProcessing) {
-      const timer = setTimeout(() => checkForWords(grid), 500);
-      return () => clearTimeout(timer);
-    }
-    // Only run once on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isValidWord]);
 
   return {
     grid,
@@ -239,6 +305,7 @@ export function useGameState(isValidWord: (word: string) => boolean) {
     lastFoundWord,
     isProcessing,
     handleBubbleClick,
+    handleSwipe,
     resetGame,
   };
 }
