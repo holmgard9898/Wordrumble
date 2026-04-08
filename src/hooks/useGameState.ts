@@ -163,8 +163,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createCleanGrid(isValidWord, mode);
     if (mode === 'bomb') {
-      const startBombs = 1 + Math.floor(Math.random() * 3); // 1-3
-      addBombsToGrid(g, startBombs);
+      addBombsToGrid(g, 1); // Always start with exactly 1 bomb
     }
     return g;
   });
@@ -257,7 +256,29 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       if (b.positions.length !== a.positions.length) return b.positions.length - a.positions.length;
       return b.score - a.score;
     });
-    return [found[0]];
+
+    // Pick the longest word; filter out shorter words whose positions overlap
+    const best = found[0];
+    const bestPositionKeys = new Set(best.positions.map(p => `${p.row}-${p.col}`));
+
+    // Mark sub-words (fully contained in the best word) as implicitly used
+    // so they won't be detected later as separate words
+    const implicitlyUsed: string[] = [];
+    for (let i = 1; i < found.length; i++) {
+      const w = found[i];
+      if (w.positions.every(p => bestPositionKeys.has(`${p.row}-${p.col}`))) {
+        implicitlyUsed.push(w.word.toLowerCase());
+      }
+    }
+    // Add implicitly used sub-words to the used words ref so they're skipped in future scans
+    if (implicitlyUsed.length > 0) {
+      const currentUsed = usedWordsRef.current;
+      const newUsed = [...currentUsed, ...implicitlyUsed.map(w => ({ word: w.toUpperCase(), score: 0 }))];
+      usedWordsRef.current = newUsed;
+      // Also update state so WordHistory stays in sync (sub-words scored 0 won't show meaningfully)
+    }
+
+    return [best];
   }, [isValidWord, minWordLen, mode]);
 
   const popAndCascade = useCallback((currentGrid: BubbleData[][], foundWords: FoundWord[]) => {
@@ -317,7 +338,11 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       // Bomb mode: maybe spawn new bombs on new bubbles
       if (mode === 'bomb') {
         const current = countBombs(newGrid);
-        if (current < 5 && Math.random() < 0.3) {
+        if (current === 0) {
+          // Always ensure at least 1 bomb — spawn 1-3
+          const toSpawn = 1 + Math.floor(Math.random() * 3);
+          addBombsToGrid(newGrid, toSpawn);
+        } else if (current < 3 && Math.random() < 0.3) {
           addBombsToGrid(newGrid, 1);
         }
       }
@@ -408,8 +433,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const resetGame = useCallback(() => {
     const newGrid = createCleanGrid(isValidWord, mode);
     if (mode === 'bomb') {
-      const startBombs = 1 + Math.floor(Math.random() * 3);
-      addBombsToGrid(newGrid, startBombs);
+      addBombsToGrid(newGrid, 1); // Always start with exactly 1 bomb
     }
     setGrid(newGrid);
     setSelectedBubble(null);
