@@ -256,29 +256,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       if (b.positions.length !== a.positions.length) return b.positions.length - a.positions.length;
       return b.score - a.score;
     });
-
-    // Pick the longest word; filter out shorter words whose positions overlap
-    const best = found[0];
-    const bestPositionKeys = new Set(best.positions.map(p => `${p.row}-${p.col}`));
-
-    // Mark sub-words (fully contained in the best word) as implicitly used
-    // so they won't be detected later as separate words
-    const implicitlyUsed: string[] = [];
-    for (let i = 1; i < found.length; i++) {
-      const w = found[i];
-      if (w.positions.every(p => bestPositionKeys.has(`${p.row}-${p.col}`))) {
-        implicitlyUsed.push(w.word.toLowerCase());
-      }
-    }
-    // Add implicitly used sub-words to the used words ref so they're skipped in future scans
-    if (implicitlyUsed.length > 0) {
-      const currentUsed = usedWordsRef.current;
-      const newUsed = [...currentUsed, ...implicitlyUsed.map(w => ({ word: w.toUpperCase(), score: 0 }))];
-      usedWordsRef.current = newUsed;
-      // Also update state so WordHistory stays in sync (sub-words scored 0 won't show meaningfully)
-    }
-
-    return [best];
+    return [found[0]];
   }, [isValidWord, minWordLen, mode]);
 
   const popAndCascade = useCallback((currentGrid: BubbleData[][], foundWords: FoundWord[]) => {
