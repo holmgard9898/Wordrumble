@@ -11,12 +11,19 @@ import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Menu } from 'lucide-react';
 
-export type GameMode = 'classic' | 'surge';
+export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb';
+
+const MODE_LABELS: Record<GameMode, string> = {
+  classic: 'Classic',
+  surge: 'Word Surge',
+  fiveplus: '5+ Bokstäver',
+  bomb: 'Bomb Mode',
+};
 
 const GamePage = () => {
   const { mode = 'classic' } = useParams<{ mode: string }>();
   const navigate = useNavigate();
-  const gameMode = (['classic', 'surge'].includes(mode) ? mode : 'classic') as GameMode;
+  const gameMode = (['classic', 'surge', 'fiveplus', 'bomb'].includes(mode) ? mode : 'classic') as GameMode;
 
   const { isValidWord, loading } = useDictionary();
   const game = useGameState(isValidWord, gameMode);
@@ -34,7 +41,7 @@ const GamePage = () => {
       addScore({
         score: game.score,
         wordsFound: game.usedWords.length,
-        mode: gameMode === 'surge' ? 'Word Surge' : 'Classic',
+        mode: MODE_LABELS[gameMode],
         date: new Date().toISOString(),
       });
       setScoreSaved(true);
@@ -52,7 +59,6 @@ const GamePage = () => {
   const handleBubbleClick = useCallback((row: number, col: number) => {
     const hadSelection = game.selectedBubble !== null;
     game.handleBubbleClick(row, col);
-    // Play swap sound when a swap happens (had selection + clicked adjacent)
     if (hadSelection) playSwap();
   }, [game, playSwap]);
 

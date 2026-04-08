@@ -11,6 +11,7 @@ const LETTER_POOL =
 export type BubbleColor = 'red' | 'green' | 'blue' | 'yellow' | 'pink';
 
 export const BUBBLE_COLORS: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
+export const REDUCED_COLORS: BubbleColor[] = ['red', 'green', 'blue'];
 
 export const BUBBLE_COLOR_STYLES: Record<BubbleColor, { bg: string; highlight: string; border: string; text: string }> = {
   red:    { bg: 'hsl(0, 75%, 50%)',   highlight: 'hsl(0, 80%, 75%)',   border: 'hsl(0, 70%, 35%)',   text: '#fff' },
@@ -26,11 +27,14 @@ export const MAX_MOVES = 50;
 export const MIN_WORD_LENGTH = 3;
 export const MAX_WORD_LENGTH = 10;
 
+export const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
+
 export interface BubbleData {
   id: string;
   letter: string;
   value: number;
   color: BubbleColor;
+  bomb?: number; // countdown timer, undefined = no bomb
 }
 
 export interface Position {
@@ -40,9 +44,9 @@ export interface Position {
 
 let bubbleIdCounter = 0;
 
-export function createRandomBubble(): BubbleData {
+export function createRandomBubble(colors: BubbleColor[] = BUBBLE_COLORS): BubbleData {
   const letter = LETTER_POOL[Math.floor(Math.random() * LETTER_POOL.length)];
-  const color = BUBBLE_COLORS[Math.floor(Math.random() * BUBBLE_COLORS.length)];
+  const color = colors[Math.floor(Math.random() * colors.length)];
   return {
     id: `bubble-${bubbleIdCounter++}`,
     letter,
@@ -51,12 +55,12 @@ export function createRandomBubble(): BubbleData {
   };
 }
 
-export function createGrid(): BubbleData[][] {
+export function createGrid(colors: BubbleColor[] = BUBBLE_COLORS): BubbleData[][] {
   const grid: BubbleData[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: BubbleData[] = [];
     for (let c = 0; c < COLS; c++) {
-      row.push(createRandomBubble());
+      row.push(createRandomBubble(colors));
     }
     grid.push(row);
   }

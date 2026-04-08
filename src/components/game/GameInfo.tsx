@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { RotateCcw, List, Zap } from 'lucide-react';
+import { RotateCcw, List, Zap, Bomb, Hash } from 'lucide-react';
 import type { GameMode } from '@/pages/GamePage';
 
 interface GameInfoProps {
@@ -13,32 +13,42 @@ interface GameInfoProps {
   mode: GameMode;
 }
 
+const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color: string; border: string } | null> = {
+  classic: null,
+  surge: { icon: <Zap className="w-4 h-4 text-yellow-400" />, label: 'Word Surge', color: 'rgba(234,179,8,0.2)', border: 'rgba(234,179,8,0.3)' },
+  fiveplus: { icon: <Hash className="w-4 h-4 text-cyan-400" />, label: '5+ Bokstäver', color: 'rgba(34,211,238,0.2)', border: 'rgba(34,211,238,0.3)' },
+  bomb: { icon: <Bomb className="w-4 h-4 text-red-400" />, label: 'Bomb Mode', color: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.3)' },
+};
+
 export function GameInfo({
   movesLeft, score, gameOver, lastFoundWord,
   onResetGame, onShowWords, usedWordsCount, mode,
 }: GameInfoProps) {
+  const badge = MODE_BADGE[mode];
+  const isBomb = mode === 'bomb';
+
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
-      {/* Mode badge */}
-      {mode === 'surge' && (
-        <div className="flex items-center justify-center gap-2 rounded-lg py-1 px-3 self-center" style={{ background: 'rgba(234,179,8,0.2)', border: '1px solid rgba(234,179,8,0.3)' }}>
-          <Zap className="w-4 h-4 text-yellow-400" />
-          <span className="text-yellow-400 text-xs font-semibold uppercase tracking-wider">Word Surge</span>
+      {badge && (
+        <div className="flex items-center justify-center gap-2 rounded-lg py-1 px-3 self-center" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
+          {badge.icon}
+          <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: badge.border.replace('0.3', '1') }}>{badge.label}</span>
         </div>
       )}
 
-      {/* Score & Moves - horizontal on mobile */}
       <div className="flex gap-3">
         <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
           <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Poäng</div>
           <div className="text-2xl md:text-3xl font-bold text-white">{score}</div>
         </div>
-        <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-          <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Drag kvar</div>
-          <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
-            {movesLeft}
+        {!isBomb && (
+          <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Drag kvar</div>
+            <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
+              {movesLeft}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {lastFoundWord && (
@@ -50,7 +60,9 @@ export function GameInfo({
 
       {gameOver && (
         <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(220,38,38,0.2)', border: '1px solid rgba(220,38,38,0.3)' }}>
-          <div className="text-xl font-bold text-white mb-2">Game Over!</div>
+          <div className="text-xl font-bold text-white mb-2">
+            {isBomb ? '💥 Bomben sprängdes!' : 'Game Over!'}
+          </div>
           <div className="text-white/70 mb-3">Slutpoäng: {score}</div>
           <Button onClick={onResetGame} className="gap-2">
             <RotateCcw className="w-4 h-4" /> Nytt spel
