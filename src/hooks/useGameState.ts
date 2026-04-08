@@ -163,8 +163,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createCleanGrid(isValidWord, mode);
     if (mode === 'bomb') {
-      const startBombs = 1 + Math.floor(Math.random() * 3); // 1-3
-      addBombsToGrid(g, startBombs);
+      addBombsToGrid(g, 1); // Always start with exactly 1 bomb
     }
     return g;
   });
@@ -317,7 +316,11 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       // Bomb mode: maybe spawn new bombs on new bubbles
       if (mode === 'bomb') {
         const current = countBombs(newGrid);
-        if (current < 5 && Math.random() < 0.3) {
+        if (current === 0) {
+          // Always ensure at least 1 bomb — spawn 1-3
+          const toSpawn = 1 + Math.floor(Math.random() * 3);
+          addBombsToGrid(newGrid, toSpawn);
+        } else if (current < 3 && Math.random() < 0.3) {
           addBombsToGrid(newGrid, 1);
         }
       }
@@ -408,8 +411,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const resetGame = useCallback(() => {
     const newGrid = createCleanGrid(isValidWord, mode);
     if (mode === 'bomb') {
-      const startBombs = 1 + Math.floor(Math.random() * 3);
-      addBombsToGrid(newGrid, startBombs);
+      addBombsToGrid(newGrid, 1); // Always start with exactly 1 bomb
     }
     setGrid(newGrid);
     setSelectedBubble(null);
