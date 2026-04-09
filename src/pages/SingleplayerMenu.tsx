@@ -2,10 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Timer, Zap, Bomb, Hash } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
+import { useGameBackground } from '@/hooks/useGameBackground';
 
 const SingleplayerMenu = () => {
   const navigate = useNavigate();
   const { playClick } = useSfx();
+  const bg = useGameBackground();
 
   const go = (path: string) => {
     playClick();
@@ -48,7 +50,7 @@ const SingleplayerMenu = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-white mb-2">Singleplayer</h1>
       <p className="text-white/50 mb-8">Välj spelläge</p>
 
