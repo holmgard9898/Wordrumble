@@ -21,6 +21,15 @@ export const BUBBLE_COLOR_STYLES: Record<BubbleColor, { bg: string; highlight: s
   pink:   { bg: 'hsl(330, 75%, 58%)', highlight: 'hsl(330, 80%, 78%)', border: 'hsl(330, 70%, 38%)', text: '#fff' },
 };
 
+/** Sports ball emoji per color */
+export const SPORTS_BALLS: Record<BubbleColor, { emoji: string; label: string }> = {
+  red:    { emoji: '⚽', label: 'football' },
+  green:  { emoji: '🏑', label: 'bandy' },
+  blue:   { emoji: '🏒', label: 'hockey puck' },
+  yellow: { emoji: '🎾', label: 'tennis' },
+  pink:   { emoji: '🏀', label: 'basketball' },
+};
+
 export const ROWS = 10;
 export const COLS = 8;
 export const MAX_MOVES = 50;

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { GameLanguage } from '@/data/languages';
 
 export type GameBackground = 'default' | 'clouds' | 'wood' | 'space' | 'volcano';
-export type TileStyle = 'bubble' | 'rubik' | 'shapes';
+export type TileStyle = 'bubble' | 'rubik' | 'shapes' | 'soapbubble' | 'sports';
 
 interface Settings {
   musicVolume: number;
