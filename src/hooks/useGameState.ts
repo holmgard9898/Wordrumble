@@ -172,6 +172,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [poppingCells, setPoppingCells] = useState<Set<string>>(new Set());
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [movesUsed, setMovesUsed] = useState(0);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
@@ -357,6 +358,8 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
     newGrid[toRow][toCol] = temp;
 
+    setMovesUsed((prev) => prev + 1);
+
     if (mode === 'bomb') {
       // In bomb mode: swap → check words → after cascade, decrement bombs
       setGrid(newGrid);
@@ -435,6 +438,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setPoppingCells(new Set());
     setLastFoundWord(null);
     setIsProcessing(false);
+    setMovesUsed(0);
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
@@ -460,5 +464,6 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     resetGame,
     bestWordScore,
     bestWord,
+    movesUsed,
   };
 }

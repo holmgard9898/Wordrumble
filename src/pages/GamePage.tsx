@@ -5,6 +5,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
+import { useGameProgress } from '@/hooks/useGameProgress';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { GameBoard } from '@/components/game/GameBoard';
@@ -34,6 +35,7 @@ const GamePage = () => {
   const { isValidWord, loading } = useDictionary(settings.language);
   const game = useGameState(isValidWord, gameMode, settings.language);
   const { addScore } = useHighScores();
+  const { recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore } = useGameProgress();
   const { playSwap, playWordFound, playGameOver } = useSfx();
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -52,9 +54,18 @@ const GamePage = () => {
         date: new Date().toISOString(),
       });
       setScoreSaved(true);
-      if (gameMode === 'bomb') playGameOver();
+
+      // Track progress for mode unlocks
+      if (gameMode === 'classic') recordClassicPlayed();
+      if (gameMode === 'surge') recordSurgeMoves(game.movesUsed);
+      if (gameMode === 'bomb') {
+        recordBombScore(game.score);
+        playGameOver();
+      }
+      // Track best single word score (across all modes)
+      if (game.bestWordScore > 0) recordBestSingleWord(game.bestWordScore);
     }
-  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver]);
+  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore]);
 
   useEffect(() => {
     if (game.lastFoundWord) {
