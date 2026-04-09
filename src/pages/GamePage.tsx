@@ -35,6 +35,7 @@ const GamePage = () => {
   const { isValidWord, loading } = useDictionary(settings.language);
   const game = useGameState(isValidWord, gameMode, settings.language);
   const { addScore } = useHighScores();
+  const { recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore } = useGameProgress();
   const { playSwap, playWordFound, playGameOver } = useSfx();
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
