@@ -17,7 +17,7 @@ export const BUBBLE_COLOR_STYLES: Record<BubbleColor, { bg: string; highlight: s
   red:    { bg: 'hsl(0, 75%, 50%)',   highlight: 'hsl(0, 80%, 75%)',   border: 'hsl(0, 70%, 35%)',   text: '#fff' },
   green:  { bg: 'hsl(140, 65%, 42%)', highlight: 'hsl(140, 70%, 65%)', border: 'hsl(140, 60%, 28%)', text: '#fff' },
   blue:   { bg: 'hsl(210, 80%, 52%)', highlight: 'hsl(210, 85%, 75%)', border: 'hsl(210, 75%, 35%)', text: '#fff' },
-  yellow: { bg: 'hsl(45, 90%, 52%)',  highlight: 'hsl(45, 90%, 78%)',  border: 'hsl(45, 80%, 35%)',  text: '#1a1a1a' },
+  yellow: { bg: 'hsl(45, 90%, 52%)',  highlight: 'hsl(45, 90%, 78%)',  border: 'hsl(45, 80%, 35%)',  text: '#fff' },
   pink:   { bg: 'hsl(330, 75%, 58%)', highlight: 'hsl(330, 80%, 78%)', border: 'hsl(330, 70%, 38%)', text: '#fff' },
 };
 
