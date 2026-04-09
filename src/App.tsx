@@ -8,6 +8,7 @@ import MainMenu from "./pages/MainMenu";
 import SingleplayerMenu from "./pages/SingleplayerMenu";
 import MultiplayerMenu from "./pages/MultiplayerMenu";
 import GamePage from "./pages/GamePage";
+import MultiplayerGamePage from "./pages/MultiplayerGamePage";
 import SettingsPage from "./pages/SettingsPage";
 import Statistics from "./pages/Statistics";
 import Shop from "./pages/Shop";
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/" element={<MainMenu />} />
             <Route path="/play" element={<SingleplayerMenu />} />
             <Route path="/challenge" element={<MultiplayerMenu />} />
+            <Route path="/game/mp-:mode" element={<MultiplayerGamePage />} />
             <Route path="/game/:mode" element={<GamePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/statistics" element={<Statistics />} />
