@@ -5,6 +5,7 @@ import { ArrowLeft, Coins, Check, ChevronLeft, ChevronRight, Lock } from 'lucide
 import { useSfx } from '@/hooks/useSfx';
 import { useSettings, type GameBackground, type TileStyle } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { BUBBLE_COLOR_STYLES, SPORTS_BALLS, type BubbleColor } from '@/data/gameConstants';
 import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';

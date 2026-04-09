@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 
 const MODE_OPTIONS = [
   { value: 'all', label: 'Alla lägen' },

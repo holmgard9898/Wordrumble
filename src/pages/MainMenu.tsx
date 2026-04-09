@@ -3,8 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Gamepad2, Swords, ShoppingBag, BarChart3, Settings } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 
 const MainMenu = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const bg = useGameBackground();

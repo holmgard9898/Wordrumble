@@ -4,8 +4,10 @@ import { ArrowLeft, Shuffle, Users, Bot, Timer, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 
 const MultiplayerMenu = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const bg = useGameBackground();
