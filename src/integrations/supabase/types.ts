@@ -14,7 +14,182 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["friendship_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["friendship_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      match_chat: {
+        Row: {
+          created_at: string
+          id: string
+          match_id: string
+          message: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_id: string
+          message: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_id?: string
+          message?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_chat_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      matches: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          current_round: number
+          current_turn: string | null
+          id: string
+          is_ai_match: boolean
+          last_move_at: string
+          mode: Database["public"]["Enums"]["match_mode"]
+          player1_id: string
+          player1_rounds_data: Json
+          player1_score: number
+          player2_id: string | null
+          player2_rounds_data: Json
+          player2_score: number
+          round_grids: Json
+          shared_used_words: Json
+          started_at: string
+          status: Database["public"]["Enums"]["match_status"]
+          total_rounds: number
+          winner_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          current_round?: number
+          current_turn?: string | null
+          id?: string
+          is_ai_match?: boolean
+          last_move_at?: string
+          mode: Database["public"]["Enums"]["match_mode"]
+          player1_id: string
+          player1_rounds_data?: Json
+          player1_score?: number
+          player2_id?: string | null
+          player2_rounds_data?: Json
+          player2_score?: number
+          round_grids?: Json
+          shared_used_words?: Json
+          started_at?: string
+          status?: Database["public"]["Enums"]["match_status"]
+          total_rounds?: number
+          winner_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          current_round?: number
+          current_turn?: string | null
+          id?: string
+          is_ai_match?: boolean
+          last_move_at?: string
+          mode?: Database["public"]["Enums"]["match_mode"]
+          player1_id?: string
+          player1_rounds_data?: Json
+          player1_score?: number
+          player2_id?: string | null
+          player2_rounds_data?: Json
+          player2_score?: number
+          round_grids?: Json
+          shared_used_words?: Json
+          started_at?: string
+          status?: Database["public"]["Enums"]["match_status"]
+          total_rounds?: number
+          winner_id?: string | null
+        }
+        Relationships: []
+      }
+      matchmaking_queue: {
+        Row: {
+          id: string
+          joined_at: string
+          mode: Database["public"]["Enums"]["match_mode"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          mode: Database["public"]["Enums"]["match_mode"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          mode?: Database["public"]["Enums"]["match_mode"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +198,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      friendship_status: "pending" | "accepted" | "declined"
+      match_mode: "classic" | "surge" | "fiveplus" | "oneword"
+      match_status: "waiting" | "active" | "completed" | "expired" | "forfeit"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +327,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      friendship_status: ["pending", "accepted", "declined"],
+      match_mode: ["classic", "surge", "fiveplus", "oneword"],
+      match_status: ["waiting", "active", "completed", "expired", "forfeit"],
+    },
   },
 } as const
