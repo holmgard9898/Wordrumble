@@ -5,6 +5,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
+import { useGameProgress } from '@/hooks/useGameProgress';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { GameBoard } from '@/components/game/GameBoard';
