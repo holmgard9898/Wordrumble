@@ -8,6 +8,7 @@ import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { AVAILABLE_LANGUAGES, getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/select';
 
 const SettingsPage = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
   const { playClick } = useSfx();

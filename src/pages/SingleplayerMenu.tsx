@@ -4,8 +4,10 @@ import { ArrowLeft, Timer, Zap, Bomb, Hash, Target } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useMenuMusic } from '@/hooks/useMenuMusic';
 
 const SingleplayerMenu = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const bg = useGameBackground();
