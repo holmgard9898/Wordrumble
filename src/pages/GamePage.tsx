@@ -6,6 +6,7 @@ import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useGameBackground } from '@/hooks/useGameBackground';
 import { GameBoard } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
