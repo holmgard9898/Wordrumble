@@ -177,6 +177,8 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
 
+  const blockedWordsRef = useRef<Set<string>>(new Set());
+
   const pendingBombDecrement = useRef(false);
 
   const minWordLen = getMinWordLength(mode);

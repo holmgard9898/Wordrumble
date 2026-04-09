@@ -135,6 +135,8 @@ export interface AIRoundResult {
   movesUsed: number;
   bestWord: string | null;
   bestWordScore: number;
+  finalGrid: BubbleData[][];
+  usedWordsList: string[];
 }
 
 export function simulateAIRound(
