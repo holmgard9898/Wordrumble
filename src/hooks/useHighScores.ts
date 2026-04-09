@@ -23,7 +23,7 @@ export function useHighScores() {
 
   const addScore = useCallback((entry: HighScoreEntry) => {
     setScores((prev) => {
-      const updated = [...prev, entry].sort((a, b) => b.score - a.score).slice(0, 50);
+      const updated = [...prev, entry].sort((a, b) => b.score - a.score).slice(0, 10);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return updated;
     });
