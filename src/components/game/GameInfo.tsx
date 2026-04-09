@@ -84,14 +84,14 @@ export function GameInfo({
         <Button
           onClick={onShowWords}
           variant="outline"
-          className="flex-1 gap-2 border-white/20 text-white hover:bg-white/10"
+          className="flex-1 gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20"
         >
           <List className="w-4 h-4" /> Ord ({usedWordsCount})
         </Button>
         <Button
           onClick={onResetGame}
           variant="outline"
-          className="gap-2 border-white/20 text-white hover:bg-white/10"
+          className="gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20"
         >
           <RotateCcw className="w-4 h-4" />
         </Button>
