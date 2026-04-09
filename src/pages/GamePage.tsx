@@ -27,6 +27,7 @@ const GamePage = () => {
   const { mode = 'classic' } = useParams<{ mode: string }>();
   const navigate = useNavigate();
   const { settings } = useSettings();
+  const bg = useGameBackground();
   const gameMode = (['classic', 'surge', 'fiveplus', 'bomb'].includes(mode) ? mode : 'classic') as GameMode;
 
   const { isValidWord, loading } = useDictionary(settings.language);
@@ -71,7 +72,7 @@ const GamePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 game-bg">
+      <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
         <div className="text-white text-2xl font-bold">Word Rumble</div>
         <div className="text-white/60">Laddar ordlista...</div>
         <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
@@ -82,7 +83,7 @@ const GamePage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-2 md:p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
       <div className="w-full max-w-4xl flex items-center justify-between mb-2 md:mb-4 px-1">
         <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
           Word Rumble
