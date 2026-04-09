@@ -10,12 +10,15 @@ interface GameOverOverlayProps {
   wordsFound: number;
   mode: GameMode;
   onRestart: () => void;
+  bestWord?: string | null;
+  bestWordScore?: number;
 }
 
-export function GameOverOverlay({ score, wordsFound, mode, onRestart }: GameOverOverlayProps) {
+export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore }: GameOverOverlayProps) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const isBomb = mode === 'bomb';
+  const isOneWord = mode === 'oneword';
   const [showContent, setShowContent] = useState(false);
   const [explosionPhase, setExplosionPhase] = useState(0);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -127,13 +130,20 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart }: GameOver
           )}
 
           <h2 className="text-2xl md:text-3xl font-bold text-white text-center">
-            {isBomb ? 'Game Over!' : 'Slutresultat'}
+            {isBomb ? 'Game Over!' : isOneWord ? 'Bästa Ord!' : 'Slutresultat'}
           </h2>
 
           <div className="flex flex-col items-center gap-1">
             <div className="text-5xl md:text-6xl font-bold text-white">{score}</div>
             <div className="text-white/60 text-sm">poäng</div>
           </div>
+
+          {isOneWord && bestWord && (
+            <div className="rounded-xl px-4 py-2 text-center" style={{ background: 'rgba(16,185,129,0.2)', border: '1px solid rgba(16,185,129,0.4)' }}>
+              <div className="text-xs text-emerald-300/70 uppercase tracking-wider">Bästa ordet</div>
+              <div className="text-xl font-bold text-emerald-300 tracking-widest">{bestWord}</div>
+            </div>
+          )}
 
           <div className="text-white/70 text-sm">
             {wordsFound} ord hittade

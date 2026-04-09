@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Timer, Zap, Bomb, Hash } from 'lucide-react';
+import { ArrowLeft, Timer, Zap, Bomb, Hash, Target } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 
@@ -38,6 +38,14 @@ const SingleplayerMenu = () => {
       desc: '100 drag. Bara 3 färger men bara ord med 5+ bokstäver räknas!',
       bg: 'rgba(34,211,238,0.2)',
       border: 'rgba(34,211,238,0.3)',
+    },
+    {
+      path: '/game/oneword',
+      icon: <Target className="w-6 h-6 text-emerald-400" />,
+      name: 'Ett Ord',
+      desc: '60 drag. Bilda så många ord du vill men bara ditt bästa ord räknas!',
+      bg: 'rgba(16,185,129,0.2)',
+      border: 'rgba(16,185,129,0.3)',
     },
     {
       path: '/game/bomb',
