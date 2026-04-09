@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  BUBBLE_COLORS, REDUCED_COLORS,
+  BUBBLE_COLORS, REDUCED_COLORS, createRandomBubble,
 } from '@/data/gameConstants';
 
 type GameMode = 'classic' | 'surge' | 'fiveplus' | 'oneword';
@@ -9,64 +9,10 @@ type GameMode = 'classic' | 'surge' | 'fiveplus' | 'oneword';
 interface AIMove {
   from: Position;
   to: Position;
-  expectedWord?: string;
-  expectedScore?: number;
 }
 
 function getMinWordLen(mode: GameMode) {
   return mode === 'fiveplus' ? 5 : MIN_WORD_LENGTH;
-}
-
-/**
- * AI scans the board for possible swaps that create words.
- * It evaluates all adjacent swaps and picks the best word-forming one.
- * If no word-forming swap exists, it picks a random swap.
- */
-function findBestSwap(
-  grid: BubbleData[][],
-  isValidWord: (w: string) => boolean,
-  usedWords: Set<string>,
-  mode: GameMode,
-): AIMove | null {
-  const minLen = getMinWordLen(mode);
-  let bestMove: AIMove | null = null;
-  let bestScore = -1;
-
-  const directions: [number, number][] = [[0, 1], [1, 0]];
-
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      for (const [dr, dc] of directions) {
-        const nr = r + dr;
-        const nc = c + dc;
-        if (nr >= ROWS || nc >= COLS) continue;
-
-        // Simulate swap
-        const simGrid = grid.map(row => [...row]);
-        const temp = simGrid[r][c];
-        simGrid[r][c] = simGrid[nr][nc];
-        simGrid[nr][nc] = temp;
-
-        // Check for words in simulated grid
-        const words = findWordsInGrid(simGrid, isValidWord, usedWords, minLen);
-        if (words.length > 0) {
-          const best = words[0];
-          const score = calcSimpleScore(best.positions, simGrid, mode);
-          if (score > bestScore) {
-            bestScore = score;
-            bestMove = {
-              from: { row: r, col: c },
-              to: { row: nr, col: nc },
-              expectedWord: best.word,
-              expectedScore: score,
-            };
-          }
-        }
-      }
-    }
-  }
-
-  return bestMove;
 }
 
 function findWordsInGrid(
@@ -74,10 +20,9 @@ function findWordsInGrid(
   isValidWord: (w: string) => boolean,
   usedWords: Set<string>,
   minLen: number,
-): { word: string; positions: Position[]; }[] {
+): { word: string; positions: Position[] }[] {
   const found: { word: string; positions: Position[]; len: number }[] = [];
 
-  // Horizontal
   for (let r = 0; r < ROWS; r++) {
     let c = 0;
     while (c < COLS) {
@@ -105,7 +50,6 @@ function findWordsInGrid(
     }
   }
 
-  // Vertical
   for (let c = 0; c < COLS; c++) {
     let r = 0;
     while (r < ROWS) {
@@ -133,110 +77,118 @@ function findWordsInGrid(
     }
   }
 
-  // Sort by length (longest first), then alphabetically for consistency
-  found.sort((a, b) => b.len - a.len || a.word.localeCompare(b.word));
+  found.sort((a, b) => b.len - a.len);
   return found;
 }
 
-function calcSimpleScore(positions: Position[], grid: BubbleData[][], mode: GameMode): number {
+function calcScore(positions: Position[], grid: BubbleData[][], mode: GameMode): number {
   const len = positions.length;
-  const letterPoints = positions.reduce((s, p) => s + grid[p.row][p.col].value, 0);
-  if (mode === 'surge') return letterPoints;
-  if (len <= 3) return letterPoints;
-  if (len === 4) return letterPoints + 2;
-  if (len === 5) return letterPoints + 4;
-  if (len === 6) return letterPoints + 6;
-  if (len === 7) return letterPoints + 8;
-  if (len === 8) return letterPoints + 10;
-  if (len === 9) return letterPoints * 2;
-  if (len >= 10) return letterPoints * 3;
-  return letterPoints;
+  const lp = positions.reduce((s, p) => s + grid[p.row][p.col].value, 0);
+  if (mode === 'surge') return lp;
+  if (len <= 3) return lp;
+  if (len === 4) return lp + 2;
+  if (len === 5) return lp + 4;
+  if (len === 6) return lp + 6;
+  if (len === 7) return lp + 8;
+  if (len === 8) return lp + 10;
+  if (len === 9) return lp * 2;
+  return lp * 3;
 }
 
-/**
- * If no word-forming swap is found, make a random valid swap
- */
-function getRandomSwap(): AIMove {
-  const r = Math.floor(Math.random() * ROWS);
-  const c = Math.floor(Math.random() * COLS);
-  const dirs: [number, number][] = [[0, 1], [0, -1], [1, 0], [-1, 0]];
-  const validDirs = dirs.filter(([dr, dc]) => {
-    const nr = r + dr, nc = c + dc;
-    return nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS;
-  });
-  const [dr, dc] = validDirs[Math.floor(Math.random() * validDirs.length)];
-  return { from: { row: r, col: c }, to: { row: r + dr, col: c + dc } };
+function findBestSwap(
+  grid: BubbleData[][],
+  isValidWord: (w: string) => boolean,
+  usedWords: Set<string>,
+  mode: GameMode,
+): AIMove | null {
+  const minLen = getMinWordLen(mode);
+  let bestMove: AIMove | null = null;
+  let bestScore = -1;
+
+  const dirs: [number, number][] = [[0, 1], [1, 0]];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= ROWS || nc >= COLS) continue;
+        const simGrid = grid.map(row => [...row]);
+        const temp = simGrid[r][c];
+        simGrid[r][c] = simGrid[nr][nc];
+        simGrid[nr][nc] = temp;
+        const words = findWordsInGrid(simGrid, isValidWord, usedWords, minLen);
+        if (words.length > 0) {
+          const score = calcScore(words[0].positions, simGrid, mode);
+          if (score > bestScore) {
+            bestScore = score;
+            bestMove = { from: { row: r, col: c }, to: { row: nr, col: nc } };
+          }
+        }
+      }
+    }
+  }
+  return bestMove;
 }
 
 export interface AIRoundResult {
   score: number;
   words: { word: string; score: number }[];
   movesUsed: number;
+  bestWord: string | null;
+  bestWordScore: number;
 }
 
-/**
- * Simulates the AI playing a full round.
- * Returns the result after all moves are used.
- */
 export function simulateAIRound(
-  grid: BubbleData[][],
+  startGrid: BubbleData[][],
   isValidWord: (w: string) => boolean,
   mode: GameMode,
-  maxMoves: number,
+  totalMoves: number,
   sharedUsedWords: string[] = [],
   difficulty: 'easy' | 'medium' | 'hard' = 'medium',
 ): AIRoundResult {
-  const { createRandomBubble } = require('@/data/gameConstants');
   const colors = mode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
   const minLen = getMinWordLen(mode);
-
-  // Deep copy grid
-  let simGrid: BubbleData[][] = grid.map(row => row.map(b => ({ ...b })));
+  let simGrid: BubbleData[][] = startGrid.map(row => row.map(b => ({ ...b })));
   const usedWords = new Set(sharedUsedWords.map(w => w.toLowerCase()));
   const foundWords: { word: string; score: number }[] = [];
   let totalScore = 0;
   let movesUsed = 0;
+  let maxMoves = totalMoves;
 
-  // Difficulty affects how often AI finds optimal moves
-  const findChance = difficulty === 'easy' ? 0.4 : difficulty === 'medium' ? 0.7 : 0.95;
+  const findChance = difficulty === 'easy' ? 0.35 : difficulty === 'medium' ? 0.65 : 0.9;
 
   while (movesUsed < maxMoves) {
-    // Try to find a word-forming swap
-    const bestSwap = Math.random() < findChance
+    const swap = Math.random() < findChance
       ? findBestSwap(simGrid, isValidWord, usedWords, mode)
       : null;
 
-    if (bestSwap) {
-      // Perform swap
-      const { from, to } = bestSwap;
-      const temp = simGrid[from.row][from.col];
-      simGrid[from.row][from.col] = simGrid[to.row][to.col];
-      simGrid[to.row][to.col] = temp;
+    if (swap) {
+      const temp = simGrid[swap.from.row][swap.from.col];
+      simGrid[swap.from.row][swap.from.col] = simGrid[swap.to.row][swap.to.col];
+      simGrid[swap.to.row][swap.to.col] = temp;
     } else {
       // Random swap
-      const rSwap = getRandomSwap();
-      const temp = simGrid[rSwap.from.row][rSwap.from.col];
-      simGrid[rSwap.from.row][rSwap.from.col] = simGrid[rSwap.to.row][rSwap.to.col];
-      simGrid[rSwap.to.row][rSwap.to.col] = temp;
+      const r = Math.floor(Math.random() * ROWS);
+      const c = Math.floor(Math.random() * COLS);
+      const d: [number, number][] = [[0,1],[0,-1],[1,0],[-1,0]];
+      const valid = d.filter(([dr,dc]) => r+dr>=0&&r+dr<ROWS&&c+dc>=0&&c+dc<COLS);
+      const [dr,dc] = valid[Math.floor(Math.random()*valid.length)];
+      const temp = simGrid[r][c];
+      simGrid[r][c] = simGrid[r+dr][c+dc];
+      simGrid[r+dr][c+dc] = temp;
     }
     movesUsed++;
 
-    // Check for cascading words
+    // Cascade
     let cascading = true;
     while (cascading) {
       const words = findWordsInGrid(simGrid, isValidWord, usedWords, minLen);
-      if (words.length === 0) {
-        cascading = false;
-        break;
-      }
-
+      if (words.length === 0) { cascading = false; break; }
       const word = words[0];
-      const score = calcSimpleScore(word.positions, simGrid, mode);
+      const score = calcScore(word.positions, simGrid, mode);
       totalScore += score;
       foundWords.push({ word: word.word, score });
       usedWords.add(word.word.toLowerCase());
 
-      // Surge bonus moves
       if (mode === 'surge') {
         const wl = word.positions.length;
         if (wl >= 10) maxMoves += 50;
@@ -246,37 +198,40 @@ export function simulateAIRound(
         else if (score >= 10) maxMoves += 10;
       }
 
-      // Pop and cascade
       const colsAffected = new Set(word.positions.map(p => p.col));
-      for (const c of colsAffected) {
-        const poppedRows = new Set(word.positions.filter(p => p.col === c).map(p => p.row));
+      for (const col of colsAffected) {
+        const poppedRows = new Set(word.positions.filter(p => p.col === col).map(p => p.row));
         const remaining: BubbleData[] = [];
-        for (let r = 0; r < ROWS; r++) {
-          if (!poppedRows.has(r)) remaining.push(simGrid[r][c]);
+        for (let r2 = 0; r2 < ROWS; r2++) {
+          if (!poppedRows.has(r2)) remaining.push(simGrid[r2][col]);
         }
         const newBubbles: BubbleData[] = [];
-        for (let i = 0; i < poppedRows.size; i++) {
-          newBubbles.push(createRandomBubble(colors));
-        }
-        const fullColumn = [...newBubbles, ...remaining];
-        for (let r = 0; r < ROWS; r++) simGrid[r][c] = fullColumn[r];
+        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(createRandomBubble(colors));
+        const fullCol = [...newBubbles, ...remaining];
+        for (let r2 = 0; r2 < ROWS; r2++) simGrid[r2][col] = fullCol[r2];
       }
     }
   }
 
-  // For oneword mode, score = best single word
-  if (mode === 'oneword' && foundWords.length > 0) {
-    const best = foundWords.reduce((a, b) => a.score > b.score ? a : b);
-    return { score: best.score, words: foundWords, movesUsed };
-  }
+  const bestEntry = foundWords.length > 0
+    ? foundWords.reduce((a, b) => a.score > b.score ? a : b)
+    : null;
 
-  return { score: totalScore, words: foundWords, movesUsed };
+  const finalScore = mode === 'oneword' && bestEntry ? bestEntry.score : totalScore;
+
+  return {
+    score: finalScore,
+    words: foundWords,
+    movesUsed,
+    bestWord: bestEntry?.word ?? null,
+    bestWordScore: bestEntry?.score ?? 0,
+  };
 }
 
 export function useAIOpponent() {
   const isRunning = useRef(false);
 
-  const runAIRound = useCallback(async (
+  const runAIRound = useCallback((
     grid: BubbleData[][],
     isValidWord: (w: string) => boolean,
     mode: GameMode,
@@ -284,8 +239,6 @@ export function useAIOpponent() {
     sharedUsedWords: string[] = [],
   ): Promise<AIRoundResult> => {
     isRunning.current = true;
-
-    // Run in a timeout to avoid blocking UI
     return new Promise((resolve) => {
       setTimeout(() => {
         const result = simulateAIRound(grid, isValidWord, mode, maxMoves, sharedUsedWords, 'medium');
@@ -295,5 +248,5 @@ export function useAIOpponent() {
     });
   }, []);
 
-  return { runAIRound, isRunning: isRunning.current };
+  return { runAIRound };
 }
