@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Coins, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Coins, Check, ChevronLeft, ChevronRight, Lock } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useSettings, type GameBackground, type TileStyle } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
-import { BUBBLE_COLOR_STYLES, type BubbleColor } from '@/data/gameConstants';
+import { BUBBLE_COLOR_STYLES, SPORTS_BALLS, type BubbleColor } from '@/data/gameConstants';
 import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
 import volcanoBg from '@/assets/bg-volcano.jpg';
+
+/* ─── Background options ─── */
 
 interface BgOption {
   id: GameBackground;
@@ -50,6 +52,8 @@ const bgOptions: BgOption[] = [
   },
 ];
 
+/* ─── Tile preview helpers ─── */
+
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
 
 const CLIP_PATHS: Record<BubbleColor, string> = {
@@ -60,9 +64,17 @@ const CLIP_PATHS: Record<BubbleColor, string> = {
   pink: 'polygon(50% 5%, 90% 50%, 50% 95%, 10% 50%)',
 };
 
-function BubblePreview() {
+function TilePreviewRow({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full h-full rounded-xl flex items-center justify-center gap-1 p-2" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      {children}
+    </div>
+  );
+}
+
+function BubblePreview() {
+  return (
+    <TilePreviewRow>
       {tileColors.map((c) => {
         const s = BUBBLE_COLOR_STYLES[c];
         return (
@@ -75,13 +87,13 @@ function BubblePreview() {
           </div>
         );
       })}
-    </div>
+    </TilePreviewRow>
   );
 }
 
 function RubikPreview() {
   return (
-    <div className="w-full h-full rounded-xl flex items-center justify-center gap-0 p-2" style={{ background: 'rgba(0,0,0,0.5)' }}>
+    <TilePreviewRow>
       {tileColors.map((c) => {
         const s = BUBBLE_COLOR_STYLES[c];
         return (
@@ -94,13 +106,13 @@ function RubikPreview() {
           </div>
         );
       })}
-    </div>
+    </TilePreviewRow>
   );
 }
 
 function ShapesPreview() {
   return (
-    <div className="w-full h-full rounded-xl flex items-center justify-center gap-1 p-2" style={{ background: 'rgba(0,0,0,0.5)' }}>
+    <TilePreviewRow>
       {tileColors.map((c) => {
         const s = BUBBLE_COLOR_STYLES[c];
         const clip = CLIP_PATHS[c];
@@ -119,9 +131,54 @@ function ShapesPreview() {
           </div>
         );
       })}
-    </div>
+    </TilePreviewRow>
   );
 }
+
+function SoapBubblePreview() {
+  return (
+    <TilePreviewRow>
+      {tileColors.map((c) => {
+        const s = BUBBLE_COLOR_STYLES[c];
+        return (
+          <div
+            key={c}
+            className="w-6 h-6 rounded-full flex items-center justify-center relative"
+            style={{
+              background: 'radial-gradient(circle at 30% 25%, rgba(255,255,255,0.45), rgba(255,255,255,0.12) 35%, rgba(200,220,255,0.08) 60%, rgba(180,200,255,0.15))',
+              border: '1px solid rgba(255,255,255,0.3)',
+            }}
+          >
+            <span className="text-[10px] font-black" style={{ color: s.bg, textShadow: `0 1px 0 ${s.highlight}` }}>
+              A
+            </span>
+          </div>
+        );
+      })}
+    </TilePreviewRow>
+  );
+}
+
+function SportsPreview() {
+  const balls = ['⚽', '🏑', '🏒', '🎾', '🏀'];
+  return (
+    <TilePreviewRow>
+      {balls.map((emoji, i) => (
+        <div key={i} className="w-6 h-6 rounded-full flex items-center justify-center relative">
+          <span className="text-sm">{emoji}</span>
+          <span
+            className="absolute text-[8px] font-black text-white z-10"
+            style={{ textShadow: '0 1px 2px rgba(0,0,0,0.9)' }}
+          >
+            A
+          </span>
+        </div>
+      ))}
+    </TilePreviewRow>
+  );
+}
+
+/* ─── Tile options ─── */
 
 interface TileOption {
   id: TileStyle;
@@ -133,7 +190,27 @@ const tileOptions: TileOption[] = [
   { id: 'bubble', name: 'Bubblor', preview: <BubblePreview /> },
   { id: 'rubik', name: 'Rubik', preview: <RubikPreview /> },
   { id: 'shapes', name: 'Former', preview: <ShapesPreview /> },
+  { id: 'soapbubble', name: 'Såpbubblor', preview: <SoapBubblePreview /> },
+  { id: 'sports', name: 'Sport', preview: <SportsPreview /> },
 ];
+
+/* ─── Misc items ─── */
+
+interface MiscItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  owned: boolean;
+}
+
+const miscItems: MiscItem[] = [
+  { id: 'double-coins', name: 'Dubbla mynt', description: 'x2 mynt i 1h', icon: '💰', owned: false },
+  { id: 'undo-move', name: 'Ångra drag', description: 'Ångra senaste draget', icon: '↩️', owned: false },
+  { id: 'hint', name: 'Ledtråd', description: 'Visa bästa ordet', icon: '💡', owned: false },
+];
+
+/* ─── Shop component ─── */
 
 const Shop = () => {
   const navigate = useNavigate();
@@ -150,6 +227,16 @@ const Shop = () => {
   const canLeft = bgStart > 0;
   const canRight = bgStart + VISIBLE < bgOptions.length;
   const visibleBgs = bgOptions.slice(bgStart, bgStart + VISIBLE);
+
+  // Tile carousel
+  const TILE_VISIBLE = 3;
+  const [tileStart, setTileStart] = useState(() => {
+    const idx = tileOptions.findIndex((o) => o.id === settings.tileStyle);
+    return Math.max(0, Math.min(idx, tileOptions.length - TILE_VISIBLE));
+  });
+  const canTileLeft = tileStart > 0;
+  const canTileRight = tileStart + TILE_VISIBLE < tileOptions.length;
+  const visibleTiles = tileOptions.slice(tileStart, tileStart + TILE_VISIBLE);
 
   const selectBg = (id: GameBackground) => { playClick(); updateSettings({ background: id }); };
   const selectTile = (id: TileStyle) => { playClick(); updateSettings({ tileStyle: id }); };
@@ -180,6 +267,17 @@ const Shop = () => {
     </button>
   );
 
+  const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: 'left' | 'right'; disabled: boolean; onClick: () => void }) => (
+    <button
+      onClick={() => { playClick(); onArrowClick(); }}
+      disabled={disabled}
+      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 transition-opacity"
+      style={{ background: 'rgba(255,255,255,0.1)' }}
+    >
+      {direction === 'left' ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+    </button>
+  );
+
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-white mb-2">Butik</h1>
@@ -189,37 +287,54 @@ const Shop = () => {
       </div>
 
       <div className="w-full max-w-md space-y-6">
-        {/* Backgrounds with arrows */}
+        {/* Backgrounds */}
         <div>
           <h2 className="text-lg font-semibold text-white/80 text-center mb-3">Bakgrunder</h2>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => { playClick(); setBgStart((s) => s - 1); }}
-              disabled={!canLeft}
-              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 transition-opacity"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
+            <ArrowBtn direction="left" disabled={!canLeft} onClick={() => setBgStart((s) => s - 1)} />
             <div className="grid grid-cols-3 gap-3 flex-1">
               {visibleBgs.map((opt) => renderCard(opt, settings.background === opt.id, () => selectBg(opt.id)))}
             </div>
-            <button
-              onClick={() => { playClick(); setBgStart((s) => s + 1); }}
-              disabled={!canRight}
-              className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 transition-opacity"
-              style={{ background: 'rgba(255,255,255,0.1)' }}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+            <ArrowBtn direction="right" disabled={!canRight} onClick={() => setBgStart((s) => s + 1)} />
           </div>
         </div>
 
         {/* Tile styles */}
         <div>
           <h2 className="text-lg font-semibold text-white/80 text-center mb-3">Spelbrickor</h2>
+          <div className="flex items-center gap-2">
+            <ArrowBtn direction="left" disabled={!canTileLeft} onClick={() => setTileStart((s) => s - 1)} />
+            <div className="grid grid-cols-3 gap-3 flex-1">
+              {visibleTiles.map((opt) => renderCard(opt, settings.tileStyle === opt.id, () => selectTile(opt.id)))}
+            </div>
+            <ArrowBtn direction="right" disabled={!canTileRight} onClick={() => setTileStart((s) => s + 1)} />
+          </div>
+        </div>
+
+        {/* Misc / Övrigt */}
+        <div>
+          <h2 className="text-lg font-semibold text-white/80 text-center mb-3">Övrigt</h2>
           <div className="grid grid-cols-3 gap-3">
-            {tileOptions.map((opt) => renderCard(opt, settings.tileStyle === opt.id, () => selectTile(opt.id)))}
+            {miscItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => playClick()}
+                className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97]"
+                style={{
+                  border: '3px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(0,0,0,0.4)',
+                }}
+              >
+                <div className="aspect-square flex flex-col items-center justify-center gap-1 p-2">
+                  <span className="text-2xl">{item.icon}</span>
+                  <span className="text-white text-xs font-semibold">{item.name}</span>
+                  <span className="text-white/50 text-[10px] leading-tight text-center">{item.description}</span>
+                </div>
+                <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+                  <Lock className="w-3 h-3 text-white/50" />
+                </div>
+              </button>
+            ))}
           </div>
         </div>
       </div>
