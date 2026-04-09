@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { GameLanguage } from '@/data/languages';
 
-export type GameBackground = 'default' | 'clouds';
+export type GameBackground = 'default' | 'clouds' | 'wood';
+export type TileStyle = 'bubble' | 'rubik' | 'shapes';
 
 interface Settings {
   musicVolume: number;
@@ -10,6 +11,7 @@ interface Settings {
   sfxEnabled: boolean;
   language: GameLanguage;
   background: GameBackground;
+  tileStyle: TileStyle;
 }
 
 interface SettingsContextType {
@@ -24,6 +26,7 @@ const defaultSettings: Settings = {
   sfxEnabled: true,
   language: 'en',
   background: 'default',
+  tileStyle: 'bubble',
 };
 
 const SettingsContext = createContext<SettingsContextType>({
