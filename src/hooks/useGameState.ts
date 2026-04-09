@@ -438,6 +438,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setPoppingCells(new Set());
     setLastFoundWord(null);
     setIsProcessing(false);
+    setMovesUsed(0);
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
@@ -463,5 +464,6 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     resetGame,
     bestWordScore,
     bestWord,
+    movesUsed,
   };
 }
