@@ -4,14 +4,16 @@ import { ArrowLeft, Trophy, Swords } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
+import { useGameBackground } from '@/hooks/useGameBackground';
 
 const Statistics = () => {
   const navigate = useNavigate();
   const { scores } = useHighScores();
   const { playClick } = useSfx();
+  const bg = useGameBackground();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-white mb-6">Statistik</h1>
 
       <div className="w-full max-w-sm">

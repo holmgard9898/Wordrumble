@@ -5,6 +5,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { useSfx } from '@/hooks/useSfx';
+import { useGameBackground } from '@/hooks/useGameBackground';
 import { AVAILABLE_LANGUAGES, getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 
@@ -12,9 +13,10 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
   const { playClick } = useSfx();
+  const bg = useGameBackground();
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-white mb-8">Inställningar</h1>
 
       <div className="w-full max-w-sm space-y-6">

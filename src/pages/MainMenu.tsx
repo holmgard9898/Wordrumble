@@ -2,10 +2,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Gamepad2, Swords, ShoppingBag, BarChart3, Settings } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
+import { useGameBackground } from '@/hooks/useGameBackground';
 
 const MainMenu = () => {
   const navigate = useNavigate();
   const { playClick } = useSfx();
+  const bg = useGameBackground();
 
   const go = (path: string) => {
     playClick();
@@ -13,7 +15,7 @@ const MainMenu = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <div className="flex flex-col items-center gap-2 mb-10">
         <h1 className="text-5xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-pink-400 to-yellow-400 tracking-tight">
           Word Rumble

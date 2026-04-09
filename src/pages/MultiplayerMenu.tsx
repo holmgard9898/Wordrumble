@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Shuffle, Users, Bot, Timer, Zap } from 'lucide-react';
 import { useState } from 'react';
 import { useSfx } from '@/hooks/useSfx';
+import { useGameBackground } from '@/hooks/useGameBackground';
 
 const MultiplayerMenu = () => {
   const navigate = useNavigate();
   const { playClick } = useSfx();
+  const bg = useGameBackground();
   const [selectedMode, setSelectedMode] = useState<'classic' | 'surge' | null>(null);
   const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
 
@@ -16,7 +18,7 @@ const MultiplayerMenu = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 game-bg">
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-white mb-2">Utmana</h1>
       <p className="text-white/50 mb-8">Välj motståndare och spelläge</p>
 
