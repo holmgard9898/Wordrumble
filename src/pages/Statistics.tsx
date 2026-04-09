@@ -19,6 +19,7 @@ const MODE_OPTIONS = [
 ];
 
 const Statistics = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { scores } = useHighScores();
   const { playClick } = useSfx();

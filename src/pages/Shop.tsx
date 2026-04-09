@@ -214,6 +214,7 @@ const miscItems: MiscItem[] = [
 /* ─── Shop component ─── */
 
 const Shop = () => {
+  useMenuMusic();
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const { settings, updateSettings } = useSettings();
