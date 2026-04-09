@@ -177,6 +177,8 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
 
+  const blockedWordsRef = useRef<Set<string>>(new Set());
+
   const pendingBombDecrement = useRef(false);
 
   const minWordLen = getMinWordLength(mode);
@@ -190,7 +192,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const findWords = useCallback((currentGrid: BubbleData[][]): FoundWord[] => {
     const found: FoundWord[] = [];
     const usedWordSet = new Set(usedWordsRef.current.map((w) => w.word.toLowerCase()));
-
+    blockedWordsRef.current.forEach(w => usedWordSet.add(w));
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
@@ -442,6 +444,21 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
+  const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
+    setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
+    setSelectedBubble(null);
+    setMovesLeft(maxMoves);
+    setScore(0);
+    setUsedWords([]);
+    setGameOver(false);
+    setPoppingCells(new Set());
+    setLastFoundWord(null);
+    setIsProcessing(false);
+    setMovesUsed(0);
+    pendingBombDecrement.current = false;
+    blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
+  }, []);
+
   // Track best word for oneword mode
   const bestWordEntry = usedWords.length > 0
     ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
@@ -462,6 +479,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     handleBubbleClick,
     handleSwipe,
     resetGame,
+    startFromState,
     bestWordScore,
     bestWord,
     movesUsed,
