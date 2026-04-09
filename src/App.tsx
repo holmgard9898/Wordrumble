@@ -1,19 +1,21 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { SettingsProvider } from "@/contexts/SettingsContext";
-import MainMenu from "./pages/MainMenu";
-import SingleplayerMenu from "./pages/SingleplayerMenu";
-import MultiplayerMenu from "./pages/MultiplayerMenu";
-import GamePage from "./pages/GamePage";
-import MultiplayerGamePage from "./pages/MultiplayerGamePage";
-import SettingsPage from "./pages/SettingsPage";
-import Statistics from "./pages/Statistics";
-import Shop from "./pages/Shop";
-import AuthPage from "./pages/AuthPage";
-import NotFound from "./pages/NotFound";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { Toaster as Sonner } from '@/components/ui/sonner';
+import { Toaster } from '@/components/ui/toaster';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { SettingsProvider } from '@/contexts/SettingsContext';
+import MainMenu from './pages/MainMenu';
+import SingleplayerMenu from './pages/SingleplayerMenu';
+import MultiplayerMenu from './pages/MultiplayerMenu';
+import MultiplayerStartPage from './pages/MultiplayerStartPage';
+import MatchOverviewPage from './pages/MatchOverviewPage';
+import GamePage from './pages/GamePage';
+import MultiplayerGamePage from './pages/MultiplayerGamePage';
+import SettingsPage from './pages/SettingsPage';
+import Statistics from './pages/Statistics';
+import Shop from './pages/Shop';
+import AuthPage from './pages/AuthPage';
+import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient();
 
@@ -28,7 +30,9 @@ const App = () => (
             <Route path="/" element={<MainMenu />} />
             <Route path="/play" element={<SingleplayerMenu />} />
             <Route path="/challenge" element={<MultiplayerMenu />} />
-            <Route path="/game/mp-:mode" element={<MultiplayerGamePage />} />
+            <Route path="/challenge/match/:matchId" element={<MatchOverviewPage />} />
+            <Route path="/challenge/match/:matchId/play" element={<MultiplayerGamePage />} />
+            <Route path="/game/mp-:mode" element={<MultiplayerStartPage />} />
             <Route path="/game/:mode" element={<GamePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/statistics" element={<Statistics />} />
