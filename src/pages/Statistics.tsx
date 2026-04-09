@@ -62,7 +62,7 @@ const Statistics = () => {
               {filtered.length === 0 ? (
                 <p className="text-white/50 text-center py-4">Inga highscores ännu{selectedMode !== 'all' ? ` för ${selectedMode}` : ''}. Spela en omgång!</p>
               ) : (
-                filtered.slice(0, 20).map((s, i) => (
+                filtered.slice(0, 10).map((s, i) => (
                   <div key={i} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
                     <div className="flex items-center gap-3">
                       <span className={`font-bold text-lg w-8 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-white/40'}`}>
