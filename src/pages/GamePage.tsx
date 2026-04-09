@@ -54,9 +54,18 @@ const GamePage = () => {
         date: new Date().toISOString(),
       });
       setScoreSaved(true);
-      if (gameMode === 'bomb') playGameOver();
+
+      // Track progress for mode unlocks
+      if (gameMode === 'classic') recordClassicPlayed();
+      if (gameMode === 'surge') recordSurgeMoves(game.movesUsed);
+      if (gameMode === 'bomb') {
+        recordBombScore(game.score);
+        playGameOver();
+      }
+      // Track best single word score (across all modes)
+      if (game.bestWordScore > 0) recordBestSingleWord(game.bestWordScore);
     }
-  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver]);
+  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore]);
 
   useEffect(() => {
     if (game.lastFoundWord) {
