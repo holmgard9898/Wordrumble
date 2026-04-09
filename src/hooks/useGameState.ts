@@ -29,6 +29,7 @@ function getMinWordLength(mode: GameMode) {
 function getMaxMoves(mode: GameMode) {
   if (mode === 'bomb') return Infinity;
   if (mode === 'fiveplus') return 100;
+  if (mode === 'oneword') return 60;
   return MAX_MOVES;
 }
 
@@ -90,7 +91,7 @@ function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMo
   const len = positions.length;
   const letterPoints = positions.reduce((s, p) => s + grid[p.row][p.col].value, 0);
 
-  if (mode === 'classic' || mode === 'fiveplus') {
+  if (mode === 'classic' || mode === 'fiveplus' || mode === 'oneword') {
     if (len <= 3) return letterPoints;
     if (len === 4) return letterPoints + 2;
     if (len === 5) return letterPoints + 4;
@@ -437,6 +438,13 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
+  // Track best word for oneword mode
+  const bestWordEntry = usedWords.length > 0
+    ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
+    : null;
+  const bestWordScore = bestWordEntry?.score ?? 0;
+  const bestWord = bestWordEntry?.word ?? null;
+
   return {
     grid,
     selectedBubble,
@@ -450,5 +458,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     handleBubbleClick,
     handleSwipe,
     resetGame,
+    bestWordScore,
+    bestWord,
   };
 }

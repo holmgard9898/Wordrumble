@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { RotateCcw, List, Zap, Bomb, Hash } from 'lucide-react';
+import { RotateCcw, List, Zap, Bomb, Hash, Target } from 'lucide-react';
 import type { GameMode } from '@/pages/GamePage';
 
 interface GameInfoProps {
@@ -10,6 +10,8 @@ interface GameInfoProps {
   onShowWords: () => void;
   usedWordsCount: number;
   mode: GameMode;
+  bestWordScore?: number;
+  bestWord?: string | null;
 }
 
 const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color: string; border: string } | null> = {
@@ -17,14 +19,17 @@ const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color
   surge: { icon: <Zap className="w-4 h-4 text-yellow-400" />, label: 'Word Surge', color: 'rgba(234,179,8,0.2)', border: 'rgba(234,179,8,0.3)' },
   fiveplus: { icon: <Hash className="w-4 h-4 text-cyan-400" />, label: '5+ Bokstäver', color: 'rgba(34,211,238,0.2)', border: 'rgba(34,211,238,0.3)' },
   bomb: { icon: <Bomb className="w-4 h-4 text-red-400" />, label: 'Bomb Mode', color: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.3)' },
+  oneword: { icon: <Target className="w-4 h-4 text-emerald-400" />, label: 'Ett Ord', color: 'rgba(16,185,129,0.2)', border: 'rgba(16,185,129,0.3)' },
 };
 
 export function GameInfo({
   movesLeft, score, lastFoundWord,
   onResetGame, onShowWords, usedWordsCount, mode,
+  bestWordScore = 0, bestWord,
 }: GameInfoProps) {
   const badge = MODE_BADGE[mode];
   const isBomb = mode === 'bomb';
+  const isOneWord = mode === 'oneword';
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs">
@@ -36,17 +41,35 @@ export function GameInfo({
       )}
 
       <div className="flex gap-3">
-        <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-          <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Poäng</div>
-          <div className="text-2xl md:text-3xl font-bold text-white">{score}</div>
-        </div>
-        {!isBomb && (
-          <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-            <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Drag kvar</div>
-            <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
-              {movesLeft}
+        {isOneWord ? (
+          <>
+            <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Bästa ord</div>
+              <div className="text-2xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
+              {bestWord && <div className="text-xs text-white/50 mt-1">{bestWord}</div>}
             </div>
-          </div>
+            <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Drag kvar</div>
+              <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
+                {movesLeft}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Poäng</div>
+              <div className="text-2xl md:text-3xl font-bold text-white">{score}</div>
+            </div>
+            {!isBomb && (
+              <div className="flex-1 rounded-xl p-3 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">Drag kvar</div>
+                <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
+                  {movesLeft}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 

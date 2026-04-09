@@ -16,6 +16,11 @@ type: feature
 - 100 moves, only 3 colors (red/green/blue), min 5-letter words
 - Same length bonus scoring as Classic
 
+## Ett Ord
+- 60 moves, standard 5 colors
+- All words found count during play, but final score = highest single word score
+- Same length bonus scoring as Classic
+
 ## Bomb Mode
 - No move limit, standard 5 colors
 - Random vowels get bomb timers (min 10 moves), timer decrements each move

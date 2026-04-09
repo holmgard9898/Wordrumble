@@ -13,6 +13,7 @@ const MODE_OPTIONS = [
   { value: 'Classic', label: 'Classic' },
   { value: 'Word Surge', label: 'Word Surge' },
   { value: '5+ Bokstäver', label: '5+ Bokstäver' },
+  { value: 'Ett Ord', label: 'Ett Ord' },
   { value: 'Bomb Mode', label: 'Bomb Mode' },
 ];
 

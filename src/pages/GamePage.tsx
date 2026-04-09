@@ -14,13 +14,14 @@ import { InGameMenu } from '@/components/game/InGameMenu';
 import { GameOverOverlay } from '@/components/game/GameOverOverlay';
 import { Menu } from 'lucide-react';
 
-export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb';
+export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
 
 const MODE_LABELS: Record<GameMode, string> = {
   classic: 'Classic',
   surge: 'Word Surge',
   fiveplus: '5+ Bokstäver',
   bomb: 'Bomb Mode',
+  oneword: 'Ett Ord',
 };
 
 const GamePage = () => {
@@ -28,7 +29,7 @@ const GamePage = () => {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const bg = useGameBackground();
-  const gameMode = (['classic', 'surge', 'fiveplus', 'bomb'].includes(mode) ? mode : 'classic') as GameMode;
+  const gameMode = (['classic', 'surge', 'fiveplus', 'bomb', 'oneword'].includes(mode) ? mode : 'classic') as GameMode;
 
   const { isValidWord, loading } = useDictionary(settings.language);
   const game = useGameState(isValidWord, gameMode, settings.language);
@@ -40,10 +41,12 @@ const GamePage = () => {
 
   useBackgroundMusic(!game.gameOver && !showMenu);
 
+  const finalScore = gameMode === 'oneword' ? game.bestWordScore : game.score;
+
   useEffect(() => {
     if (game.gameOver && !scoreSaved) {
       addScore({
-        score: game.score,
+        score: finalScore,
         wordsFound: game.usedWords.length,
         mode: MODE_LABELS[gameMode],
         date: new Date().toISOString(),
@@ -51,7 +54,7 @@ const GamePage = () => {
       setScoreSaved(true);
       if (gameMode === 'bomb') playGameOver();
     }
-  }, [game.gameOver, scoreSaved, game.score, game.usedWords.length, gameMode, addScore, playGameOver]);
+  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver]);
 
   useEffect(() => {
     if (game.lastFoundWord) {
@@ -113,6 +116,8 @@ const GamePage = () => {
           onShowWords={() => setShowWords(true)}
           usedWordsCount={game.usedWords.length}
           mode={gameMode}
+          bestWordScore={game.bestWordScore}
+          bestWord={game.bestWord}
         />
       </div>
 
@@ -126,10 +131,12 @@ const GamePage = () => {
 
       {game.gameOver && (
         <GameOverOverlay
-          score={game.score}
+          score={finalScore}
           wordsFound={game.usedWords.length}
           mode={gameMode}
           onRestart={handleReset}
+          bestWord={game.bestWord}
+          bestWordScore={game.bestWordScore}
         />
       )}
     </div>
