@@ -1,6 +1,7 @@
 import { BubbleData, Position } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
 import { useRef, useCallback } from 'react';
+import { useSettings } from '@/contexts/SettingsContext';
 
 interface GameBoardProps {
   grid: BubbleData[][];
@@ -12,6 +13,8 @@ interface GameBoardProps {
 
 export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, onSwipe }: GameBoardProps) {
   const touchStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
+  const { settings } = useSettings();
+  const isRubik = settings.tileStyle === 'rubik';
 
   const handleTouchStart = useCallback((row: number, col: number, e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -31,7 +34,6 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
     const threshold = 20;
 
     if (absDx < threshold && absDy < threshold) {
-      // Tap, not swipe
       onBubbleClick(row, col);
       return;
     }
@@ -44,9 +46,12 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
   }, [onSwipe, onBubbleClick]);
 
   return (
-    <div className="flex flex-col gap-0.5 md:gap-1 p-2 md:p-3 rounded-2xl" style={{ background: 'rgba(0,0,0,0.3)' }}>
+    <div
+      className={`flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-2 md:p-3 rounded-2xl`}
+      style={{ background: 'rgba(0,0,0,0.3)' }}
+    >
       {grid.map((row, r) => (
-        <div key={r} className="flex gap-0.5 md:gap-1 justify-center">
+        <div key={r} className={`flex ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} justify-center`}>
           {row.map((bubble, c) => {
             const isSelected = selectedBubble?.row === r && selectedBubble?.col === c;
             const isPopping = poppingCells.has(`${r}-${c}`);

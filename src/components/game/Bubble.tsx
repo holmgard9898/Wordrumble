@@ -1,4 +1,5 @@
-import { BubbleData, BUBBLE_COLOR_STYLES } from '@/data/gameConstants';
+import { BubbleData, BUBBLE_COLOR_STYLES, BubbleColor } from '@/data/gameConstants';
+import { useSettings, type TileStyle } from '@/contexts/SettingsContext';
 
 interface BubbleProps {
   bubble: BubbleData;
@@ -9,10 +10,127 @@ interface BubbleProps {
   onTouchEnd?: (e: React.TouchEvent) => void;
 }
 
+const SHAPE_MAP: Record<BubbleColor, { shape: string; label: string }> = {
+  red:    { shape: '★', label: 'star' },
+  green:  { shape: '■', label: 'square' },
+  blue:   { shape: '●', label: 'circle' },
+  yellow: { shape: '▲', label: 'triangle' },
+  pink:   { shape: '◆', label: 'diamond' },
+};
+
+function ShapeIcon({ color, size }: { color: BubbleColor; size: number }) {
+  const s = SHAPE_MAP[color];
+  return (
+    <span className="absolute top-0.5 left-1 text-white/40 leading-none pointer-events-none" style={{ fontSize: size }}>
+      {s.shape}
+    </span>
+  );
+}
+
 export function Bubble({ bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd }: BubbleProps) {
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const { settings } = useSettings();
+  const style = settings.tileStyle;
 
+  if (style === 'rubik') {
+    return (
+      <button
+        onClick={onClick}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className={`
+          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
+          cursor-pointer select-none transition-all duration-200 touch-none
+          ${isPopping ? 'animate-pop' : ''}
+          ${isSelected ? 'z-10 brightness-125' : ''}
+        `}
+        style={{
+          background: colors.bg,
+          border: '2px solid rgba(0,0,0,0.7)',
+          boxShadow: isSelected
+            ? `0 0 16px ${colors.bg}, inset 0 2px 6px rgba(255,255,255,0.25)`
+            : 'inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -2px 4px rgba(0,0,0,0.2)',
+          color: '#fff',
+          borderRadius: '3px',
+        }}
+      >
+        <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
+          {bubble.letter}
+        </span>
+        {hasBomb ? (
+          <span
+            className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse"
+            style={{
+              background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
+              color: '#fff',
+              border: '1.5px solid hsl(0, 0%, 20%)',
+              textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+            }}
+          >
+            💣{bubble.bomb}
+          </span>
+        ) : (
+          <span
+            className="absolute bottom-0 right-0.5 text-[8px] md:text-[9px] font-semibold opacity-80"
+            style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color: '#fff' }}
+          >
+            {bubble.value}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  if (style === 'shapes') {
+    return (
+      <button
+        onClick={onClick}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        className={`
+          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-xl flex items-center justify-center
+          cursor-pointer select-none transition-all duration-200 touch-none
+          ${isPopping ? 'animate-pop' : ''}
+          ${isSelected ? 'ring-4 ring-white scale-110 z-10' : ''}
+        `}
+        style={{
+          background: `radial-gradient(circle at 35% 30%, ${colors.highlight}, ${colors.bg} 60%, ${colors.border})`,
+          boxShadow: isSelected
+            ? `0 0 20px ${colors.bg}, inset 0 -3px 6px ${colors.border}`
+            : `inset 0 -3px 6px ${colors.border}, 0 2px 4px rgba(0,0,0,0.3)`,
+          color: '#fff',
+        }}
+      >
+        <ShapeIcon color={bubble.color} size={28} />
+        <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+          {bubble.letter}
+        </span>
+        {hasBomb ? (
+          <span
+            className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse"
+            style={{
+              background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
+              color: '#fff',
+              border: '1.5px solid hsl(0, 0%, 20%)',
+              textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+            }}
+          >
+            💣{bubble.bomb}
+          </span>
+        ) : (
+          <span
+            className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-semibold opacity-80"
+            style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color: colors.text }}
+          >
+            {bubble.value}
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  // Default bubble style
   return (
     <button
       onClick={onClick}
