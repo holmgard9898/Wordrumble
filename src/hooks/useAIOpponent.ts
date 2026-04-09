@@ -227,6 +227,8 @@ export function simulateAIRound(
     movesUsed,
     bestWord: bestEntry?.word ?? null,
     bestWordScore: bestEntry?.score ?? 0,
+    finalGrid: simGrid,
+    usedWordsList: Array.from(usedWords),
   };
 }
 
