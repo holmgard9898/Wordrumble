@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Timer, Zap, Bomb, Hash, Target, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Timer, Zap, Bomb, Hash, Target, HelpCircle, Lock } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
+import { useGameProgress } from '@/hooks/useGameProgress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface ModeData {
   path: string;
+  mode: string;
   icon: React.ReactNode;
   name: string;
   desc: string;
@@ -16,6 +19,47 @@ interface ModeData {
   border: string;
   info: string[];
 }
+
+/* ─── Chain + padlock SVG overlay ─── */
+const ChainOverlay = () => (
+  <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+    {/* Chains from edges to center */}
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 100" preserveAspectRatio="none">
+      {/* Left chain */}
+      {[20, 50, 80, 110, 130].map((x) => (
+        <ellipse
+          key={`l-${x}`}
+          cx={x}
+          cy={50}
+          rx={12}
+          ry={7}
+          fill="none"
+          stroke="hsl(220, 10%, 55%)"
+          strokeWidth={2.5}
+          opacity={0.8}
+        />
+      ))}
+      {/* Right chain */}
+      {[300, 270, 240, 210, 190].map((x) => (
+        <ellipse
+          key={`r-${x}`}
+          cx={x}
+          cy={50}
+          rx={12}
+          ry={7}
+          fill="none"
+          stroke="hsl(220, 10%, 55%)"
+          strokeWidth={2.5}
+          opacity={0.8}
+        />
+      ))}
+    </svg>
+    {/* Padlock in center */}
+    <div className="relative z-30 bg-gradient-to-b from-gray-400 to-gray-600 rounded-md p-1.5 shadow-lg border border-gray-500/50">
+      <Lock className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
+    </div>
+  </div>
+);
 
 const SingleplayerMenu = () => {
   useMenuMusic();
@@ -25,8 +69,15 @@ const SingleplayerMenu = () => {
   const { settings } = useSettings();
   const isClouds = settings.background === 'clouds';
   const [expandedMode, setExpandedMode] = useState<string | null>(null);
+  const [lockedDialog, setLockedDialog] = useState<string | null>(null);
+  const { isModeUnlocked, getUnlockHint } = useGameProgress();
 
-  const go = (path: string) => {
+  const go = (path: string, mode: string) => {
+    if (!isModeUnlocked(mode)) {
+      playClick();
+      setLockedDialog(mode);
+      return;
+    }
     playClick();
     navigate(path);
   };
@@ -34,6 +85,7 @@ const SingleplayerMenu = () => {
   const modes: ModeData[] = [
     {
       path: '/game/classic',
+      mode: 'classic',
       icon: <Timer className="w-6 h-6 text-blue-400" />,
       name: 'Classic',
       desc: '50 drag. Få så många poäng som möjligt! Bonus för långa ord.',
@@ -55,6 +107,7 @@ const SingleplayerMenu = () => {
     },
     {
       path: '/game/surge',
+      mode: 'surge',
       icon: <Zap className="w-6 h-6 text-yellow-400" />,
       name: 'Word Surge',
       desc: '50 drag. Hitta ord med höga poäng eller långa ord för att få extra drag!',
@@ -74,6 +127,7 @@ const SingleplayerMenu = () => {
     },
     {
       path: '/game/fiveplus',
+      mode: 'fiveplus',
       icon: <Hash className="w-6 h-6 text-cyan-400" />,
       name: '5+ Bokstäver',
       desc: '100 drag. Bara 3 färger men bara ord med 5+ bokstäver räknas!',
@@ -91,6 +145,7 @@ const SingleplayerMenu = () => {
     },
     {
       path: '/game/oneword',
+      mode: 'oneword',
       icon: <Target className="w-6 h-6 text-emerald-400" />,
       name: 'Ett Ord',
       desc: '60 drag. Bilda så många ord du vill men bara ditt bästa ord räknas!',
@@ -105,6 +160,7 @@ const SingleplayerMenu = () => {
     },
     {
       path: '/game/bomb',
+      mode: 'bomb',
       icon: <Bomb className="w-6 h-6 text-red-400" />,
       name: 'Bomb Mode',
       desc: 'Inga dragbegränsningar! Desarmera bomber genom att bilda ord med bombade bokstäver innan tiden rinner ut.',
@@ -122,6 +178,7 @@ const SingleplayerMenu = () => {
   ];
 
   const expanded = modes.find((m) => m.path === expandedMode);
+  const lockedMode = modes.find((m) => m.mode === lockedDialog);
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
@@ -144,6 +201,7 @@ const SingleplayerMenu = () => {
           {modes.map((m) => {
             const isExpanded = expandedMode === m.path;
             const isHidden = expanded && !isExpanded;
+            const locked = !isModeUnlocked(m.mode);
 
             return (
               <div
@@ -159,30 +217,35 @@ const SingleplayerMenu = () => {
                 {!isExpanded ? (
                   /* Normal card */
                   <button
-                    onClick={() => go(m.path)}
-                    className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative"
+                    onClick={() => go(m.path, m.mode)}
+                    className={`rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`}
                     style={{
                       background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg,
                       border: `1px solid ${m.border}`,
                     }}
                   >
-                    <div className="flex items-center gap-3 mb-2">
+                    {/* Chain overlay for locked modes */}
+                    {locked && <ChainOverlay />}
+
+                    <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
                       <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
                     </div>
-                    <p className="text-white/70 text-sm font-medium drop-shadow-sm pr-8">{m.desc}</p>
+                    <p className={`text-white/70 text-sm font-medium drop-shadow-sm pr-8 ${locked ? 'opacity-50' : ''}`}>{m.desc}</p>
 
-                    {/* Question mark button */}
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        playClick();
-                        setExpandedMode(m.path);
-                      }}
-                      className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/30 transition-colors cursor-pointer"
-                    >
-                      <HelpCircle className="w-4 h-4 text-white/80" />
-                    </div>
+                    {/* Question mark button - only for unlocked modes */}
+                    {!locked && (
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playClick();
+                          setExpandedMode(m.path);
+                        }}
+                        className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/30 transition-colors cursor-pointer z-30"
+                      >
+                        <HelpCircle className="w-4 h-4 text-white/80" />
+                      </div>
+                    )}
                   </button>
                 ) : (
                   /* Expanded info card */
@@ -221,7 +284,7 @@ const SingleplayerMenu = () => {
                         <ArrowLeft className="w-4 h-4" /> Tillbaka
                       </Button>
                       <Button
-                        onClick={() => go(m.path)}
+                        onClick={() => go(m.path, m.mode)}
                         className="flex-1 gap-2 text-white font-bold bg-white/20 hover:bg-white/30 border border-white/30"
                       >
                         Spela
@@ -242,11 +305,45 @@ const SingleplayerMenu = () => {
             opacity: expanded ? 0 : 1,
           }}
         >
-          <Button onClick={() => go('/')} variant="ghost" className="mt-8 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
+          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-8 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
             <ArrowLeft className="w-4 h-4" /> Huvudmeny
           </Button>
         </div>
       </div>
+
+      {/* Locked mode dialog */}
+      <Dialog open={!!lockedDialog} onOpenChange={(open) => !open && setLockedDialog(null)}>
+        <DialogContent className="bg-gray-900/95 border-gray-700 backdrop-blur-xl max-w-xs rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-white flex items-center gap-2">
+              <Lock className="w-5 h-5 text-gray-400" />
+              {lockedMode?.name ?? 'Låst'}
+            </DialogTitle>
+            <DialogDescription className="text-white/70">
+              Spelläget är låst
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-2">
+            <div className="flex items-center gap-3 mb-4">
+              {lockedMode?.icon}
+              <span className="text-lg font-semibold text-white">{lockedMode?.name}</span>
+            </div>
+            <p className="text-white/80 text-sm leading-relaxed">
+              {lockedDialog ? getUnlockHint(lockedDialog) : ''}
+            </p>
+          </div>
+          <Button
+            onClick={() => {
+              playClick();
+              setLockedDialog(null);
+            }}
+            variant="ghost"
+            className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20"
+          >
+            <ArrowLeft className="w-4 h-4" /> Tillbaka
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
