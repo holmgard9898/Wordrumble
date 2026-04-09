@@ -358,6 +358,8 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
     newGrid[toRow][toCol] = temp;
 
+    setMovesUsed((prev) => prev + 1);
+
     if (mode === 'bomb') {
       // In bomb mode: swap → check words → after cascade, decrement bombs
       setGrid(newGrid);
