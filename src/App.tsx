@@ -11,6 +11,7 @@ import GamePage from "./pages/GamePage";
 import SettingsPage from "./pages/SettingsPage";
 import Statistics from "./pages/Statistics";
 import Shop from "./pages/Shop";
+import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
