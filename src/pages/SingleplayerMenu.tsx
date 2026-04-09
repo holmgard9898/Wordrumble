@@ -3,11 +3,14 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Timer, Zap, Bomb, Hash, Target } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const SingleplayerMenu = () => {
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const bg = useGameBackground();
+  const { settings } = useSettings();
+  const isClouds = settings.background === 'clouds';
 
   const go = (path: string) => {
     playClick();
@@ -59,29 +62,35 @@ const SingleplayerMenu = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <h1 className="text-4xl font-bold text-white mb-2">Singleplayer</h1>
-      <p className="text-white/50 mb-8">Välj spelläge</p>
+      {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
+      <div className="relative z-10 flex flex-col items-center w-full">
+        <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">Singleplayer</h1>
+        <p className="text-white/60 mb-8 drop-shadow">Välj spelläge</p>
 
-      <div className="flex flex-col gap-4 w-full max-w-xs">
-        {modes.map((m) => (
-          <button
-            key={m.path}
-            onClick={() => go(m.path)}
-            className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]"
-            style={{ background: m.bg, border: `1px solid ${m.border}` }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              {m.icon}
-              <span className="text-xl font-bold text-white">{m.name}</span>
-            </div>
-            <p className="text-white/60 text-sm">{m.desc}</p>
-          </button>
-        ))}
+        <div className="flex flex-col gap-4 w-full max-w-xs">
+          {modes.map((m) => (
+            <button
+              key={m.path}
+              onClick={() => go(m.path)}
+              className="rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md"
+              style={{
+                background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg,
+                border: `1px solid ${m.border}`,
+              }}
+            >
+              <div className="flex items-center gap-3 mb-2">
+                {m.icon}
+                <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
+              </div>
+              <p className="text-white/70 text-sm font-medium drop-shadow-sm">{m.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        <Button onClick={() => go('/')} variant="ghost" className="mt-8 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
+          <ArrowLeft className="w-4 h-4" /> Huvudmeny
+        </Button>
       </div>
-
-      <Button onClick={() => go('/')} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> Huvudmeny
-      </Button>
     </div>
   );
 };
