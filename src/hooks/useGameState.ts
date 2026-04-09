@@ -172,6 +172,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [poppingCells, setPoppingCells] = useState<Set<string>>(new Set());
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [movesUsed, setMovesUsed] = useState(0);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
