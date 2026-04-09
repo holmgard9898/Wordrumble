@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { GameLanguage } from '@/data/languages';
 
+export type GameBackground = 'default' | 'clouds';
+
 interface Settings {
   musicVolume: number;
   sfxVolume: number;
   musicEnabled: boolean;
   sfxEnabled: boolean;
   language: GameLanguage;
+  background: GameBackground;
 }
 
 interface SettingsContextType {
@@ -20,6 +23,7 @@ const defaultSettings: Settings = {
   musicEnabled: true,
   sfxEnabled: true,
   language: 'en',
+  background: 'default',
 };
 
 const SettingsContext = createContext<SettingsContextType>({
