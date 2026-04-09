@@ -479,6 +479,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     handleBubbleClick,
     handleSwipe,
     resetGame,
+    startFromState,
     bestWordScore,
     bestWord,
     movesUsed,
