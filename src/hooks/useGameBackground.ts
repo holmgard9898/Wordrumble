@@ -1,6 +1,8 @@
 import { useSettings } from '@/contexts/SettingsContext';
 import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
+import spaceBg from '@/assets/bg-space.jpg';
+import volcanoBg from '@/assets/bg-volcano.jpg';
 
 export function useGameBackground(): { className: string; style?: React.CSSProperties } {
   const { settings } = useSettings();
@@ -16,6 +18,20 @@ export function useGameBackground(): { className: string; style?: React.CSSPrope
     return {
       className: 'game-bg-clouds',
       style: { backgroundImage: `url(${woodBg})` },
+    };
+  }
+
+  if (settings.background === 'space') {
+    return {
+      className: 'game-bg-clouds',
+      style: { backgroundImage: `url(${spaceBg})` },
+    };
+  }
+
+  if (settings.background === 'volcano') {
+    return {
+      className: 'game-bg-clouds',
+      style: { backgroundImage: `url(${volcanoBg})` },
     };
   }
 

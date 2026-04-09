@@ -18,11 +18,38 @@ const SHAPE_MAP: Record<BubbleColor, { shape: string; label: string }> = {
   pink:   { shape: '◆', label: 'diamond' },
 };
 
-function ShapeIcon({ color, size }: { color: BubbleColor; size: number }) {
-  const s = SHAPE_MAP[color];
+/** CSS clip-path for each color's unique shape */
+const CLIP_PATHS: Record<BubbleColor, string> = {
+  red: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)', // star
+  green: 'none', // square – no clip needed
+  blue: 'circle(50% at 50% 50%)', // circle
+  yellow: 'polygon(50% 10%, 90% 85%, 10% 85%)', // triangle
+  pink: 'polygon(50% 5%, 90% 50%, 50% 95%, 10% 50%)', // diamond
+};
+
+function BombBadge({ bomb }: { bomb: number }) {
   return (
-    <span className="absolute top-0.5 left-1 text-white/40 leading-none pointer-events-none" style={{ fontSize: size }}>
-      {s.shape}
+    <span
+      className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse z-20"
+      style={{
+        background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
+        color: '#fff',
+        border: '1.5px solid hsl(0, 0%, 20%)',
+        textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+      }}
+    >
+      💣{bomb}
+    </span>
+  );
+}
+
+function ValueBadge({ value, color }: { value: number; color: string }) {
+  return (
+    <span
+      className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-semibold opacity-80 z-20"
+      style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color }}
+    >
+      {value}
     </span>
   );
 }
@@ -58,74 +85,55 @@ export function Bubble({ bubble, isSelected, isPopping, onClick, onTouchStart, o
         <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
           {bubble.letter}
         </span>
-        {hasBomb ? (
-          <span
-            className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse"
-            style={{
-              background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
-              color: '#fff',
-              border: '1.5px solid hsl(0, 0%, 20%)',
-              textShadow: '0 1px 1px rgba(0,0,0,0.5)',
-            }}
-          >
-            💣{bubble.bomb}
-          </span>
-        ) : (
-          <span
-            className="absolute bottom-0 right-0.5 text-[8px] md:text-[9px] font-semibold opacity-80"
-            style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color: '#fff' }}
-          >
-            {bubble.value}
-          </span>
-        )}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
 
   if (style === 'shapes') {
+    const clipPath = CLIP_PATHS[bubble.color];
+    const isSquare = bubble.color === 'green';
+
     return (
       <button
         onClick={onClick}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         className={`
-          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-xl flex items-center justify-center
+          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
           cursor-pointer select-none transition-all duration-200 touch-none
           ${isPopping ? 'animate-pop' : ''}
-          ${isSelected ? 'ring-4 ring-white scale-110 z-10' : ''}
+          ${isSelected ? 'z-10 scale-110' : ''}
         `}
-        style={{
-          background: `radial-gradient(circle at 35% 30%, ${colors.highlight}, ${colors.bg} 60%, ${colors.border})`,
-          boxShadow: isSelected
-            ? `0 0 20px ${colors.bg}, inset 0 -3px 6px ${colors.border}`
-            : `inset 0 -3px 6px ${colors.border}, 0 2px 4px rgba(0,0,0,0.3)`,
-          color: '#fff',
-        }}
+        style={{ background: 'transparent' }}
       >
-        <ShapeIcon color={bubble.color} size={28} />
-        <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+        {/* The actual shape */}
+        <div
+          className="absolute inset-0.5 md:inset-0"
+          style={{
+            background: `radial-gradient(circle at 35% 30%, ${colors.highlight}, ${colors.bg} 60%, ${colors.border})`,
+            clipPath: isSquare ? 'none' : clipPath,
+            borderRadius: isSquare ? '3px' : '0',
+            boxShadow: isSelected
+              ? `0 0 20px ${colors.bg}`
+              : `0 2px 4px rgba(0,0,0,0.4)`,
+          }}
+        />
+        {/* Selection ring */}
+        {isSelected && (
+          <div
+            className="absolute inset-0 rounded-lg"
+            style={{ boxShadow: `0 0 0 3px white, 0 0 16px ${colors.bg}` }}
+          />
+        )}
+        {/* Letter */}
+        <span
+          className="relative text-base md:text-lg lg:text-xl font-bold leading-none z-10"
+          style={{ color: '#fff', textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}
+        >
           {bubble.letter}
         </span>
-        {hasBomb ? (
-          <span
-            className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse"
-            style={{
-              background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
-              color: '#fff',
-              border: '1.5px solid hsl(0, 0%, 20%)',
-              textShadow: '0 1px 1px rgba(0,0,0,0.5)',
-            }}
-          >
-            💣{bubble.bomb}
-          </span>
-        ) : (
-          <span
-            className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-semibold opacity-80"
-            style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color: colors.text }}
-          >
-            {bubble.value}
-          </span>
-        )}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
@@ -159,26 +167,7 @@ export function Bubble({ bubble, isSelected, isPopping, onClick, onTouchStart, o
       <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
         {bubble.letter}
       </span>
-      {hasBomb ? (
-        <span
-          className="absolute -top-1 -right-1 w-5 h-5 md:w-6 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-bold animate-pulse"
-          style={{
-            background: 'linear-gradient(135deg, hsl(40, 100%, 50%), hsl(20, 100%, 45%))',
-            color: '#fff',
-            border: '1.5px solid hsl(0, 0%, 20%)',
-            textShadow: '0 1px 1px rgba(0,0,0,0.5)',
-          }}
-        >
-          💣{bubble.bomb}
-        </span>
-      ) : (
-        <span
-          className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-semibold opacity-80"
-          style={{ textShadow: '0 1px 1px rgba(0,0,0,0.4)', color: colors.text }}
-        >
-          {bubble.value}
-        </span>
-      )}
+      {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color={colors.text} />}
     </button>
   );
 }
