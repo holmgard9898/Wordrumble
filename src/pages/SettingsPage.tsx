@@ -1,10 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Volume2, Music } from 'lucide-react';
+import { ArrowLeft, Volume2, Music, Globe } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { useSfx } from '@/hooks/useSfx';
+import { AVAILABLE_LANGUAGES, getLanguageConfig } from '@/data/languages';
+import type { GameLanguage } from '@/data/languages';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
@@ -16,6 +18,40 @@ const SettingsPage = () => {
       <h1 className="text-4xl font-bold text-white mb-8">Inställningar</h1>
 
       <div className="w-full max-w-sm space-y-6">
+        {/* Language */}
+        <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <div className="flex items-center gap-3 mb-3">
+            <Globe className="w-5 h-5 text-purple-400" />
+            <span className="text-white font-semibold">Språk / Language</span>
+          </div>
+          <div className="flex gap-2">
+            {AVAILABLE_LANGUAGES.map((lang) => {
+              const config = getLanguageConfig(lang);
+              const isActive = settings.language === lang;
+              return (
+                <button
+                  key={lang}
+                  onClick={() => {
+                    playClick();
+                    updateSettings({ language: lang });
+                  }}
+                  className="flex-1 flex flex-col items-center gap-1 rounded-xl py-3 px-2 transition-all"
+                  style={{
+                    background: isActive ? 'rgba(139,92,246,0.3)' : 'rgba(255,255,255,0.05)',
+                    border: isActive ? '2px solid rgba(139,92,246,0.6)' : '2px solid transparent',
+                  }}
+                >
+                  <span className="text-2xl">{config.flag}</span>
+                  <span className={`text-xs font-medium ${isActive ? 'text-purple-300' : 'text-white/60'}`}>
+                    {config.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-white/40 text-xs text-center">Ändras inte under pågående spel</p>
+        </div>
+
         {/* Music */}
         <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
           <div className="flex items-center justify-between">

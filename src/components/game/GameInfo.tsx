@@ -5,7 +5,6 @@ import type { GameMode } from '@/pages/GamePage';
 interface GameInfoProps {
   movesLeft: number;
   score: number;
-  gameOver: boolean;
   lastFoundWord: string | null;
   onResetGame: () => void;
   onShowWords: () => void;
@@ -21,7 +20,7 @@ const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color
 };
 
 export function GameInfo({
-  movesLeft, score, gameOver, lastFoundWord,
+  movesLeft, score, lastFoundWord,
   onResetGame, onShowWords, usedWordsCount, mode,
 }: GameInfoProps) {
   const badge = MODE_BADGE[mode];
@@ -55,18 +54,6 @@ export function GameInfo({
         <div className="rounded-xl p-2 md:p-3 text-center animate-pulse" style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)' }}>
           <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-green-300 mb-1">Ord hittat!</div>
           <div className="text-xl md:text-2xl font-bold tracking-widest text-green-300">{lastFoundWord}</div>
-        </div>
-      )}
-
-      {gameOver && (
-        <div className="rounded-xl p-4 text-center" style={{ background: 'rgba(220,38,38,0.2)', border: '1px solid rgba(220,38,38,0.3)' }}>
-          <div className="text-xl font-bold text-white mb-2">
-            {isBomb ? '💥 Bomben sprängdes!' : 'Game Over!'}
-          </div>
-          <div className="text-white/70 mb-3">Slutpoäng: {score}</div>
-          <Button onClick={onResetGame} className="gap-2">
-            <RotateCcw className="w-4 h-4" /> Nytt spel
-          </Button>
         </div>
       )}
 
