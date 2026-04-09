@@ -1,23 +1,48 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Bot, Timer, Zap } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowLeft, Shuffle, Users, Bot, Timer, Zap, Star, Trophy } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
+import { useAuth } from '@/hooks/useAuth';
 
 const MultiplayerMenu = () => {
   useMenuMusic();
   const navigate = useNavigate();
   const { playClick } = useSfx();
   const bg = useGameBackground();
-  const [selectedMode, setSelectedMode] = useState<'classic' | 'surge' | null>(null);
+  const { user, loading } = useAuth();
+  const [selectedMode, setSelectedMode] = useState<'classic' | 'surge' | 'fiveplus' | 'oneword' | null>(null);
   const [selectedOpponent, setSelectedOpponent] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [loading, user, navigate]);
 
   const go = (path: string) => {
     playClick();
     navigate(path);
   };
+
+  if (loading) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}>
+        <div className="text-white/60">Laddar...</div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  const modes = [
+    { id: 'classic', icon: Timer, label: 'Classic', color: 'blue', desc: '2 omgångar, 25+50+25 drag' },
+    { id: 'surge', icon: Zap, label: 'Word Surge', color: 'yellow', desc: '3 omgångar, samma startbräde' },
+    { id: 'fiveplus', icon: Star, label: '5+ Bokstäver', color: 'green', desc: '2 omgångar, min 5 bokstäver' },
+    { id: 'oneword', icon: Trophy, label: 'Längsta Ordet', color: 'pink', desc: '2 omgångar, bästa ordet vinner' },
+  ];
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
@@ -28,7 +53,7 @@ const MultiplayerMenu = () => {
         <p className="text-white/70 text-sm font-semibold uppercase tracking-wider">Motståndare</p>
         {[
           { id: 'random', icon: Shuffle, label: 'Slumpmässig', desc: 'Möt en slumpmässig spelare' },
-          { id: 'friend', icon: Users, label: 'Vän', desc: 'Utmana en vän (kommer snart)' },
+          { id: 'friend', icon: Users, label: 'Vän', desc: 'Utmana en vän' },
           { id: 'ai', icon: Bot, label: 'Dator', desc: 'Spela mot AI' },
         ].map((opt) => (
           <button
@@ -52,24 +77,39 @@ const MultiplayerMenu = () => {
         {selectedOpponent && (
           <>
             <p className="text-white/70 text-sm font-semibold uppercase tracking-wider mt-4">Spelläge</p>
-            {[
-              { id: 'classic', icon: Timer, label: 'Classic', color: 'blue' },
-              { id: 'surge', icon: Zap, label: 'Word Surge', color: 'yellow' },
-            ].map((mode) => (
-              <button
-                key={mode.id}
-                onClick={() => { playClick(); setSelectedMode(mode.id as 'classic' | 'surge'); }}
-                className={`rounded-xl p-3 text-left transition-all ${
-                  selectedMode === mode.id ? 'ring-2 ring-white/50 scale-[1.02]' : 'hover:scale-[1.01]'
-                }`}
-                style={{ background: `rgba(${mode.color === 'blue' ? '59,130,246' : '234,179,8'},0.15)`, border: `1px solid rgba(${mode.color === 'blue' ? '59,130,246' : '234,179,8'},0.25)` }}
-              >
-                <div className="flex items-center gap-3">
-                  <mode.icon className={`w-5 h-5 ${mode.color === 'blue' ? 'text-blue-400' : 'text-yellow-400'}`} />
-                  <span className="text-white font-semibold">{mode.label}</span>
-                </div>
-              </button>
-            ))}
+            {modes.map((mode) => {
+              const colorMap: Record<string, string> = {
+                blue: '59,130,246',
+                yellow: '234,179,8',
+                green: '34,197,94',
+                pink: '236,72,153',
+              };
+              const rgb = colorMap[mode.color] || '59,130,246';
+              const textColorMap: Record<string, string> = {
+                blue: 'text-blue-400',
+                yellow: 'text-yellow-400',
+                green: 'text-green-400',
+                pink: 'text-pink-400',
+              };
+              return (
+                <button
+                  key={mode.id}
+                  onClick={() => { playClick(); setSelectedMode(mode.id as any); }}
+                  className={`rounded-xl p-3 text-left transition-all ${
+                    selectedMode === mode.id ? 'ring-2 ring-white/50 scale-[1.02]' : 'hover:scale-[1.01]'
+                  }`}
+                  style={{ background: `rgba(${rgb},0.15)`, border: `1px solid rgba(${rgb},0.25)` }}
+                >
+                  <div className="flex items-center gap-3">
+                    <mode.icon className={`w-5 h-5 ${textColorMap[mode.color]}`} />
+                    <div>
+                      <span className="text-white font-semibold">{mode.label}</span>
+                      <div className="text-white/50 text-xs">{mode.desc}</div>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </>
         )}
 
