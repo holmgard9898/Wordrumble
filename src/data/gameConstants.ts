@@ -4,7 +4,7 @@ export const LETTER_VALUES: Record<string, number> = {
   U: 1, V: 4, W: 4, X: 8, Y: 4, Z: 10,
 };
 
-// Weighted letter pool (Scrabble-like distribution)
+// Default English letter pool
 const LETTER_POOL =
   "AAAAAAAAABBCCDDDDEEEEEEEEEEEEFFGGGHHIIIIIIIIIJKLLLLMMNNNNNNOOOOOOOOPPQRRRRRRSSSSTTTTTTUUUVVWWXYYZ";
 
@@ -34,7 +34,7 @@ export interface BubbleData {
   letter: string;
   value: number;
   color: BubbleColor;
-  bomb?: number; // countdown timer, undefined = no bomb
+  bomb?: number;
 }
 
 export interface Position {
@@ -44,23 +44,33 @@ export interface Position {
 
 let bubbleIdCounter = 0;
 
-export function createRandomBubble(colors: BubbleColor[] = BUBBLE_COLORS): BubbleData {
-  const letter = LETTER_POOL[Math.floor(Math.random() * LETTER_POOL.length)];
+export function createRandomBubble(
+  colors: BubbleColor[] = BUBBLE_COLORS,
+  pool?: string,
+  values?: Record<string, number>,
+): BubbleData {
+  const letterPool = pool || LETTER_POOL;
+  const letterValues = values || LETTER_VALUES;
+  const letter = letterPool[Math.floor(Math.random() * letterPool.length)];
   const color = colors[Math.floor(Math.random() * colors.length)];
   return {
     id: `bubble-${bubbleIdCounter++}`,
     letter,
-    value: LETTER_VALUES[letter],
+    value: letterValues[letter] ?? 1,
     color,
   };
 }
 
-export function createGrid(colors: BubbleColor[] = BUBBLE_COLORS): BubbleData[][] {
+export function createGrid(
+  colors: BubbleColor[] = BUBBLE_COLORS,
+  pool?: string,
+  values?: Record<string, number>,
+): BubbleData[][] {
   const grid: BubbleData[][] = [];
   for (let r = 0; r < ROWS; r++) {
     const row: BubbleData[] = [];
     for (let c = 0; c < COLS; c++) {
-      row.push(createRandomBubble(colors));
+      row.push(createRandomBubble(colors, pool, values));
     }
     grid.push(row);
   }

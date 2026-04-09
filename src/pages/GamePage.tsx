@@ -5,10 +5,12 @@ import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
+import { useSettings } from '@/contexts/SettingsContext';
 import { GameBoard } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
+import { GameOverOverlay } from '@/components/game/GameOverOverlay';
 import { Menu } from 'lucide-react';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb';
@@ -23,19 +25,19 @@ const MODE_LABELS: Record<GameMode, string> = {
 const GamePage = () => {
   const { mode = 'classic' } = useParams<{ mode: string }>();
   const navigate = useNavigate();
+  const { settings } = useSettings();
   const gameMode = (['classic', 'surge', 'fiveplus', 'bomb'].includes(mode) ? mode : 'classic') as GameMode;
 
-  const { isValidWord, loading } = useDictionary();
-  const game = useGameState(isValidWord, gameMode);
+  const { isValidWord, loading } = useDictionary(settings.language);
+  const game = useGameState(isValidWord, gameMode, settings.language);
   const { addScore } = useHighScores();
-  const { playPop, playSwap, playWordFound, playGameOver } = useSfx();
+  const { playSwap, playWordFound, playGameOver } = useSfx();
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [scoreSaved, setScoreSaved] = useState(false);
 
   useBackgroundMusic(!game.gameOver && !showMenu);
 
-  // Save score on game over
   useEffect(() => {
     if (game.gameOver && !scoreSaved) {
       addScore({
@@ -45,11 +47,10 @@ const GamePage = () => {
         date: new Date().toISOString(),
       });
       setScoreSaved(true);
-      playGameOver();
+      if (gameMode === 'bomb') playGameOver();
     }
   }, [game.gameOver, scoreSaved, game.score, game.usedWords.length, gameMode, addScore, playGameOver]);
 
-  // Play sound on word found
   useEffect(() => {
     if (game.lastFoundWord) {
       playWordFound();
@@ -81,7 +82,6 @@ const GamePage = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center p-2 md:p-4 game-bg">
-      {/* Header */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-2 md:mb-4 px-1">
         <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
           Word Rumble
@@ -94,7 +94,6 @@ const GamePage = () => {
         </button>
       </div>
 
-      {/* Desktop: row / Mobile: column */}
       <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
         <GameBoard
           grid={game.grid}
@@ -107,7 +106,6 @@ const GamePage = () => {
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
-          gameOver={game.gameOver}
           lastFoundWord={game.lastFoundWord}
           onResetGame={handleReset}
           onShowWords={() => setShowWords(true)}
@@ -123,6 +121,15 @@ const GamePage = () => {
       />
 
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
+
+      {game.gameOver && (
+        <GameOverOverlay
+          score={game.score}
+          wordsFound={game.usedWords.length}
+          mode={gameMode}
+          onRestart={handleReset}
+        />
+      )}
     </div>
   );
 };

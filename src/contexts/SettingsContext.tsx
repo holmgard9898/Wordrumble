@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import type { GameLanguage } from '@/data/languages';
 
 interface Settings {
   musicVolume: number;
   sfxVolume: number;
   musicEnabled: boolean;
   sfxEnabled: boolean;
+  language: GameLanguage;
 }
 
 interface SettingsContextType {
@@ -17,6 +19,7 @@ const defaultSettings: Settings = {
   sfxVolume: 0.8,
   musicEnabled: true,
   sfxEnabled: true,
+  language: 'en',
 };
 
 const SettingsContext = createContext<SettingsContextType>({
