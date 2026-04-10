@@ -467,6 +467,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setLastFoundWord(null);
     setIsProcessing(false);
     setMovesUsed(0);
+    setBonusPopups([]);
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
@@ -492,6 +493,10 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const bestWordScore = bestWordEntry?.score ?? 0;
   const bestWord = bestWordEntry?.word ?? null;
 
+  const removeBonusPopup = useCallback((id: string) => {
+    setBonusPopups((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
   return {
     grid,
     selectedBubble,
@@ -509,5 +514,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     bestWordScore,
     bestWord,
     movesUsed,
+    bonusPopups,
+    removeBonusPopup,
   };
 }
