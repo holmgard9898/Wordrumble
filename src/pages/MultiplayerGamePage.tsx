@@ -140,25 +140,36 @@ const MultiplayerGamePage = () => {
     if (match.current_turn !== user.id) return;
     if (match.status !== 'active') return;
 
-    // Generate or use existing grid for this round
+    // Determine grid for this phase
     let grid: BubbleData[][];
-    const roundGrids = match.round_grids || [];
-    const roundIndex = match.current_round - 1;
+    const roundGrids = (match.round_grids || {}) as Record<string, any>;
+    const currentPhase = match.current_phase || 1;
+    const isClassicLike = match.mode === 'classic' || match.mode === 'fiveplus';
 
-    if (roundGrids[roundIndex]) {
-      // Use pre-generated grid
-      grid = roundGrids[roundIndex] as BubbleData[][];
+    if (isClassicLike && currentPhase > 1) {
+      // Phase 2 or 3: use previous phase's final grid
+      const prevPhaseKey = `r${match.current_round}_p${currentPhase - 1}`;
+      if (roundGrids[prevPhaseKey]) {
+        grid = roundGrids[prevPhaseKey] as BubbleData[][];
+      } else {
+        // Fallback: generate fresh grid
+        grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
+      }
     } else {
-      // Generate grid and save it
-      grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
-      // Save grid to match (fire and forget)
-      const newGrids = [...roundGrids];
-      newGrids[roundIndex] = grid;
-      supabase.from('matches').update({ round_grids: newGrids }).eq('id', match.id);
+      // Phase 1 or non-classic: check for stored starting grid
+      const startKey = `r${match.current_round}_start`;
+      if (roundGrids[startKey]) {
+        grid = roundGrids[startKey] as BubbleData[][];
+      } else {
+        grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
+        // Save starting grid
+        const newGrids = { ...roundGrids, [startKey]: grid };
+        supabase.from('matches').update({ round_grids: newGrids }).eq('id', match.id);
+      }
     }
 
     const blockedWords = match.shared_used_words || [];
-    const maxMoves = getMaxMoves(match.mode);
+    const maxMoves = getMovesForPhase(match.mode, currentPhase);
 
     game.startFromState(grid, maxMoves, blockedWords);
     setGameStarted(true);
