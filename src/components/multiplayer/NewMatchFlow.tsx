@@ -41,7 +41,7 @@ export function NewMatchFlow({ challengeFriend, onCancel }: NewMatchFlowProps) {
         .select('id')
         .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
         .eq('status', 'active')
-        .eq('mode', queuedMode)
+        .eq('mode', queuedMode as 'classic' | 'surge' | 'fiveplus' | 'oneword')
         .order('created_at', { ascending: false })
         .limit(1);
 
