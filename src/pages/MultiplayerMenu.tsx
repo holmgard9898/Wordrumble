@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Shuffle, Users, Loader2, X, Bot } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
@@ -133,6 +133,7 @@ const MultiplayerMenu = () => {
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 pt-8 pb-20 ${bg.className}`} style={bg.style}>
       <h1 className="text-3xl font-bold text-white mb-1">Utmana</h1>
+      <p className="text-white/50 text-sm mb-6">Välj motståndare och spelläge</p>
 
       {searching ? (
         <div className="w-full max-w-md text-center py-8">
@@ -145,25 +146,41 @@ const MultiplayerMenu = () => {
         </div>
       ) : (
         <>
-          {/* Action buttons */}
-          <div className="flex gap-3 w-full max-w-md mt-4 mb-6">
+          {/* Opponent selection */}
+          <div className="w-full max-w-md space-y-3 mb-6">
+            <p className="text-white/50 text-xs font-semibold uppercase tracking-wider">Motståndare</p>
             <button
               onClick={handleRandomClick}
-              className="flex-1 rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: 'rgba(147,51,234,0.2)', border: '1px solid rgba(147,51,234,0.3)' }}
+              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]"
+              style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}
             >
-              <Shuffle className="w-5 h-5 text-purple-400 mb-1" />
-              <div className="text-white font-semibold text-sm">Slumpmässig</div>
-              <div className="text-white/40 text-[10px]">Möt en spelare</div>
+              <Shuffle className="w-6 h-6 text-purple-400" />
+              <div className="text-left">
+                <div className="text-white font-bold text-base">Slumpmässig</div>
+                <div className="text-white/40 text-xs">Möt en slumpmässig spelare</div>
+              </div>
             </button>
             <button
               onClick={() => { playClick(); setFriendDrawerOpen(true); }}
-              className="flex-1 rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
-              style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)' }}
+              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]"
+              style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}
             >
-              <Users className="w-5 h-5 text-blue-400 mb-1" />
-              <div className="text-white font-semibold text-sm">Vänner</div>
-              <div className="text-white/40 text-[10px]">Utmana en vän</div>
+              <Users className="w-6 h-6 text-purple-400" />
+              <div className="text-left">
+                <div className="text-white font-bold text-base">Vän</div>
+                <div className="text-white/40 text-xs">Utmana en vän</div>
+              </div>
+            </button>
+            <button
+              onClick={() => { playClick(); toast.info('Kommer snart!'); }}
+              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] opacity-60"
+              style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}
+            >
+              <Bot className="w-6 h-6 text-purple-400" />
+              <div className="text-left">
+                <div className="text-white font-bold text-base">Dator</div>
+                <div className="text-white/40 text-xs">Spela mot AI</div>
+              </div>
             </button>
           </div>
 
