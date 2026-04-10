@@ -63,7 +63,7 @@ const Statistics = () => {
     let query = supabase
       .from('matches')
       .select('*')
-      .eq('status', 'completed')
+      .eq('status', 'completed' as any)
       .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`);
 
     if (onlineMode !== 'all') {
