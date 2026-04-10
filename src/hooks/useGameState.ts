@@ -25,6 +25,7 @@ export interface BonusMovesEvent {
   color: import('@/data/gameConstants').BubbleColor;
   row: number;
   col: number;
+  label?: string;
 }
 
 let bonusEventId = 0;
