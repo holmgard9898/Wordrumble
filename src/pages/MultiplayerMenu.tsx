@@ -182,14 +182,19 @@ const MultiplayerMenu = () => {
             </button>
             <button
               onClick={() => { playClick(); setFriendDrawerOpen(true); }}
-              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]"
+              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative"
               style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}
             >
               <Users className="w-6 h-6 text-purple-400" />
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <div className="text-white font-bold text-base">Vän</div>
                 <div className="text-white/40 text-xs">Utmana en vän</div>
               </div>
+              {pendingRequestCount > 0 && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse">
+                  <Bell className="w-3 h-3" /> {pendingRequestCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => { playClick(); toast.info('Kommer snart!'); }}
