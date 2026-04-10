@@ -201,7 +201,7 @@ const MultiplayerGamePage = () => {
     }
 
     const sharedWords = mpMode === 'surge' ? [] : matchState.sharedUsedWords;
-    const result = await runAIRound(aiGrid, isValidWord, mpMode, st.moves, sharedWords);
+    const result = await runAIRound(aiGrid, isValidWord, mpMode, st.moves, sharedWords, validWordsListRef.current);
 
     // Store result
     const subResult: SubTurnResult = {
