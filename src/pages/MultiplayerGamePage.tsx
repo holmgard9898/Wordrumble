@@ -238,6 +238,15 @@ const MultiplayerGamePage = () => {
   const myScore = isPlayer1 ? match.player1_score : match.player2_score;
   const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
 
+  // Get opponent's words from the current round to show as blocked
+  const opponentRoundsData = (isPlayer1 ? match.player2_rounds_data : match.player1_rounds_data) || [];
+  const opponentWordsThisRound = opponentRoundsData
+    .filter((rd: any) => rd.round === match.current_round)
+    .flatMap((rd: any) => (rd.words || []).map((w: any) => ({
+      word: typeof w === 'string' ? w : w.word,
+      score: typeof w === 'string' ? 0 : (w.score || 0),
+    })));
+
   // Match completed
   if (match.status === 'completed') {
     const iWon = match.winner_id === user?.id;
@@ -389,7 +398,7 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
+      <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
     </div>
   );
