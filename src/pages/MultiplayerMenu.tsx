@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Loader2, X, Bot } from 'lucide-react';
+import { ArrowLeft, Shuffle, Users, Loader2, X, Bot, Bell } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
@@ -24,6 +24,26 @@ const MultiplayerMenu = () => {
   const [modePickerContext, setModePickerContext] = useState<'random' | { userId: string; name: string }>('random');
   const [searching, setSearching] = useState(false);
   const [queuedMode, setQueuedMode] = useState<string | null>(null);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+  // Load pending friend request count
+  useEffect(() => {
+    if (!user) return;
+    const loadPendingCount = async () => {
+      const { count } = await supabase
+        .from('friendships')
+        .select('*', { count: 'exact', head: true })
+        .eq('addressee_id', user.id)
+        .eq('status', 'pending');
+      setPendingRequestCount(count || 0);
+    };
+    loadPendingCount();
+    const channel = supabase
+      .channel('friend-requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, () => loadPendingCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
@@ -105,7 +125,7 @@ const MultiplayerMenu = () => {
         mode,
         player1_id: user.id,
         player2_id: friend.userId,
-        status: 'active',
+        status: 'waiting',
         current_turn: user.id,
         current_round: 1,
         total_rounds: totalRounds,
@@ -162,14 +182,19 @@ const MultiplayerMenu = () => {
             </button>
             <button
               onClick={() => { playClick(); setFriendDrawerOpen(true); }}
-              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]"
+              className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative"
               style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}
             >
               <Users className="w-6 h-6 text-purple-400" />
-              <div className="text-left">
+              <div className="text-left flex-1">
                 <div className="text-white font-bold text-base">Vän</div>
                 <div className="text-white/40 text-xs">Utmana en vän</div>
               </div>
+              {pendingRequestCount > 0 && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse">
+                  <Bell className="w-3 h-3" /> {pendingRequestCount}
+                </span>
+              )}
             </button>
             <button
               onClick={() => { playClick(); toast.info('Kommer snart!'); }}
