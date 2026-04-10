@@ -482,6 +482,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setLastFoundWord(null);
     setIsProcessing(false);
     setMovesUsed(0);
+    setBonusPopups([]);
     pendingBombDecrement.current = false;
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
