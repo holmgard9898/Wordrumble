@@ -45,10 +45,15 @@ const MODE_LABELS: Record<string, string> = {
   oneword: 'Längsta Ordet',
 };
 
-function getMaxMoves(mode: string): number {
-  if (mode === 'fiveplus') return 100;
+function getMovesForPhase(mode: string, phase: number): number {
+  if (mode === 'classic' || mode === 'fiveplus') {
+    // Phase 1: 25, Phase 2: 50, Phase 3: 25
+    if (phase === 1) return 25;
+    if (phase === 2) return 50;
+    return 25;
+  }
   if (mode === 'oneword') return 60;
-  return 50;
+  return 50; // surge
 }
 
 const MultiplayerGamePage = () => {
