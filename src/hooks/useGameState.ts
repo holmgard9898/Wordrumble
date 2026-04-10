@@ -1,11 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createGrid, createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS,
+  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS,
 } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
+import { createWordlessGrid } from '@/utils/gridGeneration';
 
 interface UsedWord {
   word: string;
@@ -44,15 +45,13 @@ function getMaxMoves(mode: GameMode) {
 }
 
 function createCleanGrid(isValidWord: (w: string) => boolean, mode: GameMode, pool: string, values: Record<string, number>): BubbleData[][] {
-  const colors = getColorsForMode(mode);
-  const minLen = getMinWordLength(mode);
-  let attempts = 0;
-  while (attempts < 50) {
-    const grid = createGrid(colors, pool, values);
-    if (!gridHasWords(grid, isValidWord, minLen)) return grid;
-    attempts++;
-  }
-  return createGrid(colors, pool, values);
+  return createWordlessGrid({
+    isValidWord,
+    minWordLength: getMinWordLength(mode),
+    colors: getColorsForMode(mode),
+    pool,
+    values,
+  });
 }
 
 function gridHasWords(grid: BubbleData[][], isValidWord: (w: string) => boolean, minLen: number): boolean {

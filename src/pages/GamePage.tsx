@@ -46,6 +46,13 @@ const GamePage = () => {
 
   useBackgroundMusic(!game.gameOver && !showMenu);
 
+  useEffect(() => {
+    if (!loading) {
+      setScoreSaved(false);
+      game.resetGame();
+    }
+  }, [loading, gameMode, settings.language]);
+
   const finalScore = gameMode === 'oneword' ? game.bestWordScore : game.score;
 
   // Calculate coin reward when game ends
