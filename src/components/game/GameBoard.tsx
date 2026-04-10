@@ -1,5 +1,7 @@
 import { BubbleData, Position } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
+import { BonusMovePopup } from './BonusMovePopup';
+import type { BonusPopupData } from './BonusMovePopup';
 import { useRef, useCallback } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
 
@@ -9,9 +11,11 @@ interface GameBoardProps {
   poppingCells: Set<string>;
   onBubbleClick: (row: number, col: number) => void;
   onSwipe?: (row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => void;
+  bonusPopups?: BonusPopupData[];
+  onBonusPopupDone?: (id: string) => void;
 }
 
-export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, onSwipe }: GameBoardProps) {
+export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone }: GameBoardProps) {
   const touchStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
   const { settings } = useSettings();
   const isRubik = settings.tileStyle === 'rubik';
@@ -47,7 +51,7 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
 
   return (
     <div
-      className={`flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-2 md:p-3 rounded-2xl`}
+      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-2 md:p-3 rounded-2xl`}
       style={{ background: 'rgba(0,0,0,0.3)' }}
     >
       {grid.map((row, r) => (
@@ -68,6 +72,11 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
             );
           })}
         </div>
+      ))}
+
+      {/* Bonus move popups */}
+      {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
+        <BonusMovePopup key={popup.id} popup={popup} onDone={onBonusPopupDone} />
       ))}
     </div>
   );
