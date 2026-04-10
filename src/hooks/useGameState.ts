@@ -306,17 +306,32 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
 
     if (mode === 'surge') {
       const wordLen = word.positions.length;
+      const centerPos = word.positions[Math.floor(word.positions.length / 2)];
+      const wordColor = grid[word.positions[0].row][word.positions[0].col].color;
+      let totalBonus = 0;
+
       if (wordLen >= 10) {
-        setMovesLeft((prev) => prev + 50);
+        totalBonus += 50;
       } else if (wordLen >= 7) {
-        setMovesLeft((prev) => prev + 25);
+        totalBonus += 25;
       } else if (wordLen >= 5) {
-        setMovesLeft((prev) => prev + 10);
+        totalBonus += 10;
       }
       if (word.score >= 15) {
-        setMovesLeft((prev) => prev + 25);
+        totalBonus += 25;
       } else if (word.score >= 10) {
-        setMovesLeft((prev) => prev + 10);
+        totalBonus += 10;
+      }
+
+      if (totalBonus > 0) {
+        setMovesLeft((prev) => prev + totalBonus);
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: totalBonus,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+        }]);
       }
     }
 
