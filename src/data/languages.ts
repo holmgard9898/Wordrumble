@@ -26,10 +26,9 @@ const EN_CONFIG: LanguageConfig = {
   vowels: new Set(['A', 'E', 'I', 'O', 'U']),
   validCharPattern: /^[a-z]+$/,
   blockedNames: new Set([
-    'alan','alex','amy','anna','ben','bob','carl','dan','dave','ed','emma',
-    'fred','gary','hal','ian','jack','jane','jim','joe','john','kate','ken',
-    'lee','lisa','mark','mary','max','mike','nick','pat','paul','pete','ray',
-    'rob','ron','roy','sam','sue','ted','tim','tom','will',
+    'alan','alex','amy','anna','carl','emma','fred','gary','ian',
+    'jane','jim','joe','john','kate','ken','lisa','mary','mike',
+    'nick','paul','pete','ron','tim','tom',
   ]),
 };
 
