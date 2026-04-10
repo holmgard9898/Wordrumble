@@ -1,8 +1,9 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
+import { useCoins } from '@/hooks/useCoins';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameProgress } from '@/hooks/useGameProgress';
@@ -13,6 +14,7 @@ import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { GameOverOverlay } from '@/components/game/GameOverOverlay';
+import { calculateCoinReward } from '@/utils/coinRewards';
 import { Menu } from 'lucide-react';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
@@ -35,6 +37,7 @@ const GamePage = () => {
   const { isValidWord, loading } = useDictionary(settings.language);
   const game = useGameState(isValidWord, gameMode, settings.language);
   const { addScore } = useHighScores();
+  const { addCoins } = useCoins();
   const { recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore } = useGameProgress();
   const { playSwap, playWordFound, playGameOver } = useSfx();
   const [showWords, setShowWords] = useState(false);
@@ -45,6 +48,12 @@ const GamePage = () => {
 
   const finalScore = gameMode === 'oneword' ? game.bestWordScore : game.score;
 
+  // Calculate coin reward when game ends
+  const coinReward = useMemo(() => {
+    if (!game.gameOver) return null;
+    return calculateCoinReward(gameMode, game.score, game.usedWords, game.movesUsed, game.bestWordScore);
+  }, [game.gameOver, gameMode, game.score, game.usedWords, game.movesUsed, game.bestWordScore]);
+
   useEffect(() => {
     if (game.gameOver && !scoreSaved) {
       addScore({
@@ -53,6 +62,12 @@ const GamePage = () => {
         mode: MODE_LABELS[gameMode],
         date: new Date().toISOString(),
       });
+
+      // Award coins
+      if (coinReward && coinReward.total > 0) {
+        addCoins(coinReward.total);
+      }
+
       setScoreSaved(true);
 
       // Track progress for mode unlocks
@@ -62,10 +77,9 @@ const GamePage = () => {
         recordBombScore(game.score);
         playGameOver();
       }
-      // Track best single word score (across all modes)
       if (game.bestWordScore > 0) recordBestSingleWord(game.bestWordScore);
     }
-  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore]);
+  }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore, coinReward, addCoins]);
 
   useEffect(() => {
     if (game.lastFoundWord) {
@@ -148,6 +162,7 @@ const GamePage = () => {
           onRestart={handleReset}
           bestWord={game.bestWord}
           bestWordScore={game.bestWordScore}
+          coinReward={coinReward}
         />
       )}
     </div>
