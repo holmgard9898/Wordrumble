@@ -18,6 +18,16 @@ interface FoundWord {
   score: number;
 }
 
+export interface BonusMovesEvent {
+  id: string;
+  amount: number;
+  color: import('@/data/gameConstants').BubbleColor;
+  row: number;
+  col: number;
+}
+
+let bonusEventId = 0;
+
 function getColorsForMode(mode: GameMode) {
   return mode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
 }
@@ -173,6 +183,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [movesUsed, setMovesUsed] = useState(0);
+  const [bonusPopups, setBonusPopups] = useState<BonusMovesEvent[]>([]);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
@@ -295,17 +306,32 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
 
     if (mode === 'surge') {
       const wordLen = word.positions.length;
+      const centerPos = word.positions[Math.floor(word.positions.length / 2)];
+      const wordColor = grid[word.positions[0].row][word.positions[0].col].color;
+      let totalBonus = 0;
+
       if (wordLen >= 10) {
-        setMovesLeft((prev) => prev + 50);
+        totalBonus += 50;
       } else if (wordLen >= 7) {
-        setMovesLeft((prev) => prev + 25);
+        totalBonus += 25;
       } else if (wordLen >= 5) {
-        setMovesLeft((prev) => prev + 10);
+        totalBonus += 10;
       }
       if (word.score >= 15) {
-        setMovesLeft((prev) => prev + 25);
+        totalBonus += 25;
       } else if (word.score >= 10) {
-        setMovesLeft((prev) => prev + 10);
+        totalBonus += 10;
+      }
+
+      if (totalBonus > 0) {
+        setMovesLeft((prev) => prev + totalBonus);
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: totalBonus,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+        }]);
       }
     }
 
@@ -441,6 +467,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setLastFoundWord(null);
     setIsProcessing(false);
     setMovesUsed(0);
+    setBonusPopups([]);
     pendingBombDecrement.current = false;
   }, [isValidWord, mode, pool, values, vowelSet]);
 
@@ -455,6 +482,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setLastFoundWord(null);
     setIsProcessing(false);
     setMovesUsed(0);
+    setBonusPopups([]);
     pendingBombDecrement.current = false;
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
@@ -465,6 +493,10 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     : null;
   const bestWordScore = bestWordEntry?.score ?? 0;
   const bestWord = bestWordEntry?.word ?? null;
+
+  const removeBonusPopup = useCallback((id: string) => {
+    setBonusPopups((prev) => prev.filter((p) => p.id !== id));
+  }, []);
 
   return {
     grid,
@@ -483,5 +515,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     bestWordScore,
     bestWord,
     movesUsed,
+    bonusPopups,
+    removeBonusPopup,
   };
 }
