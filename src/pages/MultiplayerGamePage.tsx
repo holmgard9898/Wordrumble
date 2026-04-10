@@ -14,8 +14,9 @@ import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
 import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2 } from 'lucide-react';
-import { createGrid, BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
+import { BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
+import { createWordlessGrid } from '@/utils/gridGeneration';
 import type { GameMode } from '@/pages/GamePage';
 import { toast } from 'sonner';
 
@@ -152,8 +153,14 @@ const MultiplayerGamePage = () => {
       if (roundGrids[prevPhaseKey]) {
         grid = roundGrids[prevPhaseKey] as BubbleData[][];
       } else {
-        // Fallback: generate fresh grid
-        grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
+        // Fallback: generate fresh grid without starting words
+        grid = createWordlessGrid({
+          isValidWord,
+          minWordLength: gameMode === 'fiveplus' ? 5 : 3,
+          colors,
+          pool: langConfig.letterPool,
+          values: langConfig.letterValues,
+        });
       }
     } else {
       // Phase 1 or non-classic: check for stored starting grid
@@ -161,7 +168,13 @@ const MultiplayerGamePage = () => {
       if (roundGrids[startKey]) {
         grid = roundGrids[startKey] as BubbleData[][];
       } else {
-        grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
+        grid = createWordlessGrid({
+          isValidWord,
+          minWordLength: gameMode === 'fiveplus' ? 5 : 3,
+          colors,
+          pool: langConfig.letterPool,
+          values: langConfig.letterValues,
+        });
         // Save starting grid
         const newGrids = { ...roundGrids, [startKey]: grid };
         supabase.from('matches').update({ round_grids: newGrids }).eq('id', match.id);
