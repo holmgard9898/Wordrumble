@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
-import { useAIOpponent, AIRoundResult } from '@/hooks/useAIOpponent';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -12,165 +13,150 @@ import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
-import { Menu, ArrowLeft, Trophy, Swords, Eye, Clock } from 'lucide-react';
+import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2 } from 'lucide-react';
 import { createGrid, BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
+import { toast } from 'sonner';
 
-type MPMode = 'classic' | 'surge' | 'fiveplus' | 'oneword';
-
-interface SubTurn {
-  player: 'human' | 'ai';
-  moves: number;
+interface MatchData {
+  id: string;
+  mode: 'classic' | 'surge' | 'fiveplus' | 'oneword';
+  status: string;
+  current_turn: string | null;
+  current_round: number;
+  total_rounds: number;
+  player1_id: string;
+  player2_id: string | null;
+  player1_score: number;
+  player2_score: number;
+  player1_rounds_data: any[];
+  player2_rounds_data: any[];
+  round_grids: any[];
+  shared_used_words: string[];
+  winner_id: string | null;
 }
 
-interface SubTurnResult {
-  player: 'human' | 'ai';
-  score: number;
-  words: { word: string; score: number }[];
-  bestWord?: string | null;
-  bestWordScore?: number;
-  finalGrid: BubbleData[][];
-}
-
-interface RoundData {
-  humanScore: number;
-  aiScore: number;
-  humanWords: { word: string; score: number }[];
-  aiWords: { word: string; score: number }[];
-  humanBestWord?: string | null;
-  humanBestWordScore?: number;
-  aiBestWord?: string | null;
-  aiBestWordScore?: number;
-}
-
-interface MatchState {
-  mode: MPMode;
-  totalRounds: number;
-  currentRound: number;
-  subTurns: SubTurn[];
-  currentSubTurnIndex: number;
-  rounds: RoundData[];
-  /** All sub-turn results for the current round */
-  currentRoundResults: SubTurnResult[];
-  /** Shared used words for the current round (Classic/5+) */
-  sharedUsedWords: string[];
-  /** The current grid state passed between sub-turns */
-  currentGrid: BubbleData[][] | null;
-  /** For surge: the initial grid for the round */
-  surgeInitialGrid: BubbleData[][] | null;
-  playerTotalScore: number;
-  aiTotalScore: number;
-  phase: 'playing' | 'ai-playing' | 'waiting-opponent' | 'sub-turn-result' | 'between-rounds' | 'match-over';
-  winner: 'player' | 'ai' | 'draw' | null;
-}
-
-function getSubTurns(mode: MPMode, round: number): SubTurn[] {
-  if (mode === 'classic' || mode === 'fiveplus') {
-    const humanStarts = round % 2 === 1;
-    if (humanStarts) {
-      return [
-        { player: 'human', moves: 25 },
-        { player: 'ai', moves: 50 },
-        { player: 'human', moves: 25 },
-      ];
-    } else {
-      return [
-        { player: 'ai', moves: 25 },
-        { player: 'human', moves: 50 },
-        { player: 'ai', moves: 25 },
-      ];
-    }
-  }
-  if (mode === 'surge') {
-    return [
-      { player: 'human', moves: 50 },
-      { player: 'ai', moves: 50 },
-    ];
-  }
-  if (mode === 'oneword') {
-    return [
-      { player: 'human', moves: 60 },
-      { player: 'ai', moves: 60 },
-    ];
-  }
-  return [{ player: 'human', moves: 50 }];
-}
-
-function getTotalRounds(mode: MPMode): number {
-  return mode === 'surge' ? 3 : 2;
-}
-
-const MODE_LABELS: Record<MPMode, string> = {
+const MODE_LABELS: Record<string, string> = {
   classic: 'Classic',
   surge: 'Word Surge',
   fiveplus: '5+ Bokstäver',
   oneword: 'Längsta Ordet',
 };
 
+function getMaxMoves(mode: string): number {
+  if (mode === 'fiveplus') return 100;
+  if (mode === 'oneword') return 60;
+  return 50;
+}
+
 const MultiplayerGamePage = () => {
-  const { mode = 'mp-classic' } = useParams<{ mode: string }>();
+  const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { settings } = useSettings();
   const bg = useGameBackground();
-  const mpMode = mode.replace('mp-', '') as MPMode;
-
   const langConfig = getLanguageConfig(settings.language);
-  const colors = mpMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
-  const { isValidWord, loading, words: dictWords } = useDictionary(settings.language);
-  const validWordsListRef = useRef<string[]>([]);
-  useEffect(() => {
-    if (dictWords) {
-      validWordsListRef.current = Array.from(dictWords);
-    }
-  }, [dictWords]);
-  const { runAIRound } = useAIOpponent();
+
+  const [match, setMatch] = useState<MatchData | null>(null);
+  const [opponentName, setOpponentName] = useState('Motståndare');
+  const [loadingMatch, setLoadingMatch] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+
+  const { isValidWord, loading: dictLoading } = useDictionary(settings.language);
   const { playSwap, playWordFound, playGameOver } = useSfx();
 
-  const gameMode: GameMode = mpMode === 'surge' ? 'surge' : mpMode === 'fiveplus' ? 'fiveplus' : mpMode === 'oneword' ? 'oneword' : 'classic';
+  // Determine game mode from match
+  const gameMode: GameMode = (match?.mode || 'classic') as GameMode;
+  const colors = gameMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
+
   const game = useGameState(isValidWord, gameMode, settings.language);
 
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showOpponentWords, setShowOpponentWords] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
 
-  const initialSubTurns = getSubTurns(mpMode, 1);
-  const initialGrid = useRef<BubbleData[][] | null>(null);
+  useBackgroundMusic(gameStarted && !showMenu);
 
-  const [matchState, setMatchState] = useState<MatchState>(() => ({
-    mode: mpMode,
-    totalRounds: getTotalRounds(mpMode),
-    currentRound: 1,
-    subTurns: initialSubTurns,
-    currentSubTurnIndex: 0,
-    rounds: [],
-    currentRoundResults: [],
-    sharedUsedWords: [],
-    currentGrid: null,
-    surgeInitialGrid: null,
-    playerTotalScore: 0,
-    aiTotalScore: 0,
-    phase: initialSubTurns[0].player === 'human' ? 'playing' : 'ai-playing',
-    winner: null,
-  }));
-
-  // If round starts with AI turn, trigger it
-  const aiTriggered = useRef(false);
+  // Load match data
   useEffect(() => {
-    if (matchState.phase === 'ai-playing' && !aiTriggered.current) {
-      aiTriggered.current = true;
-      triggerAISubTurn();
+    if (!matchId || !user) return;
+    loadMatch();
+
+    const channel = supabase
+      .channel(`match-${matchId}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'matches',
+        filter: `id=eq.${matchId}`,
+      }, (payload) => {
+        setMatch(payload.new as unknown as MatchData);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [matchId, user]);
+
+  const loadMatch = async () => {
+    if (!matchId) return;
+    const { data, error } = await supabase
+      .from('matches')
+      .select('*')
+      .eq('id', matchId)
+      .single();
+
+    if (error || !data) {
+      toast.error('Matchen hittades inte');
+      navigate('/challenge');
+      return;
     }
-  }, [matchState.phase]);
 
-  useBackgroundMusic(matchState.phase === 'playing' && !showMenu);
+    setMatch(data as unknown as MatchData);
 
-  // Save initial grid for surge mode
+    // Load opponent name
+    const opponentId = data.player1_id === user?.id ? data.player2_id : data.player1_id;
+    if (opponentId) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', opponentId)
+        .single();
+      if (profile) setOpponentName(profile.display_name);
+    }
+
+    setLoadingMatch(false);
+  };
+
+  // Start game when it's my turn
   useEffect(() => {
-    if (mpMode === 'surge' && !initialGrid.current && game.grid) {
-      initialGrid.current = game.grid.map(row => row.map(b => ({ ...b })));
+    if (!match || !user || dictLoading || gameStarted) return;
+    if (match.current_turn !== user.id) return;
+    if (match.status !== 'active') return;
+
+    // Generate or use existing grid for this round
+    let grid: BubbleData[][];
+    const roundGrids = match.round_grids || [];
+    const roundIndex = match.current_round - 1;
+
+    if (roundGrids[roundIndex]) {
+      // Use pre-generated grid
+      grid = roundGrids[roundIndex] as BubbleData[][];
+    } else {
+      // Generate grid and save it
+      grid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
+      // Save grid to match (fire and forget)
+      const newGrids = [...roundGrids];
+      newGrids[roundIndex] = grid;
+      supabase.from('matches').update({ round_grids: newGrids }).eq('id', match.id);
     }
-  }, [mpMode, game.grid]);
+
+    const blockedWords = match.shared_used_words || [];
+    const maxMoves = getMaxMoves(match.mode);
+
+    game.startFromState(grid, maxMoves, blockedWords);
+    setGameStarted(true);
+  }, [match, user, dictLoading, gameStarted]);
 
   useEffect(() => {
     if (game.lastFoundWord) playWordFound();
@@ -182,547 +168,183 @@ const MultiplayerGamePage = () => {
     if (hadSelection) playSwap();
   }, [game, playSwap]);
 
-  const triggerAISubTurn = useCallback(async () => {
-    const st = matchState.subTurns[matchState.currentSubTurnIndex];
-    if (!st || st.player !== 'ai') return;
-
-    // Determine which grid AI plays on
-    let aiGrid: BubbleData[][];
-    if (mpMode === 'surge') {
-      // Surge: AI plays on the same initial grid (independent)
-      aiGrid = initialGrid.current
-        ? initialGrid.current.map(row => row.map(b => ({ ...b })))
-        : createGrid(colors, langConfig.letterPool, langConfig.letterValues);
-    } else {
-      // Classic/5+/oneword: AI continues from shared grid
-      aiGrid = matchState.currentGrid
-        ? matchState.currentGrid.map(row => row.map(b => ({ ...b })))
-        : game.grid.map(row => row.map(b => ({ ...b })));
-    }
-
-    const sharedWords = mpMode === 'surge' ? [] : matchState.sharedUsedWords;
-    const result = await runAIRound(aiGrid, isValidWord, mpMode, st.moves, sharedWords, validWordsListRef.current);
-
-    // Store result
-    const subResult: SubTurnResult = {
-      player: 'ai',
-      score: result.score,
-      words: result.words,
-      bestWord: result.bestWord,
-      bestWordScore: result.bestWordScore,
-      finalGrid: result.finalGrid,
-    };
-
-    const newResults = [...matchState.currentRoundResults, subResult];
-    const newSharedWords = mpMode === 'surge'
-      ? matchState.sharedUsedWords
-      : [...matchState.sharedUsedWords, ...result.words.map(w => w.word.toLowerCase())];
-
-    const nextSubTurnIndex = matchState.currentSubTurnIndex + 1;
-
-    if (nextSubTurnIndex >= matchState.subTurns.length) {
-      // Round complete
-      finishRound(newResults, newSharedWords);
-    } else {
-      // More sub-turns remain — show result screen
-      setMatchState(prev => ({
-        ...prev,
-        currentRoundResults: newResults,
-        sharedUsedWords: newSharedWords,
-        currentGrid: result.finalGrid,
-        currentSubTurnIndex: nextSubTurnIndex,
-        phase: 'sub-turn-result',
-      }));
-      aiTriggered.current = false;
-    }
-  }, [matchState, mpMode, colors, langConfig, game.grid, runAIRound, isValidWord]);
-
-  // Handle human sub-turn completion (game over)
+  // Submit turn when game is over
   useEffect(() => {
-    if (game.gameOver && matchState.phase === 'playing') {
-      handleHumanSubTurnComplete();
+    if (game.gameOver && gameStarted && match && !submitting) {
+      submitTurn();
     }
-  }, [game.gameOver, matchState.phase]);
+  }, [game.gameOver, gameStarted]);
 
-  const handleHumanSubTurnComplete = useCallback(() => {
-    const subResult: SubTurnResult = {
-      player: 'human',
-      score: gameMode === 'oneword' ? game.bestWordScore : game.score,
-      words: game.usedWords.map(w => ({ word: w.word, score: w.score })),
-      bestWord: game.bestWord,
-      bestWordScore: game.bestWordScore,
-      finalGrid: game.grid.map(row => row.map(b => ({ ...b }))),
-    };
+  const submitTurn = async () => {
+    if (!match || !user || submitting) return;
+    setSubmitting(true);
 
-    const newResults = [...matchState.currentRoundResults, subResult];
-    const newSharedWords = mpMode === 'surge'
-      ? matchState.sharedUsedWords
-      : [...matchState.sharedUsedWords, ...game.usedWords.map(w => w.word.toLowerCase())];
+    const score = gameMode === 'oneword' ? game.bestWordScore : game.score;
 
-    const nextSubTurnIndex = matchState.currentSubTurnIndex + 1;
+    try {
+      const { data, error } = await supabase.functions.invoke('submit-turn', {
+        body: {
+          match_id: match.id,
+          score,
+          words: game.usedWords.map(w => ({ word: w.word, score: w.score })),
+          best_word: game.bestWord,
+          best_word_score: game.bestWordScore,
+          final_grid: game.grid,
+        },
+      });
 
-    if (nextSubTurnIndex >= matchState.subTurns.length) {
-      // Round complete
-      finishRound(newResults, newSharedWords);
-    } else {
-      const nextSubTurn = matchState.subTurns[nextSubTurnIndex];
-      if (nextSubTurn.player === 'ai') {
-        // Show "waiting for opponent" then AI plays
-        setMatchState(prev => ({
-          ...prev,
-          currentRoundResults: newResults,
-          sharedUsedWords: newSharedWords,
-          currentGrid: game.grid.map(row => row.map(b => ({ ...b }))),
-          currentSubTurnIndex: nextSubTurnIndex,
-          phase: 'waiting-opponent',
-        }));
-      } else {
-        // Next is human again — show sub-turn result first
-        setMatchState(prev => ({
-          ...prev,
-          currentRoundResults: newResults,
-          sharedUsedWords: newSharedWords,
-          currentGrid: game.grid.map(row => row.map(b => ({ ...b }))),
-          currentSubTurnIndex: nextSubTurnIndex,
-          phase: 'sub-turn-result',
-        }));
-      }
-    }
-  }, [game, matchState, mpMode, gameMode]);
+      if (error) throw error;
 
-  const finishRound = useCallback((results: SubTurnResult[], sharedWords: string[]) => {
-    let humanScore = 0;
-    let aiScore = 0;
-    let humanWords: { word: string; score: number }[] = [];
-    let aiWords: { word: string; score: number }[] = [];
-    let humanBestWord: string | null = null;
-    let humanBestWordScore = 0;
-    let aiBestWord: string | null = null;
-    let aiBestWordScore = 0;
-
-    for (const r of results) {
-      if (r.player === 'human') {
-        humanScore += r.score;
-        humanWords = [...humanWords, ...r.words];
-        if ((r.bestWordScore ?? 0) > humanBestWordScore) {
-          humanBestWordScore = r.bestWordScore ?? 0;
-          humanBestWord = r.bestWord ?? null;
-        }
-      } else {
-        aiScore += r.score;
-        aiWords = [...aiWords, ...r.words];
-        if ((r.bestWordScore ?? 0) > aiBestWordScore) {
-          aiBestWordScore = r.bestWordScore ?? 0;
-          aiBestWord = r.bestWord ?? null;
-        }
-      }
-    }
-
-    // For oneword mode, use best single word score
-    if (gameMode === 'oneword') {
-      humanScore = humanBestWordScore;
-      aiScore = aiBestWordScore;
-    }
-
-    const roundData: RoundData = {
-      humanScore, aiScore, humanWords, aiWords,
-      humanBestWord, humanBestWordScore, aiBestWord, aiBestWordScore,
-    };
-
-    const newPlayerTotal = matchState.playerTotalScore + humanScore;
-    const newAiTotal = matchState.aiTotalScore + aiScore;
-    const newRounds = [...matchState.rounds, roundData];
-    const nextRound = matchState.currentRound + 1;
-
-    if (nextRound > matchState.totalRounds) {
-      let winner: 'player' | 'ai' | 'draw';
-      if (newPlayerTotal > newAiTotal) winner = 'player';
-      else if (newAiTotal > newPlayerTotal) winner = 'ai';
-      else winner = 'draw';
+      setMatch(data.match as MatchData);
+      setGameStarted(false);
       playGameOver();
-      setMatchState(prev => ({
-        ...prev,
-        rounds: newRounds,
-        playerTotalScore: newPlayerTotal,
-        aiTotalScore: newAiTotal,
-        phase: 'match-over',
-        winner,
-      }));
-    } else {
-      setMatchState(prev => ({
-        ...prev,
-        rounds: newRounds,
-        playerTotalScore: newPlayerTotal,
-        aiTotalScore: newAiTotal,
-        currentRound: nextRound,
-        phase: 'between-rounds',
-      }));
+    } catch (err: any) {
+      toast.error('Kunde inte skicka tur');
+      setSubmitting(false);
     }
-  }, [matchState, gameMode, playGameOver]);
+  };
 
-  // "Waiting for opponent" → trigger AI after a brief delay
-  const waitingTriggered = useRef(false);
-  useEffect(() => {
-    if (matchState.phase === 'waiting-opponent' && !waitingTriggered.current) {
-      waitingTriggered.current = true;
-      const timer = setTimeout(() => {
-        setMatchState(prev => ({ ...prev, phase: 'ai-playing' }));
-        waitingTriggered.current = false;
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [matchState.phase]);
-
-  const continueAfterSubTurn = useCallback(() => {
-    const st = matchState.subTurns[matchState.currentSubTurnIndex];
-    if (!st) return;
-
-    if (st.player === 'human') {
-      // Start human sub-turn with the current shared grid
-      const gridToUse = matchState.currentGrid!;
-      game.startFromState(gridToUse, st.moves, matchState.sharedUsedWords);
-      setMatchState(prev => ({ ...prev, phase: 'playing' }));
-    } else if (st.player === 'ai') {
-      setMatchState(prev => ({ ...prev, phase: 'ai-playing' }));
-    }
-  }, [matchState, game]);
-
-  const startNextRound = useCallback(() => {
-    const nextRound = matchState.currentRound;
-    const newSubTurns = getSubTurns(mpMode, nextRound);
-    const newGrid = createGrid(colors, langConfig.letterPool, langConfig.letterValues);
-
-    if (mpMode === 'surge') {
-      initialGrid.current = newGrid.map(row => row.map(b => ({ ...b })));
-    }
-
-    const firstIsHuman = newSubTurns[0].player === 'human';
-
-    if (firstIsHuman) {
-      game.startFromState(newGrid, newSubTurns[0].moves, []);
-    }
-
-    setMatchState(prev => ({
-      ...prev,
-      subTurns: newSubTurns,
-      currentSubTurnIndex: 0,
-      currentRoundResults: [],
-      sharedUsedWords: [],
-      currentGrid: newGrid,
-      surgeInitialGrid: mpMode === 'surge' ? newGrid : null,
-      phase: firstIsHuman ? 'playing' : 'ai-playing',
-    }));
-    aiTriggered.current = false;
-    setShowOpponentWords(false);
-  }, [matchState, mpMode, colors, langConfig, game]);
-
-  const currentSubTurn = matchState.subTurns[matchState.currentSubTurnIndex];
-  const humanSubTurnNumber = matchState.subTurns
-    .slice(0, matchState.currentSubTurnIndex + 1)
-    .filter(s => s.player === 'human').length;
-  const totalHumanSubTurns = matchState.subTurns.filter(s => s.player === 'human').length;
-
-  // Get current round scores so far
-  const currentRoundHumanScore = matchState.currentRoundResults
-    .filter(r => r.player === 'human')
-    .reduce((sum, r) => sum + r.score, 0);
-  const currentRoundAiScore = matchState.currentRoundResults
-    .filter(r => r.player === 'ai')
-    .reduce((sum, r) => sum + r.score, 0);
-
-  if (loading) {
+  // Loading states
+  if (loadingMatch || dictLoading) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
-        <div className="text-white text-2xl font-bold">Word Rumble</div>
-        <div className="text-white/60">Laddar ordlista...</div>
+        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+        <div className="text-white/60">Laddar match...</div>
       </div>
     );
   }
 
-  // Waiting for opponent screen
-  if (matchState.phase === 'waiting-opponent') {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
-        <Clock className="w-12 h-12 text-purple-400 animate-pulse" />
-        <div className="text-white text-2xl font-bold">Inväntar motståndare...</div>
-        <p className="text-white/50 text-sm">Datorn spelar sina {currentSubTurn?.moves ?? 50} drag</p>
-        <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
-          <div className="h-full bg-purple-500 rounded-full animate-pulse w-full" />
-        </div>
-      </div>
-    );
-  }
+  if (!match) return null;
 
-  // AI playing screen
-  if (matchState.phase === 'ai-playing') {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
-        <div className="text-white text-2xl font-bold">Datorn spelar...</div>
-        <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
-          <div className="h-full bg-purple-500 rounded-full animate-pulse w-full" />
-        </div>
-        <p className="text-white/50 text-sm">Omgång {matchState.currentRound}/{matchState.totalRounds}</p>
-      </div>
-    );
-  }
+  const isMyTurn = match.current_turn === user?.id;
+  const isPlayer1 = match.player1_id === user?.id;
+  const myScore = isPlayer1 ? match.player1_score : match.player2_score;
+  const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
 
-  // Sub-turn result screen (between sub-turns within a round)
-  if (matchState.phase === 'sub-turn-result') {
-    const lastResult = matchState.currentRoundResults[matchState.currentRoundResults.length - 1];
-    const isNextHuman = currentSubTurn?.player === 'human';
+  // Match completed
+  if (match.status === 'completed') {
+    const iWon = match.winner_id === user?.id;
+    const draw = !match.winner_id;
 
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
-        <h2 className="text-2xl font-bold text-white">
-          {lastResult.player === 'ai' ? 'Motståndarens tur klar!' : 'Din tur klar!'}
-        </h2>
-
-        <div className="flex gap-8 w-full max-w-md">
-          <div className="flex-1 rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
-            <p className="text-blue-400 text-sm font-semibold mb-1">Du (denna omgång)</p>
-            <p className="text-white text-3xl font-bold">{currentRoundHumanScore + (matchState.phase === 'sub-turn-result' && lastResult.player === 'human' ? 0 : 0)}</p>
-            <p className="text-white/50 text-xs">
-              {matchState.currentRoundResults.filter(r => r.player === 'human').reduce((s, r) => s + r.words.length, 0)} ord
-            </p>
-          </div>
-          <div className="flex-1 rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-red-400 text-sm font-semibold mb-1">Dator (denna omgång)</p>
-            <p className="text-white text-3xl font-bold">{currentRoundAiScore}</p>
-            <p className="text-white/50 text-xs">
-              {matchState.currentRoundResults.filter(r => r.player === 'ai').reduce((s, r) => s + r.words.length, 0)} ord
-            </p>
-          </div>
-        </div>
-
-        {lastResult.player === 'ai' && (
-          <>
-            <button
-              onClick={() => setShowOpponentWords(!showOpponentWords)}
-              className="flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors text-sm"
-            >
-              <Eye className="w-4 h-4" />
-              {showOpponentWords ? 'Dölj' : 'Visa'} datorns ord
-            </button>
-            {showOpponentWords && (
-              <div className="rounded-xl p-4 w-full max-w-md max-h-40 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.05)' }}>
-                {lastResult.words.map((w, i) => (
-                  <div key={i} className="flex justify-between text-sm py-1 border-b border-white/5">
-                    <span className="text-white/70">{w.word}</span>
-                    <span className="text-yellow-400">+{w.score}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {matchState.playerTotalScore > 0 || matchState.aiTotalScore > 0 ? (
-          <div className="rounded-xl p-4 w-full max-w-md" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            <p className="text-white/70 text-sm mb-2">Totalställning (alla omgångar)</p>
-            <div className="flex justify-between">
-              <span className="text-blue-400 font-bold text-xl">{matchState.playerTotalScore}</span>
-              <span className="text-white/30">vs</span>
-              <span className="text-red-400 font-bold text-xl">{matchState.aiTotalScore}</span>
-            </div>
-          </div>
-        ) : null}
-
-        <Button
-          onClick={() => {
-            setShowOpponentWords(false);
-            continueAfterSubTurn();
-          }}
-          size="lg"
-          className="h-14 text-lg bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white"
-        >
-          <Swords className="w-5 h-5 mr-2" />
-          {isNextHuman
-            ? `Fortsätt omgång (${currentSubTurn.moves} drag)`
-            : 'Fortsätt'}
-        </Button>
-      </div>
-    );
-  }
-
-  // Between rounds screen
-  if (matchState.phase === 'between-rounds') {
-    const lastRound = matchState.rounds[matchState.rounds.length - 1];
-    const roundNumber = matchState.rounds.length;
-
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
-        <h2 className="text-3xl font-bold text-white">Omgång {roundNumber} avslutad</h2>
-
-        <div className="flex gap-8 w-full max-w-md">
-          <div className="flex-1 rounded-xl p-4" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
-            <p className="text-blue-400 text-sm font-semibold mb-1">Du</p>
-            <p className="text-white text-3xl font-bold">{lastRound.humanScore}</p>
-            <p className="text-white/50 text-xs">{lastRound.humanWords.length} ord</p>
-            {gameMode === 'oneword' && lastRound.humanBestWord && (
-              <p className="text-blue-300 text-xs mt-1">Bästa: {lastRound.humanBestWord} ({lastRound.humanBestWordScore}p)</p>
-            )}
-          </div>
-          <div className="flex-1 rounded-xl p-4" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-red-400 text-sm font-semibold mb-1">Dator</p>
-            <p className="text-white text-3xl font-bold">{lastRound.aiScore}</p>
-            <p className="text-white/50 text-xs">{lastRound.aiWords.length} ord</p>
-            {gameMode === 'oneword' && lastRound.aiBestWord && (
-              <p className="text-red-300 text-xs mt-1">Bästa: {lastRound.aiBestWord} ({lastRound.aiBestWordScore}p)</p>
-            )}
-          </div>
-        </div>
-
-        <div className="rounded-xl p-3 w-full max-w-md text-center" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <p className="text-white/50 text-xs mb-1">Vem vann omgången?</p>
-          <p className="text-white text-lg font-bold">
-            {lastRound.humanScore > lastRound.aiScore
-              ? '🎉 Du vann omgången!'
-              : lastRound.aiScore > lastRound.humanScore
-              ? '😤 Datorn vann omgången'
-              : '🤝 Oavgjort denna omgång'}
-          </p>
-        </div>
-
-        <div className="rounded-xl p-4 w-full max-w-md" style={{ background: 'rgba(255,255,255,0.05)' }}>
-          <p className="text-white/70 text-sm mb-2">Totalställning</p>
-          <div className="flex justify-between">
-            <span className="text-blue-400 font-bold text-xl">{matchState.playerTotalScore}</span>
-            <span className="text-white/30">vs</span>
-            <span className="text-red-400 font-bold text-xl">{matchState.aiTotalScore}</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setShowOpponentWords(!showOpponentWords)}
-          className="flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors text-sm"
-        >
-          <Eye className="w-4 h-4" />
-          {showOpponentWords ? 'Dölj' : 'Visa'} datorns ord
-        </button>
-
-        {showOpponentWords && (
-          <div className="rounded-xl p-4 w-full max-w-md max-h-40 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            {lastRound.aiWords.map((w, i) => (
-              <div key={i} className="flex justify-between text-sm py-1 border-b border-white/5">
-                <span className="text-white/70">{w.word}</span>
-                <span className="text-yellow-400">+{w.score}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <Button
-          onClick={startNextRound}
-          size="lg"
-          className="h-14 text-lg bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white"
-        >
-          <Swords className="w-5 h-5 mr-2" />
-          Starta omgång {matchState.currentRound}
-        </Button>
-      </div>
-    );
-  }
-
-  // Match over
-  if (matchState.phase === 'match-over') {
-    return (
-      <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
-        <Trophy className={`w-16 h-16 ${matchState.winner === 'player' ? 'text-yellow-400' : matchState.winner === 'ai' ? 'text-red-400' : 'text-white/50'}`} />
+        <Trophy className={`w-16 h-16 ${iWon ? 'text-yellow-400' : draw ? 'text-white/50' : 'text-red-400'}`} />
         <h2 className="text-4xl font-bold text-white">
-          {matchState.winner === 'player' ? 'Du vann!' : matchState.winner === 'ai' ? 'Datorn vann!' : 'Oavgjort!'}
+          {iWon ? 'Du vann!' : draw ? 'Oavgjort!' : `${opponentName} vann!`}
         </h2>
 
         <div className="flex gap-8 w-full max-w-md">
           <div className="flex-1 rounded-xl p-4 text-center" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
             <p className="text-blue-400 text-sm font-semibold mb-1">Du</p>
-            <p className="text-white text-4xl font-bold">{matchState.playerTotalScore}</p>
+            <p className="text-white text-4xl font-bold">{myScore}</p>
           </div>
           <div className="flex-1 rounded-xl p-4 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-            <p className="text-red-400 text-sm font-semibold mb-1">Dator</p>
-            <p className="text-white text-4xl font-bold">{matchState.aiTotalScore}</p>
+            <p className="text-red-400 text-sm font-semibold mb-1">{opponentName}</p>
+            <p className="text-white text-4xl font-bold">{opponentScore}</p>
           </div>
         </div>
 
+        {/* Round breakdown */}
         <div className="rounded-xl p-4 w-full max-w-md" style={{ background: 'rgba(255,255,255,0.05)' }}>
           <p className="text-white/70 text-sm mb-2">Omgångar</p>
-          {matchState.rounds.map((rd, i) => (
-            <div key={i} className="flex justify-between py-1 border-b border-white/5">
-              <span className="text-white/50 text-sm">Omgång {i + 1}</span>
-              <span className="text-blue-400 text-sm">{rd.humanScore}</span>
-              <span className="text-white/30 text-sm">vs</span>
-              <span className="text-red-400 text-sm">{rd.aiScore}</span>
-            </div>
-          ))}
+          {(isPlayer1 ? match.player1_rounds_data : match.player2_rounds_data).map((rd: any, i: number) => {
+            const opRd = (isPlayer1 ? match.player2_rounds_data : match.player1_rounds_data)[i];
+            return (
+              <div key={i} className="flex justify-between py-1 border-b border-white/5">
+                <span className="text-white/50 text-sm">Omgång {i + 1}</span>
+                <span className="text-blue-400 text-sm">{rd?.score ?? 0}</span>
+                <span className="text-white/30 text-sm">vs</span>
+                <span className="text-red-400 text-sm">{opRd?.score ?? 0}</span>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="flex gap-3">
-          <Button
-            onClick={() => navigate('/challenge')}
-            variant="ghost"
-            className="text-white/60 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Tillbaka
-          </Button>
-          <Button
-            onClick={() => {
-              const newSubTurns = getSubTurns(mpMode, 1);
-              const firstIsHuman = newSubTurns[0].player === 'human';
-              game.resetGame();
-              initialGrid.current = null;
-              setMatchState({
-                mode: mpMode,
-                totalRounds: getTotalRounds(mpMode),
-                currentRound: 1,
-                subTurns: newSubTurns,
-                currentSubTurnIndex: 0,
-                rounds: [],
-                currentRoundResults: [],
-                sharedUsedWords: [],
-                currentGrid: null,
-                surgeInitialGrid: null,
-                playerTotalScore: 0,
-                aiTotalScore: 0,
-                phase: firstIsHuman ? 'playing' : 'ai-playing',
-                winner: null,
-              });
-              aiTriggered.current = false;
-            }}
-            className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white"
-          >
-            Spela igen
-          </Button>
+        <Button
+          onClick={() => navigate('/challenge')}
+          variant="ghost"
+          className="text-white/60 hover:text-white hover:bg-white/10 gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Tillbaka
+        </Button>
+      </div>
+    );
+  }
+
+  // Waiting for opponent's turn
+  if (!isMyTurn && !gameStarted) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
+        <Clock className="w-12 h-12 text-purple-400 animate-pulse" />
+        <h2 className="text-2xl font-bold text-white">Inväntar {opponentName}</h2>
+        <p className="text-white/50 text-sm">
+          {MODE_LABELS[match.mode]} • Omgång {match.current_round}/{match.total_rounds}
+        </p>
+
+        <div className="flex gap-8 w-full max-w-sm">
+          <div className="flex-1 rounded-xl p-4 text-center" style={{ background: 'rgba(59,130,246,0.15)', border: '1px solid rgba(59,130,246,0.3)' }}>
+            <p className="text-blue-400 text-sm font-semibold mb-1">Du</p>
+            <p className="text-white text-3xl font-bold">{myScore}</p>
+          </div>
+          <div className="flex-1 rounded-xl p-4 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+            <p className="text-red-400 text-sm font-semibold mb-1">{opponentName}</p>
+            <p className="text-white text-3xl font-bold">{opponentScore}</p>
+          </div>
         </div>
+
+        <Button
+          onClick={() => navigate('/challenge')}
+          variant="ghost"
+          className="text-white/60 hover:text-white hover:bg-white/10 gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Tillbaka till matcher
+        </Button>
+      </div>
+    );
+  }
+
+  // Just submitted turn
+  if (submitting || (game.gameOver && !isMyTurn)) {
+    return (
+      <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
+        <Swords className="w-12 h-12 text-purple-400" />
+        <h2 className="text-2xl font-bold text-white">Tur skickad!</h2>
+        <p className="text-white/50 text-sm">
+          Du fick {gameMode === 'oneword' ? game.bestWordScore : game.score} poäng denna omgång
+        </p>
+        <p className="text-white/40 text-xs">Inväntar {opponentName}...</p>
+
+        <Button
+          onClick={() => navigate('/challenge')}
+          className="bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" /> Tillbaka till matcher
+        </Button>
       </div>
     );
   }
 
   // Playing phase
-  const subTurnLabel = totalHumanSubTurns > 1
-    ? ` • Del ${humanSubTurnNumber}/${totalHumanSubTurns} (${currentSubTurn?.moves} drag)`
-    : '';
-
   return (
     <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
       <div className="w-full max-w-4xl flex items-center justify-between mb-2 md:mb-4 px-1">
         <div>
           <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
-            {MODE_LABELS[mpMode]}
+            {MODE_LABELS[match.mode]}
           </h1>
           <p className="text-white/50 text-xs">
-            Omgång {matchState.currentRound}/{matchState.totalRounds} • vs Dator{subTurnLabel}
+            Omgång {match.current_round}/{match.total_rounds} • vs {opponentName}
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {(matchState.playerTotalScore > 0 || matchState.aiTotalScore > 0 || currentRoundHumanScore > 0 || currentRoundAiScore > 0) && (
-            <div className="text-right">
-              <p className="text-white/40 text-xs">Totalt</p>
-              <div className="flex gap-2 text-sm">
-                <span className="text-blue-400 font-bold">{matchState.playerTotalScore + currentRoundHumanScore}</span>
-                <span className="text-white/30">-</span>
-                <span className="text-red-400 font-bold">{matchState.aiTotalScore + currentRoundAiScore}</span>
-              </div>
+          <div className="text-right">
+            <p className="text-white/40 text-xs">Poäng</p>
+            <div className="flex gap-2 text-sm">
+              <span className="text-blue-400 font-bold">{myScore}</span>
+              <span className="text-white/30">-</span>
+              <span className="text-red-400 font-bold">{opponentScore}</span>
             </div>
-          )}
+          </div>
           <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
             <Menu className="w-6 h-6 text-white" />
           </button>
