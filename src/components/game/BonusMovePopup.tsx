@@ -9,6 +9,8 @@ export interface BonusPopupData {
   row: number;
   /** Grid col where the word center was */
   col: number;
+  /** Optional label override, e.g. "X2", "X3" */
+  label?: string;
 }
 
 const COLOR_MAP: Record<BubbleColor, string> = {
