@@ -389,7 +389,7 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
+      <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
     </div>
   );
