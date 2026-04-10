@@ -24,6 +24,26 @@ const MultiplayerMenu = () => {
   const [modePickerContext, setModePickerContext] = useState<'random' | { userId: string; name: string }>('random');
   const [searching, setSearching] = useState(false);
   const [queuedMode, setQueuedMode] = useState<string | null>(null);
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+
+  // Load pending friend request count
+  useEffect(() => {
+    if (!user) return;
+    const loadPendingCount = async () => {
+      const { count } = await supabase
+        .from('friendships')
+        .select('*', { count: 'exact', head: true })
+        .eq('addressee_id', user.id)
+        .eq('status', 'pending');
+      setPendingRequestCount(count || 0);
+    };
+    loadPendingCount();
+    const channel = supabase
+      .channel('friend-requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, () => loadPendingCount())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   useEffect(() => {
     if (!loading && !user) navigate('/auth');
