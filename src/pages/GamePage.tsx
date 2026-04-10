@@ -131,6 +131,8 @@ const GamePage = () => {
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
           onSwipe={game.handleSwipe}
+          bonusPopups={game.bonusPopups}
+          onBonusPopupDone={game.removeBonusPopup}
         />
 
         <GameInfo
