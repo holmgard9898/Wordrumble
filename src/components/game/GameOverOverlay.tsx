@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { Home, RotateCcw } from 'lucide-react';
+import { Home, RotateCcw, Coins } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import type { GameMode } from '@/pages/GamePage';
+import type { CoinBreakdown } from '@/utils/coinRewards';
 
 interface GameOverOverlayProps {
   score: number;
@@ -12,20 +13,21 @@ interface GameOverOverlayProps {
   onRestart: () => void;
   bestWord?: string | null;
   bestWordScore?: number;
+  coinReward?: CoinBreakdown | null;
 }
 
-export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore }: GameOverOverlayProps) {
+export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore, coinReward }: GameOverOverlayProps) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const isBomb = mode === 'bomb';
   const isOneWord = mode === 'oneword';
   const [showContent, setShowContent] = useState(false);
   const [explosionPhase, setExplosionPhase] = useState(0);
+  const [showCoins, setShowCoins] = useState(false);
   const ctxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     if (isBomb) {
-      // Explosion phases
       setExplosionPhase(1);
       const t1 = setTimeout(() => setExplosionPhase(2), 400);
       const t2 = setTimeout(() => setExplosionPhase(3), 800);
@@ -36,6 +38,14 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
       return () => clearTimeout(t);
     }
   }, [isBomb]);
+
+  // Animate coins appearing after content
+  useEffect(() => {
+    if (showContent && coinReward && coinReward.total > 0) {
+      const t = setTimeout(() => setShowCoins(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, [showContent, coinReward]);
 
   // Play end-screen music
   useEffect(() => {
@@ -48,7 +58,6 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
     masterGain.connect(ctx.destination);
 
     if (isBomb) {
-      // Somber descending notes
       const notes = [392, 349, 330, 294, 262];
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -63,7 +72,6 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
         osc.stop(ctx.currentTime + i * 0.25 + 0.4);
       });
     } else {
-      // Uplifting major arpeggio
       const notes = [523, 659, 784, 1047, 784, 1047, 1319];
       notes.forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -148,6 +156,50 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
           <div className="text-white/70 text-sm">
             {wordsFound} ord hittade
           </div>
+
+          {/* Coin reward section */}
+          {coinReward && coinReward.total > 0 && (
+            <div
+              className={`w-full rounded-xl px-4 py-3 transition-all duration-500 ${showCoins ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+              style={{
+                background: 'linear-gradient(135deg, rgba(234,179,8,0.2), rgba(234,179,8,0.05))',
+                border: '1px solid rgba(234,179,8,0.3)',
+              }}
+            >
+              <div className="flex items-center justify-center gap-2 mb-2">
+                <Coins className="w-5 h-5 text-yellow-400" />
+                <span className="text-xl font-bold text-yellow-400">
+                  +{coinReward.total.toFixed(2)} coins
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                {coinReward.base > 0 && (
+                  <div className="flex justify-between text-xs text-white/50">
+                    <span>Poängbonus</span>
+                    <span>+{coinReward.base.toFixed(2)}</span>
+                  </div>
+                )}
+                {coinReward.lengthBonus > 0 && (
+                  <div className="flex justify-between text-xs text-white/50">
+                    <span>Långa ord</span>
+                    <span>+{coinReward.lengthBonus.toFixed(2)}</span>
+                  </div>
+                )}
+                {coinReward.superWordBonus > 0 && (
+                  <div className="flex justify-between text-xs text-white/50">
+                    <span>Superord (50+p)</span>
+                    <span>+{coinReward.superWordBonus.toFixed(2)}</span>
+                  </div>
+                )}
+                {coinReward.enduranceBonus > 0 && (
+                  <div className="flex justify-between text-xs text-white/50">
+                    <span>Uthållighet</span>
+                    <span>+{coinReward.enduranceBonus.toFixed(2)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex gap-3 mt-4 w-full">
             <Button
