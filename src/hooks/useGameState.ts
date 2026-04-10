@@ -18,6 +18,16 @@ interface FoundWord {
   score: number;
 }
 
+export interface BonusMovesEvent {
+  id: string;
+  amount: number;
+  color: import('@/data/gameConstants').BubbleColor;
+  row: number;
+  col: number;
+}
+
+let bonusEventId = 0;
+
 function getColorsForMode(mode: GameMode) {
   return mode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
 }
