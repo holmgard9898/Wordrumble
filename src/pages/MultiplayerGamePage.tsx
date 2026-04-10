@@ -392,6 +392,7 @@ const MultiplayerGamePage = () => {
           onResetGame={() => {}}
           onShowWords={() => setShowWords(true)}
           usedWordsCount={game.usedWords.length}
+          blockedWordsCount={opponentWordsThisRound.length}
           mode={gameMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
