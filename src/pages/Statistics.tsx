@@ -67,7 +67,7 @@ const Statistics = () => {
       .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`);
 
     if (onlineMode !== 'all') {
-      query = query.eq('mode', onlineMode);
+      query = query.eq('mode', onlineMode as any);
     }
 
     const { data: matches } = await query;
