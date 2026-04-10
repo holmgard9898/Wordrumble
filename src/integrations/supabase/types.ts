@@ -77,6 +77,7 @@ export type Database = {
         Row: {
           completed_at: string | null
           created_at: string
+          current_phase: number
           current_round: number
           current_turn: string | null
           id: string
@@ -99,6 +100,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string
+          current_phase?: number
           current_round?: number
           current_turn?: string | null
           id?: string
@@ -121,6 +123,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string
+          current_phase?: number
           current_round?: number
           current_turn?: string | null
           id?: string
