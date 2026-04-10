@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Loader2, X, Bot } from 'lucide-react';
+import { ArrowLeft, Shuffle, Users, Loader2, X, Bot, Bell } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
@@ -105,7 +105,7 @@ const MultiplayerMenu = () => {
         mode,
         player1_id: user.id,
         player2_id: friend.userId,
-        status: 'active',
+        status: 'waiting',
         current_turn: user.id,
         current_round: 1,
         total_rounds: totalRounds,
