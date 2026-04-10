@@ -117,7 +117,13 @@ const MultiplayerGamePage = () => {
 
   const langConfig = getLanguageConfig(settings.language);
   const colors = mpMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
-  const { isValidWord, loading } = useDictionary(settings.language);
+  const { isValidWord, loading, words: dictWords } = useDictionary(settings.language);
+  const validWordsListRef = useRef<string[]>([]);
+  useEffect(() => {
+    if (dictWords) {
+      validWordsListRef.current = Array.from(dictWords);
+    }
+  }, [dictWords]);
   const { runAIRound } = useAIOpponent();
   const { playSwap, playWordFound, playGameOver } = useSfx();
 
@@ -195,7 +201,7 @@ const MultiplayerGamePage = () => {
     }
 
     const sharedWords = mpMode === 'surge' ? [] : matchState.sharedUsedWords;
-    const result = await runAIRound(aiGrid, isValidWord, mpMode, st.moves, sharedWords);
+    const result = await runAIRound(aiGrid, isValidWord, mpMode, st.moves, sharedWords, validWordsListRef.current);
 
     // Store result
     const subResult: SubTurnResult = {
