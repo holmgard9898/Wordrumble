@@ -28,7 +28,7 @@ const App = () => (
             <Route path="/" element={<MainMenu />} />
             <Route path="/play" element={<SingleplayerMenu />} />
             <Route path="/challenge" element={<MultiplayerMenu />} />
-            <Route path="/game/mp-:mode" element={<MultiplayerGamePage />} />
+            <Route path="/match/:matchId" element={<MultiplayerGamePage />} />
             <Route path="/game/:mode" element={<GamePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/statistics" element={<Statistics />} />
