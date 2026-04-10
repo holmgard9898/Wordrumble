@@ -295,7 +295,7 @@ const MultiplayerGamePage = () => {
         <Clock className="w-12 h-12 text-purple-400 animate-pulse" />
         <h2 className="text-2xl font-bold text-white">Inväntar {opponentName}</h2>
         <p className="text-white/50 text-sm">
-          {MODE_LABELS[match.mode]} • Omgång {match.current_round}/{match.total_rounds}
+          {MODE_LABELS[match.mode]} • Omgång {match.current_round}/{match.total_rounds} • Fas {match.current_phase || 1}/3
         </p>
 
         <div className="flex gap-8 w-full max-w-sm">
@@ -350,7 +350,7 @@ const MultiplayerGamePage = () => {
             {MODE_LABELS[match.mode]}
           </h1>
           <p className="text-white/50 text-xs">
-            Omgång {match.current_round}/{match.total_rounds} • vs {opponentName}
+            Omgång {match.current_round}/{match.total_rounds} • Fas {match.current_phase || 1}/3 • vs {opponentName}
           </p>
         </div>
         <div className="flex items-center gap-3">
