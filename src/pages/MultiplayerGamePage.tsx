@@ -25,6 +25,7 @@ interface MatchData {
   status: string;
   current_turn: string | null;
   current_round: number;
+  current_phase: number;
   total_rounds: number;
   player1_id: string;
   player2_id: string | null;
@@ -32,7 +33,7 @@ interface MatchData {
   player2_score: number;
   player1_rounds_data: any[];
   player2_rounds_data: any[];
-  round_grids: any[];
+  round_grids: Record<string, any>;
   shared_used_words: string[];
   winner_id: string | null;
 }
