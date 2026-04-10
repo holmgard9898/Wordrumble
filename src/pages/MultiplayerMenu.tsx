@@ -54,7 +54,6 @@ const MultiplayerMenu = () => {
         {[
           { id: 'random', icon: Shuffle, label: 'Slumpmässig', desc: 'Möt en slumpmässig spelare' },
           { id: 'friend', icon: Users, label: 'Vän', desc: 'Utmana en vän' },
-          { id: 'ai', icon: Bot, label: 'Dator', desc: 'Spela mot AI' },
         ].map((opt) => (
           <button
             key={opt.id}
