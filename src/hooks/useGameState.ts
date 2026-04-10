@@ -301,13 +301,52 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setPoppingCells(popKeys);
     setLastFoundWord(word.word);
 
+    const wordLen = word.positions.length;
+    const centerPos = word.positions[Math.floor(word.positions.length / 2)];
+    const wordColor = currentGrid[word.positions[0].row][word.positions[0].col].color;
+
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
 
+    // X2/X3 multiplier popup for 9+ letter words (all modes that use calcWordScore)
+    if (mode !== 'bomb') {
+      if (wordLen >= 10) {
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: 3,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+          label: 'X3',
+        }]);
+      } else if (wordLen >= 9) {
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: 2,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+          label: 'X2',
+        }]);
+      }
+    }
+
+    // Oneword mode: popup when new best word score
+    if (mode === 'oneword') {
+      const currentBest = usedWordsRef.current.reduce((best, w) => Math.max(best, w.score), 0);
+      if (word.score > currentBest) {
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: word.score,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+        }]);
+      }
+    }
+
+    // Word Surge bonus moves
     if (mode === 'surge') {
-      const wordLen = word.positions.length;
-      const centerPos = word.positions[Math.floor(word.positions.length / 2)];
-      const wordColor = grid[word.positions[0].row][word.positions[0].col].color;
       let totalBonus = 0;
 
       if (wordLen >= 10) {
