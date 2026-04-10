@@ -42,5 +42,5 @@ export function useDictionary(language: GameLanguage = 'en') {
     return words.has(word.toLowerCase());
   };
 
-  return { isValidWord, loading, wordCount: words?.size ?? 0 };
+  return { isValidWord, loading, wordCount: words?.size ?? 0, words };
 }
