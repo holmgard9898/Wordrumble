@@ -1,0 +1,1 @@
+ALTER TABLE public.matches ADD COLUMN current_phase integer NOT NULL DEFAULT 1;
