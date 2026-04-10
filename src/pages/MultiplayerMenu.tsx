@@ -1,16 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Plus } from 'lucide-react';
+import { ArrowLeft, Shuffle, Users, Loader2, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useAuth } from '@/hooks/useAuth';
 import { MatchList } from '@/components/multiplayer/MatchList';
-import { FriendSearch } from '@/components/multiplayer/FriendSearch';
-import { NewMatchFlow } from '@/components/multiplayer/NewMatchFlow';
-
-type View = 'hub' | 'new-random' | 'new-friend' | 'friends';
+import { FriendDrawer } from '@/components/multiplayer/FriendDrawer';
+import { ModePickerSheet, type MatchMode } from '@/components/multiplayer/ModePickerSheet';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const MultiplayerMenu = () => {
   useMenuMusic();
@@ -18,14 +18,37 @@ const MultiplayerMenu = () => {
   const { playClick } = useSfx();
   const bg = useGameBackground();
   const { user, loading } = useAuth();
-  const [view, setView] = useState<View>('hub');
-  const [challengeFriend, setChallengeFriend] = useState<{ userId: string; name: string } | null>(null);
+
+  const [friendDrawerOpen, setFriendDrawerOpen] = useState(false);
+  const [modePickerOpen, setModePickerOpen] = useState(false);
+  const [modePickerContext, setModePickerContext] = useState<'random' | { userId: string; name: string }>('random');
+  const [searching, setSearching] = useState(false);
+  const [queuedMode, setQueuedMode] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
-    }
+    if (!loading && !user) navigate('/auth');
   }, [loading, user, navigate]);
+
+  // Poll for match when queued
+  useEffect(() => {
+    if (!searching || !queuedMode || !user) return;
+    const interval = setInterval(async () => {
+      const { data: matches } = await supabase
+        .from('matches')
+        .select('id')
+        .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`)
+        .eq('status', 'active')
+        .eq('mode', queuedMode as MatchMode)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      if (matches && matches.length > 0) {
+        setSearching(false);
+        toast.success('Match hittad!');
+        navigate(`/match/${matches[0].id}`);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [searching, queuedMode, user, navigate]);
 
   if (loading) {
     return (
@@ -34,25 +57,98 @@ const MultiplayerMenu = () => {
       </div>
     );
   }
-
   if (!user) return null;
 
-  const handleChallengeFriend = (friendUserId: string, friendName: string) => {
+  const handleRandomClick = () => {
     playClick();
-    setChallengeFriend({ userId: friendUserId, name: friendName });
-    setView('new-friend');
+    setModePickerContext('random');
+    setModePickerOpen(true);
+  };
+
+  const handleFriendChallenge = (friendUserId: string, friendName: string) => {
+    playClick();
+    setModePickerContext({ userId: friendUserId, name: friendName });
+    setModePickerOpen(true);
+  };
+
+  const handleModeSelected = async (mode: MatchMode) => {
+    if (modePickerContext === 'random') {
+      await startRandomMatch(mode);
+    } else {
+      await challengeFriendWithMode(mode, modePickerContext);
+    }
+  };
+
+  const startRandomMatch = async (mode: MatchMode) => {
+    setSearching(true);
+    setQueuedMode(mode);
+    try {
+      const { data, error } = await supabase.functions.invoke('find-match', { body: { mode } });
+      if (error) throw error;
+      if (data.status === 'matched') {
+        setSearching(false);
+        toast.success('Match hittad!');
+        navigate(`/match/${data.match.id}`);
+      }
+    } catch {
+      toast.error('Kunde inte söka match');
+      setSearching(false);
+      setQueuedMode(null);
+    }
+  };
+
+  const challengeFriendWithMode = async (mode: MatchMode, friend: { userId: string; name: string }) => {
+    const totalRounds = mode === 'surge' ? 3 : 2;
+    const { data: match, error } = await supabase
+      .from('matches')
+      .insert({
+        mode,
+        player1_id: user.id,
+        player2_id: friend.userId,
+        status: 'active',
+        current_turn: user.id,
+        current_round: 1,
+        total_rounds: totalRounds,
+        round_grids: [],
+        shared_used_words: [],
+        player1_rounds_data: [],
+        player2_rounds_data: [],
+      })
+      .select()
+      .single();
+    if (error) {
+      toast.error('Kunde inte skapa match');
+      return;
+    }
+    toast.success(`Utmaning skickad till ${friend.name}!`);
+    navigate(`/match/${match.id}`);
+  };
+
+  const cancelSearch = async () => {
+    await supabase.from('matchmaking_queue').delete().eq('user_id', user.id);
+    setSearching(false);
+    setQueuedMode(null);
   };
 
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 pt-8 pb-20 ${bg.className}`} style={bg.style}>
       <h1 className="text-3xl font-bold text-white mb-1">Utmana</h1>
 
-      {view === 'hub' && (
+      {searching ? (
+        <div className="w-full max-w-md text-center py-8">
+          <Loader2 className="w-10 h-10 text-purple-400 animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg font-semibold mb-1">Söker motståndare...</p>
+          <p className="text-white/40 text-sm mb-4">{queuedMode}</p>
+          <Button onClick={cancelSearch} variant="ghost" className="text-white/50 hover:text-white hover:bg-white/10 gap-2">
+            <X className="w-4 h-4" /> Avbryt
+          </Button>
+        </div>
+      ) : (
         <>
           {/* Action buttons */}
           <div className="flex gap-3 w-full max-w-md mt-4 mb-6">
             <button
-              onClick={() => { playClick(); setView('new-random'); }}
+              onClick={handleRandomClick}
               className="flex-1 rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: 'rgba(147,51,234,0.2)', border: '1px solid rgba(147,51,234,0.3)' }}
             >
@@ -61,7 +157,7 @@ const MultiplayerMenu = () => {
               <div className="text-white/40 text-[10px]">Möt en spelare</div>
             </button>
             <button
-              onClick={() => { playClick(); setView('friends'); }}
+              onClick={() => { playClick(); setFriendDrawerOpen(true); }}
               className="flex-1 rounded-xl p-4 transition-all hover:scale-[1.02] active:scale-[0.98]"
               style={{ background: 'rgba(59,130,246,0.2)', border: '1px solid rgba(59,130,246,0.3)' }}
             >
@@ -73,46 +169,31 @@ const MultiplayerMenu = () => {
 
           {/* Match list */}
           <MatchList />
+
+          <Button
+            onClick={() => { playClick(); navigate('/'); }}
+            variant="ghost"
+            className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="w-4 h-4" /> Huvudmeny
+          </Button>
         </>
       )}
 
-      {view === 'new-random' && (
-        <div className="mt-6 w-full flex flex-col items-center">
-          <NewMatchFlow onCancel={() => setView('hub')} />
-        </div>
-      )}
+      {/* Friend Drawer */}
+      <FriendDrawer
+        open={friendDrawerOpen}
+        onOpenChange={setFriendDrawerOpen}
+        onChallenge={handleFriendChallenge}
+      />
 
-      {view === 'new-friend' && (
-        <div className="mt-6 w-full flex flex-col items-center">
-          <NewMatchFlow
-            challengeFriend={challengeFriend}
-            onCancel={() => { setChallengeFriend(null); setView('friends'); }}
-          />
-        </div>
-      )}
-
-      {view === 'friends' && (
-        <div className="mt-6 w-full flex flex-col items-center">
-          <FriendSearch onChallenge={handleChallengeFriend} />
-          <Button
-            onClick={() => { playClick(); setView('hub'); }}
-            variant="ghost"
-            className="mt-6 gap-2 text-white/60 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4" /> Tillbaka
-          </Button>
-        </div>
-      )}
-
-      {view === 'hub' && (
-        <Button
-          onClick={() => { playClick(); navigate('/'); }}
-          variant="ghost"
-          className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="w-4 h-4" /> Huvudmeny
-        </Button>
-      )}
+      {/* Mode Picker */}
+      <ModePickerSheet
+        open={modePickerOpen}
+        onOpenChange={setModePickerOpen}
+        onSelect={handleModeSelected}
+        title={modePickerContext === 'random' ? 'Välj spelläge' : `Utmana ${modePickerContext.name}`}
+      />
     </div>
   );
 };
