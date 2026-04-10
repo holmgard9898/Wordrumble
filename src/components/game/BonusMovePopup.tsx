@@ -9,6 +9,8 @@ export interface BonusPopupData {
   row: number;
   /** Grid col where the word center was */
   col: number;
+  /** Optional label override, e.g. "X2", "X3" */
+  label?: string;
 }
 
 const COLOR_MAP: Record<BubbleColor, string> = {
@@ -45,6 +47,12 @@ export function BonusMovePopup({ popup, onDone }: BonusMovePopupProps) {
   const color = COLOR_MAP[popup.color];
   const shadow = SHADOW_MAP[popup.color];
 
+  const displayText = popup.label ?? `+${popup.amount}`;
+  const isMultiplier = popup.label?.startsWith('X');
+  const fontSize = isMultiplier
+    ? 'clamp(2rem, 6vw, 3.5rem)'
+    : 'clamp(1.5rem, 4vw, 2.5rem)';
+
   return (
     <div
       className="absolute pointer-events-none z-30 font-black"
@@ -54,21 +62,21 @@ export function BonusMovePopup({ popup, onDone }: BonusMovePopupProps) {
         transform: phase === 'enter'
           ? 'scale(0.3) translateY(0px)'
           : phase === 'float'
-            ? 'scale(1) translateY(-70px)'
+            ? `scale(${isMultiplier ? 1.2 : 1}) translateY(-70px)`
             : 'scale(0.8) translateY(-100px)',
         opacity: phase === 'gone' ? 0 : phase === 'enter' ? 0.5 : 1,
         transition: phase === 'enter'
           ? 'all 0.1s ease-out'
           : 'all 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
         color,
-        fontSize: 'clamp(1.5rem, 4vw, 2.5rem)',
+        fontSize,
         textShadow: shadow,
         fontFamily: '"Nunito", "Baloo 2", system-ui, sans-serif',
         letterSpacing: '0.02em',
-        WebkitTextStroke: '1px rgba(0,0,0,0.2)',
+        WebkitTextStroke: isMultiplier ? '1.5px rgba(0,0,0,0.3)' : '1px rgba(0,0,0,0.2)',
       }}
     >
-      +{popup.amount}
+      {displayText}
     </div>
   );
 }
