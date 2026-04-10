@@ -5,7 +5,7 @@ interface UsedWord {
   score: number;
 }
 
-interface CoinBreakdown {
+export interface CoinBreakdown {
   base: number;
   lengthBonus: number;
   superWordBonus: number;
