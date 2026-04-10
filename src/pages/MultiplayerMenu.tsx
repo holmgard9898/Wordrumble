@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shuffle, Users, Bot, Timer, Zap, Star, Trophy } from 'lucide-react';
+import { ArrowLeft, Shuffle, Users, Timer, Zap, Star, Trophy } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
@@ -54,7 +54,6 @@ const MultiplayerMenu = () => {
         {[
           { id: 'random', icon: Shuffle, label: 'Slumpmässig', desc: 'Möt en slumpmässig spelare' },
           { id: 'friend', icon: Users, label: 'Vän', desc: 'Utmana en vän' },
-          { id: 'ai', icon: Bot, label: 'Dator', desc: 'Spela mot AI' },
         ].map((opt) => (
           <button
             key={opt.id}
