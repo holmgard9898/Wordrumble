@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Trophy, Swords } from 'lucide-react';
@@ -8,6 +8,8 @@ import { useHighScores } from '@/hooks/useHighScores';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const MODE_OPTIONS = [
   { value: 'all', label: 'Alla lägen' },
@@ -18,15 +20,97 @@ const MODE_OPTIONS = [
   { value: 'Bomb Mode', label: 'Bomb Mode' },
 ];
 
+const ONLINE_MODE_OPTIONS = [
+  { value: 'all', label: 'Alla lägen' },
+  { value: 'classic', label: 'Classic' },
+  { value: 'surge', label: 'Word Surge' },
+  { value: 'fiveplus', label: '5+ Bokstäver' },
+  { value: 'oneword', label: 'Ett Ord' },
+];
+
+interface OnlineStats {
+  wins: number;
+  losses: number;
+  draws: number;
+  totalMatches: number;
+  totalScore: number;
+  bestScore: number;
+  bestWord: string | null;
+  bestWordScore: number;
+}
+
 const Statistics = () => {
   useMenuMusic();
   const navigate = useNavigate();
   const { scores } = useHighScores();
   const { playClick } = useSfx();
   const bg = useGameBackground();
+  const { user } = useAuth();
   const [selectedMode, setSelectedMode] = useState('all');
+  const [onlineMode, setOnlineMode] = useState('all');
+  const [onlineStats, setOnlineStats] = useState<OnlineStats>({ wins: 0, losses: 0, draws: 0, totalMatches: 0, totalScore: 0, bestScore: 0, bestWord: null, bestWordScore: 0 });
+  const [loadingOnline, setLoadingOnline] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    loadOnlineStats();
+  }, [user, onlineMode]);
+
+  const loadOnlineStats = async () => {
+    if (!user) return;
+    setLoadingOnline(true);
+
+    let query = supabase
+      .from('matches')
+      .select('*')
+      .eq('status', 'completed' as any)
+      .or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`);
+
+    if (onlineMode !== 'all') {
+      query = query.eq('mode', onlineMode as any);
+    }
+
+    const { data: matches } = await query;
+
+    if (!matches) {
+      setLoadingOnline(false);
+      return;
+    }
+
+    let wins = 0, losses = 0, draws = 0, totalScore = 0, bestScore = 0;
+    let bestWord: string | null = null, bestWordScore = 0;
+
+    for (const m of matches) {
+      const isP1 = m.player1_id === user.id;
+      const myScore = isP1 ? m.player1_score : m.player2_score;
+      totalScore += myScore;
+      if (myScore > bestScore) bestScore = myScore;
+
+      if (!m.winner_id) draws++;
+      else if (m.winner_id === user.id) wins++;
+      else losses++;
+
+      const myRounds = (isP1 ? m.player1_rounds_data : m.player2_rounds_data) as any[];
+      if (Array.isArray(myRounds)) {
+        for (const rd of myRounds) {
+          if (rd.best_word_score && rd.best_word_score > bestWordScore) {
+            bestWordScore = rd.best_word_score;
+            bestWord = rd.best_word || null;
+          }
+        }
+      }
+    }
+
+    setOnlineStats({
+      wins, losses, draws,
+      totalMatches: matches.length,
+      totalScore, bestScore, bestWord, bestWordScore,
+    });
+    setLoadingOnline(false);
+  };
 
   const filtered = selectedMode === 'all' ? scores : scores.filter(s => s.mode === selectedMode);
+  const winRate = onlineStats.totalMatches > 0 ? Math.round((onlineStats.wins / onlineStats.totalMatches) * 100) : 0;
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
@@ -43,21 +127,19 @@ const Statistics = () => {
             </TabsTrigger>
           </TabsList>
 
-          {/* Mode filter dropdown */}
-          <div className="mt-3">
-            <Select value={selectedMode} onValueChange={setSelectedMode}>
-              <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MODE_OPTIONS.map(o => (
-                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <TabsContent value="highscore" className="mt-4">
+            <div className="mb-3">
+              <Select value={selectedMode} onValueChange={setSelectedMode}>
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MODE_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="rounded-2xl p-4 space-y-2" style={{ background: 'rgba(0,0,0,0.3)' }}>
               {filtered.length === 0 ? (
                 <p className="text-white/50 text-center py-4">Inga highscores ännu{selectedMode !== 'all' ? ` för ${selectedMode}` : ''}. Spela en omgång!</p>
@@ -81,10 +163,75 @@ const Statistics = () => {
           </TabsContent>
 
           <TabsContent value="online" className="mt-4">
-            <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <Swords className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
-              <p className="text-white/50">Online-statistik kommer snart!</p>
+            <div className="mb-3">
+              <Select value={onlineMode} onValueChange={setOnlineMode}>
+                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ONLINE_MODE_OPTIONS.map(o => (
+                    <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {!user ? (
+              <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <p className="text-white/50">Logga in för att se online-statistik</p>
+              </div>
+            ) : loadingOnline ? (
+              <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <p className="text-white/50">Laddar...</p>
+              </div>
+            ) : onlineStats.totalMatches === 0 ? (
+              <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <Swords className="w-12 h-12 text-purple-400/50 mx-auto mb-3" />
+                <p className="text-white/50">Inga avslutade matcher ännu{onlineMode !== 'all' ? ' i detta läge' : ''}!</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
+                    <p className="text-green-400 text-xs font-semibold">Vinster</p>
+                    <p className="text-white text-2xl font-bold">{onlineStats.wins}</p>
+                  </div>
+                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
+                    <p className="text-red-400 text-xs font-semibold">Förluster</p>
+                    <p className="text-white text-2xl font-bold">{onlineStats.losses}</p>
+                  </div>
+                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <p className="text-white/50 text-xs font-semibold">Oavgjort</p>
+                    <p className="text-white text-2xl font-bold">{onlineStats.draws}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/50 text-sm">Matcher spelade</span>
+                    <span className="text-white font-semibold">{onlineStats.totalMatches}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/50 text-sm">Vinstprocent</span>
+                    <span className="text-white font-semibold">{winRate}%</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/50 text-sm">Totala poäng</span>
+                    <span className="text-white font-semibold">{onlineStats.totalScore}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-white/50 text-sm">Bästa matchpoäng</span>
+                    <span className="text-yellow-400 font-semibold">{onlineStats.bestScore}</span>
+                  </div>
+                  {onlineStats.bestWord && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-white/50 text-sm">Bästa ord</span>
+                      <span className="text-emerald-400 font-semibold">{onlineStats.bestWord} (+{onlineStats.bestWordScore})</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
