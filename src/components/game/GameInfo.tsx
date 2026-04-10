@@ -9,6 +9,7 @@ interface GameInfoProps {
   onResetGame: () => void;
   onShowWords: () => void;
   usedWordsCount: number;
+  blockedWordsCount?: number;
   mode: GameMode;
   bestWordScore?: number;
   bestWord?: string | null;
@@ -24,7 +25,7 @@ const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color
 
 export function GameInfo({
   movesLeft, score, lastFoundWord,
-  onResetGame, onShowWords, usedWordsCount, mode,
+  onResetGame, onShowWords, usedWordsCount, blockedWordsCount = 0, mode,
   bestWordScore = 0, bestWord,
 }: GameInfoProps) {
   const badge = MODE_BADGE[mode];
@@ -86,7 +87,7 @@ export function GameInfo({
           variant="outline"
           className="flex-1 gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20"
         >
-          <List className="w-4 h-4" /> Ord ({usedWordsCount})
+          <List className="w-4 h-4" /> Ord ({usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''})
         </Button>
         <Button
           onClick={onResetGame}
