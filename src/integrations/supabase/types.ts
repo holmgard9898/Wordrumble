@@ -171,6 +171,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           display_name: string
+          game_progress: Json
           id: string
           updated_at: string
           user_id: string
@@ -179,6 +180,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          game_progress?: Json
           id?: string
           updated_at?: string
           user_id: string
@@ -187,6 +189,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           display_name?: string
+          game_progress?: Json
           id?: string
           updated_at?: string
           user_id?: string
