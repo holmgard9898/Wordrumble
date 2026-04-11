@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN game_progress jsonb NOT NULL DEFAULT '{}'::jsonb;
