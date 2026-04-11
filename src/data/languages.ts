@@ -28,7 +28,7 @@ const EN_CONFIG: LanguageConfig = {
   blockedNames: new Set([
     'alan','alex','amy','anna','ben','carl','emma','fred','gary','ian',
     'jane','jim','joe','john','kate','lisa','mary','mike',
-    'paul','pete','ron','tim',
+    'paul','pete','ron','tim', 'eth', 'eff', 'effs', 'eths', 'aba', 'aby', 'ait', 'ane', 'ani', 'avo', 'azo', 'ene', 'ide'
   ]),
 };
 
