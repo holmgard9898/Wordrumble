@@ -49,26 +49,26 @@ export function GameInfo({
       <div className="flex gap-1.5 md:gap-3">
         {isOneWord ? (
           <>
-            <div className="flex-1 rounded-lg md:rounded-xl p-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.bestWord}</div>
-              <div className="text-xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
-              {bestWord && <div className="text-[10px] md:text-xs text-white/50">{bestWord}</div>}
+            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.bestWord}</div>
+              <div className="text-2xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
+              {bestWord && <div className="text-[11px] md:text-xs text-white/50">{bestWord}</div>}
             </div>
-            <div className="flex-1 rounded-lg md:rounded-xl p-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
-              <div className={`text-xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
+            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
+              <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
             </div>
           </>
         ) : (
           <>
-            <div className="flex-1 rounded-lg md:rounded-xl p-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.score}</div>
-              <div className="text-xl md:text-3xl font-bold text-white">{score}</div>
+            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.score}</div>
+              <div className="text-2xl md:text-3xl font-bold text-white">{score}</div>
             </div>
             {!isBomb && (
-              <div className="flex-1 rounded-lg md:rounded-xl p-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
-                <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
-                <div className={`text-xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
+              <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
+                <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
               </div>
             )}
           </>
