@@ -126,9 +126,9 @@ const GamePage = () => {
         />
       </div>
 
-      {/* Mobile layout — board centered, info at bottom */}
+      {/* Mobile layout — board + info stacked tightly */}
       <div className="flex lg:hidden flex-col flex-1 w-full items-center justify-center min-h-0">
-        <div className="flex-1 flex items-center justify-center w-full">
+        <div className="flex items-center justify-center w-full">
           <GameBoard
             grid={game.grid}
             selectedBubble={game.selectedBubble}
@@ -139,7 +139,7 @@ const GamePage = () => {
             onBonusPopupDone={game.removeBonusPopup}
           />
         </div>
-        <div className="w-full shrink-0 pb-2 px-1">
+        <div className="w-full shrink-0 pt-2 pb-3 px-2">
           <GameInfo
             movesLeft={game.movesLeft}
             score={game.score}
