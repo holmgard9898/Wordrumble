@@ -51,7 +51,7 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
 
   return (
     <div
-      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-2 md:p-3 rounded-2xl`}
+      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-1 md:p-3 rounded-xl md:rounded-2xl w-full md:w-auto`}
       style={{ background: 'rgba(0,0,0,0.3)' }}
     >
       {grid.map((row, r) => (

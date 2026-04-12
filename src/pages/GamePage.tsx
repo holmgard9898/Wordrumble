@@ -93,17 +93,42 @@ const GamePage = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
-      <div className="w-full max-w-4xl flex items-center justify-between mb-2 md:mb-4 px-1">
-        <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">Word Rumble</h1>
-        <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-          <Menu className="w-6 h-6 text-white" />
+    <div className={`min-h-screen flex flex-col items-center ${bg.className}`} style={bg.style}>
+      {/* Header — compact on mobile */}
+      <div className="w-full flex items-center justify-between px-3 py-1.5 md:py-3 md:px-4 max-w-4xl">
+        <h1 className="text-lg md:text-3xl font-bold text-white tracking-tight">Word Rumble</h1>
+        <button onClick={() => setShowMenu(true)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
+          <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
-        <GameBoard grid={game.grid} selectedBubble={game.selectedBubble} poppingCells={game.poppingCells} onBubbleClick={handleBubbleClick} onSwipe={game.handleSwipe} bonusPopups={game.bonusPopups} onBonusPopupDone={game.removeBonusPopup} />
-        <GameInfo movesLeft={game.movesLeft} score={game.score} lastFoundWord={game.lastFoundWord} onResetGame={handleReset} onShowWords={() => setShowWords(true)} usedWordsCount={game.usedWords.length} mode={gameMode} bestWordScore={game.bestWordScore} bestWord={game.bestWord} />
+      {/* Main game area */}
+      <div className="flex flex-col lg:flex-row gap-1.5 md:gap-6 items-center lg:items-start w-full max-w-4xl flex-1 px-1 md:px-4">
+        {/* Board with overlaid mode badge */}
+        <div className="relative w-full lg:w-auto">
+          <GameBoard
+            grid={game.grid}
+            selectedBubble={game.selectedBubble}
+            poppingCells={game.poppingCells}
+            onBubbleClick={handleBubbleClick}
+            onSwipe={game.handleSwipe}
+            bonusPopups={game.bonusPopups}
+            onBonusPopupDone={game.removeBonusPopup}
+          />
+        </div>
+
+        {/* Info panel — below board on mobile, side on desktop */}
+        <GameInfo
+          movesLeft={game.movesLeft}
+          score={game.score}
+          lastFoundWord={game.lastFoundWord}
+          onResetGame={handleReset}
+          onShowWords={() => setShowWords(true)}
+          usedWordsCount={game.usedWords.length}
+          mode={gameMode}
+          bestWordScore={game.bestWordScore}
+          bestWord={game.bestWord}
+        />
       </div>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
