@@ -93,31 +93,26 @@ const GamePage = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col items-center ${bg.className}`} style={bg.style}>
-      {/* Header — compact on mobile */}
-      <div className="w-full flex items-center justify-between px-3 py-1.5 md:py-3 md:px-4 max-w-4xl">
-        <h1 className="text-lg md:text-3xl font-bold text-white tracking-tight">Word Rumble</h1>
-        <button onClick={() => setShowMenu(true)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-          <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
+    <div className={`h-[100dvh] flex flex-col items-center ${bg.className}`} style={bg.style}>
+      {/* Header — minimal on mobile */}
+      <div className="w-full flex items-center justify-between px-3 py-1 md:py-3 md:px-4 max-w-4xl shrink-0">
+        <h1 className="text-sm md:text-3xl font-bold text-white tracking-tight opacity-80">Word Rumble</h1>
+        <button onClick={() => setShowMenu(true)} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
+          <Menu className="w-4 h-4 md:w-6 md:h-6 text-white" />
         </button>
       </div>
 
-      {/* Main game area */}
-      <div className="flex flex-col lg:flex-row gap-1.5 md:gap-6 items-center lg:items-start w-full max-w-4xl flex-1 px-1 md:px-4">
-        {/* Board with overlaid mode badge */}
-        <div className="relative w-full lg:w-auto">
-          <GameBoard
-            grid={game.grid}
-            selectedBubble={game.selectedBubble}
-            poppingCells={game.poppingCells}
-            onBubbleClick={handleBubbleClick}
-            onSwipe={game.handleSwipe}
-            bonusPopups={game.bonusPopups}
-            onBonusPopupDone={game.removeBonusPopup}
-          />
-        </div>
-
-        {/* Info panel — below board on mobile, side on desktop */}
+      {/* Desktop layout */}
+      <div className="hidden lg:flex gap-6 items-start w-full max-w-4xl flex-1 px-4">
+        <GameBoard
+          grid={game.grid}
+          selectedBubble={game.selectedBubble}
+          poppingCells={game.poppingCells}
+          onBubbleClick={handleBubbleClick}
+          onSwipe={game.handleSwipe}
+          bonusPopups={game.bonusPopups}
+          onBonusPopupDone={game.removeBonusPopup}
+        />
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
@@ -129,6 +124,34 @@ const GamePage = () => {
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
         />
+      </div>
+
+      {/* Mobile layout — board centered, info at bottom */}
+      <div className="flex lg:hidden flex-col flex-1 w-full items-center justify-center min-h-0">
+        <div className="flex-1 flex items-center justify-center w-full">
+          <GameBoard
+            grid={game.grid}
+            selectedBubble={game.selectedBubble}
+            poppingCells={game.poppingCells}
+            onBubbleClick={handleBubbleClick}
+            onSwipe={game.handleSwipe}
+            bonusPopups={game.bonusPopups}
+            onBonusPopupDone={game.removeBonusPopup}
+          />
+        </div>
+        <div className="w-full shrink-0 pb-2 px-1">
+          <GameInfo
+            movesLeft={game.movesLeft}
+            score={game.score}
+            lastFoundWord={game.lastFoundWord}
+            onResetGame={handleReset}
+            onShowWords={() => setShowWords(true)}
+            usedWordsCount={game.usedWords.length}
+            mode={gameMode}
+            bestWordScore={game.bestWordScore}
+            bestWord={game.bestWord}
+          />
+        </div>
       </div>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
