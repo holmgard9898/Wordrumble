@@ -65,7 +65,7 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       className={`
-        relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
+        relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
         cursor-pointer select-none transition-all duration-200 touch-none
         ${isPopping ? 'animate-pop' : ''}
         ${isSelected ? 'ring-4 ring-white/60 scale-110 z-10' : ''}
@@ -129,7 +129,7 @@ function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       className={`
-        relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
+        relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
         cursor-pointer select-none transition-all duration-200 touch-none
         ${isPopping ? 'animate-pop' : ''}
         ${isSelected ? 'ring-4 ring-white scale-110 z-10' : ''}
@@ -186,7 +186,7 @@ export function Bubble(props: BubbleProps) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         className={`
-          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
+          relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
           cursor-pointer select-none transition-all duration-200 touch-none
           ${isPopping ? 'animate-pop' : ''}
           ${isSelected ? 'z-10 brightness-125' : ''}
@@ -219,7 +219,7 @@ export function Bubble(props: BubbleProps) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         className={`
-          relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
+          relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 flex items-center justify-center
           cursor-pointer select-none transition-all duration-200 touch-none
           ${isPopping ? 'animate-pop' : ''}
           ${isSelected ? 'z-10 scale-110' : ''}
@@ -261,7 +261,7 @@ export function Bubble(props: BubbleProps) {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       className={`
-        relative w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
+        relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
         cursor-pointer select-none transition-all duration-200 touch-none
         ${isPopping ? 'animate-pop' : ''}
         ${isSelected ? 'ring-4 ring-white scale-110 z-10' : ''}
