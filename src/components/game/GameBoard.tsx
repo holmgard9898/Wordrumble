@@ -51,12 +51,21 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
 
   return (
     <div
-      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-0.5 md:p-3 rounded-lg md:rounded-2xl w-full md:w-auto`}
-      style={{ background: 'rgba(0,0,0,0.25)' }}
+      className="relative rounded-lg md:rounded-2xl w-full md:w-auto"
+      style={{
+        background: 'rgba(0,0,0,0.25)',
+        padding: isRubik ? '2px' : 'clamp(2px, 0.5vw, 12px)',
+      }}
     >
-      {grid.map((row, r) => (
-        <div key={r} className={`flex ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} justify-center`}>
-          {row.map((bubble, c) => {
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${grid[0]?.length ?? 8}, 1fr)`,
+          gap: isRubik ? '0px' : 'clamp(1px, 0.4vw, 4px)',
+        }}
+      >
+        {grid.map((row, r) =>
+          row.map((bubble, c) => {
             const isSelected = selectedBubble?.row === r && selectedBubble?.col === c;
             const isPopping = poppingCells.has(`${r}-${c}`);
             return (
@@ -70,9 +79,9 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
                 onTouchEnd={handleTouchEnd}
               />
             );
-          })}
-        </div>
-      ))}
+          })
+        )}
+      </div>
 
       {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
         <BonusMovePopup key={popup.id} popup={popup} onDone={onBonusPopupDone} />

@@ -129,15 +129,17 @@ const GamePage = () => {
 
       {/* Desktop layout */}
       <div className="hidden lg:flex gap-6 items-start w-full max-w-4xl flex-1 px-4">
-        <GameBoard
-          grid={game.grid}
-          selectedBubble={game.selectedBubble}
-          poppingCells={game.poppingCells}
-          onBubbleClick={handleBubbleClick}
-          onSwipe={game.handleSwipe}
-          bonusPopups={game.bonusPopups}
-          onBonusPopupDone={game.removeBonusPopup}
-        />
+        <div className="w-[450px] shrink-0">
+          <GameBoard
+            grid={game.grid}
+            selectedBubble={game.selectedBubble}
+            poppingCells={game.poppingCells}
+            onBubbleClick={handleBubbleClick}
+            onSwipe={game.handleSwipe}
+            bonusPopups={game.bonusPopups}
+            onBonusPopupDone={game.removeBonusPopup}
+          />
+        </div>
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
@@ -152,7 +154,7 @@ const GamePage = () => {
       </div>
 
       {/* ── Mobile layout ── */}
-      <div className="flex lg:hidden flex-col flex-1 w-full items-center min-h-0 px-3">
+      <div className="flex lg:hidden flex-col flex-1 w-full items-center min-h-0 px-1">
         {/* Playful title banner */}
         <div className="w-full flex items-center justify-center py-1">
           <h1 className="text-2xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
