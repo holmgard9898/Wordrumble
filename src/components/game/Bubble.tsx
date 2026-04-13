@@ -65,7 +65,7 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
       className={`
-        relative w-[42px] h-[42px] md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-full flex items-center justify-center
+        relative w-full aspect-square rounded-full flex items-center justify-center
         cursor-pointer select-none transition-all duration-200 touch-none
         ${isPopping ? 'animate-pop' : ''}
         ${isSelected ? 'ring-4 ring-white/60 scale-110 z-10' : ''}
