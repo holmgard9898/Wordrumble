@@ -51,8 +51,8 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
 
   return (
     <div
-      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-1 md:p-3 rounded-xl md:rounded-2xl w-full md:w-auto`}
-      style={{ background: 'rgba(0,0,0,0.3)' }}
+      className={`relative flex flex-col ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} p-0.5 md:p-3 rounded-lg md:rounded-2xl w-full md:w-auto`}
+      style={{ background: 'rgba(0,0,0,0.25)' }}
     >
       {grid.map((row, r) => (
         <div key={r} className={`flex ${isRubik ? 'gap-0' : 'gap-0.5 md:gap-1'} justify-center`}>
@@ -74,7 +74,6 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
         </div>
       ))}
 
-      {/* Bonus move popups */}
       {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
         <BonusMovePopup key={popup.id} popup={popup} onDone={onBonusPopupDone} />
       ))}
