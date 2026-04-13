@@ -16,7 +16,7 @@ import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { GameOverOverlay } from '@/components/game/GameOverOverlay';
 import { calculateCoinReward } from '@/utils/coinRewards';
-import { Menu, Volume2, VolumeX, Music, MusicOff } from 'lucide-react';
+import { Menu, Volume2, VolumeX, Music } from 'lucide-react';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
 
