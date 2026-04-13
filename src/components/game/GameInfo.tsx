@@ -36,7 +36,7 @@ export function GameInfo({
   const badge = MODE_BADGE[mode];
 
   return (
-    <div className="flex flex-col gap-1.5 md:gap-3 w-full max-w-none md:max-w-xs px-1 md:px-0">
+    <div className="flex flex-col gap-1.5 md:gap-3 w-full max-w-none md:max-w-xs px-0 md:px-0">
       {/* Mode badge */}
       {badge && (
         <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-2.5 self-center" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
@@ -45,30 +45,30 @@ export function GameInfo({
         </div>
       )}
 
-      {/* Stats row — horizontal on mobile */}
+      {/* Stats row */}
       <div className="flex gap-1.5 md:gap-3">
         {isOneWord ? (
           <>
-            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <div className="flex-1 rounded-lg md:rounded-xl py-4 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.bestWord}</div>
-              <div className="text-2xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
-              {bestWord && <div className="text-[11px] md:text-xs text-white/50">{bestWord}</div>}
+              <div className="text-3xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
+              {bestWord && <div className="text-xs md:text-xs text-white/50">{bestWord}</div>}
             </div>
-            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <div className="flex-1 rounded-lg md:rounded-xl py-4 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
-              <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
+              <div className={`text-3xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
             </div>
           </>
         ) : (
           <>
-            <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <div className="flex-1 rounded-lg md:rounded-xl py-4 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.score}</div>
-              <div className="text-2xl md:text-3xl font-bold text-white">{score}</div>
+              <div className="text-3xl md:text-3xl font-bold text-white">{score}</div>
             </div>
             {!isBomb && (
-              <div className="flex-1 rounded-lg md:rounded-xl py-3 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="flex-1 rounded-lg md:rounded-xl py-4 px-2 md:p-4 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}>
                 <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
-                <div className={`text-2xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
+                <div className={`text-3xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
               </div>
             )}
           </>
@@ -77,19 +77,19 @@ export function GameInfo({
 
       {/* Word found toast */}
       {lastFoundWord && (
-        <div className="rounded-lg md:rounded-xl p-1.5 md:p-3 text-center animate-pulse" style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)' }}>
+        <div className="rounded-lg md:rounded-xl p-2 md:p-3 text-center animate-pulse" style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.4)' }}>
           <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-green-300">{t.wordFound}</div>
           <div className="text-lg md:text-2xl font-bold tracking-widest text-green-300">{lastFoundWord}</div>
         </div>
       )}
 
-      {/* Action buttons */}
+      {/* Action buttons — taller on mobile */}
       <div className="flex gap-1.5 md:gap-2">
-        <Button onClick={onShowWords} variant="outline" size="sm" className="flex-1 gap-1.5 border-white/30 bg-white/10 text-white hover:bg-white/20 h-8 md:h-10 text-xs md:text-sm">
-          <List className="w-3.5 h-3.5 md:w-4 md:h-4" /> {t.words} ({usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''})
+        <Button onClick={onShowWords} variant="outline" size="sm" className="flex-1 gap-1.5 border-white/30 bg-white/10 text-white hover:bg-white/20 h-12 md:h-10 text-sm md:text-sm">
+          <List className="w-4 h-4 md:w-4 md:h-4" /> {t.words} ({usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''})
         </Button>
-        <Button onClick={onResetGame} variant="outline" size="sm" className="gap-1.5 border-white/30 bg-white/10 text-white hover:bg-white/20 h-8 md:h-10">
-          <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
+        <Button onClick={onResetGame} variant="outline" size="sm" className="gap-1.5 border-white/30 bg-white/10 text-white hover:bg-white/20 h-12 w-12 md:h-10 p-0">
+          <RotateCcw className="w-4 h-4 md:w-4 md:h-4" />
         </Button>
       </div>
     </div>
