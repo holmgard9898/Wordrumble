@@ -103,7 +103,7 @@ const GamePage = () => {
           >
             {settings.musicEnabled
               ? <Music className="w-4 h-4 text-white/70" />
-              : <MusicOff className="w-4 h-4 text-white/40" />}
+              : <VolumeX className="w-4 h-4 text-white/40" />}
           </button>
           <button
             onClick={() => updateSettings({ sfxEnabled: !settings.sfxEnabled })}
