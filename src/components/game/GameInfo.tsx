@@ -14,12 +14,13 @@ interface GameInfoProps {
   mode: GameMode;
   bestWordScore?: number;
   bestWord?: string | null;
+  hideBadge?: boolean;
 }
 
 export function GameInfo({
   movesLeft, score, lastFoundWord,
   onResetGame, onShowWords, usedWordsCount, blockedWordsCount = 0, mode,
-  bestWordScore = 0, bestWord,
+  bestWordScore = 0, bestWord, hideBadge = false,
 }: GameInfoProps) {
   const { t } = useTranslation();
   const isBomb = mode === 'bomb';
@@ -38,7 +39,7 @@ export function GameInfo({
   return (
     <div className="flex flex-col gap-1.5 md:gap-3 w-full max-w-none md:max-w-xs px-0 md:px-0">
       {/* Mode badge */}
-      {badge && (
+      {!hideBadge && badge && (
         <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-2.5 self-center" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
           {badge.icon}
           <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider" style={{ color: badge.border.replace('0.3', '1') }}>{badge.label}</span>
