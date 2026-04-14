@@ -16,9 +16,24 @@ import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { GameOverOverlay } from '@/components/game/GameOverOverlay';
 import { calculateCoinReward } from '@/utils/coinRewards';
-import { Menu, Volume2, VolumeX, Music } from 'lucide-react';
+import { Menu, Volume2, VolumeX, Music, Zap, Bomb, Hash, Target } from 'lucide-react';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
+
+const MODE_BADGE_CONFIG: Record<GameMode, { icon: string; color: string; border: string } | null> = {
+  classic: null,
+  surge: { icon: 'zap', color: 'rgba(234,179,8,0.2)', border: 'rgba(234,179,8,0.3)' },
+  fiveplus: { icon: 'hash', color: 'rgba(34,211,238,0.2)', border: 'rgba(34,211,238,0.3)' },
+  bomb: { icon: 'bomb', color: 'rgba(239,68,68,0.2)', border: 'rgba(239,68,68,0.3)' },
+  oneword: { icon: 'target', color: 'rgba(16,185,129,0.2)', border: 'rgba(16,185,129,0.3)' },
+};
+
+const BADGE_ICONS: Record<string, React.ReactNode> = {
+  zap: <Zap className="w-4 h-4 text-yellow-400" />,
+  hash: <Hash className="w-4 h-4 text-cyan-400" />,
+  bomb: <Bomb className="w-4 h-4 text-red-400" />,
+  target: <Target className="w-4 h-4 text-emerald-400" />,
+};
 
 const GamePage = () => {
   const { mode = 'classic' } = useParams<{ mode: string }>();
@@ -80,6 +95,8 @@ const GamePage = () => {
 
   const handleReset = useCallback(() => { setScoreSaved(false); game.resetGame(); }, [game]);
 
+  const badgeConfig = MODE_BADGE_CONFIG[gameMode];
+
   if (loading) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
@@ -95,27 +112,27 @@ const GamePage = () => {
   return (
     <div className={`h-[100dvh] flex flex-col items-center ${bg.className}`} style={bg.style}>
       {/* ── Top bar: quick toggles left, menu right ── */}
-      <div className="w-full flex items-center justify-between px-3 py-1 md:py-3 md:px-4 max-w-4xl shrink-0 lg:hidden">
-        <div className="flex items-center gap-1">
+      <div className="w-full flex items-center justify-between px-3 pt-2 pb-0 md:py-3 md:px-4 max-w-4xl shrink-0 lg:hidden">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             {settings.musicEnabled
-              ? <Music className="w-4 h-4 text-white/70" />
-              : <VolumeX className="w-4 h-4 text-white/40" />}
+              ? <Music className="w-5 h-5 text-white/70" />
+              : <VolumeX className="w-5 h-5 text-white/40" />}
           </button>
           <button
             onClick={() => updateSettings({ sfxEnabled: !settings.sfxEnabled })}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             {settings.sfxEnabled
-              ? <Volume2 className="w-4 h-4 text-white/70" />
-              : <VolumeX className="w-4 h-4 text-white/40" />}
+              ? <Volume2 className="w-5 h-5 text-white/70" />
+              : <VolumeX className="w-5 h-5 text-white/40" />}
           </button>
         </div>
-        <button onClick={() => setShowMenu(true)} className="p-1.5 rounded-lg hover:bg-white/10 transition-colors">
-          <Menu className="w-5 h-5 text-white" />
+        <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+          <Menu className="w-6 h-6 text-white" />
         </button>
       </div>
 
@@ -155,13 +172,19 @@ const GamePage = () => {
 
       {/* ── Mobile layout ── */}
       <div className="flex lg:hidden flex-col flex-1 w-full items-center min-h-0 px-1">
-        {/* Playful title banner */}
-        <div className="w-full flex items-center justify-center py-1">
-          <h1 className="text-2xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
+        {/* Title + mode badge */}
+        <div className="w-full flex flex-col items-center pt-1 pb-2">
+          <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
             <span className="text-yellow-400">Word</span>
             <span className="text-white/90"> </span>
             <span className="text-pink-400">Rumble</span>
           </h1>
+          {badgeConfig && (
+            <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-3 mt-1" style={{ background: badgeConfig.color, border: `1px solid ${badgeConfig.border}` }}>
+              {BADGE_ICONS[badgeConfig.icon]}
+              <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: badgeConfig.border.replace('0.3', '1') }}>{MODE_LABELS[gameMode]}</span>
+            </div>
+          )}
         </div>
 
         {/* Game board */}
@@ -177,8 +200,8 @@ const GamePage = () => {
           />
         </div>
 
-        {/* Info panel directly under board, fills remaining space */}
-        <div className="w-full shrink-0 pt-1.5 pb-2">
+        {/* Info panel — push to bottom */}
+        <div className="w-full mt-auto pb-4 pt-2">
           <GameInfo
             movesLeft={game.movesLeft}
             score={game.score}
@@ -189,6 +212,7 @@ const GamePage = () => {
             mode={gameMode}
             bestWordScore={game.bestWordScore}
             bestWord={game.bestWord}
+            hideBadge
           />
         </div>
       </div>

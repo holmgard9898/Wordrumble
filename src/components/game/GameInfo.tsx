@@ -14,6 +14,7 @@ interface GameInfoProps {
   mode: GameMode;
   bestWordScore?: number;
   bestWord?: string | null;
+  hideBadge?: boolean;
 }
 
 export function GameInfo({
