@@ -200,8 +200,8 @@ const GamePage = () => {
           />
         </div>
 
-        {/* Info panel — push to bottom */}
-        <div className="w-full mt-auto pb-4 pt-2">
+        {/* Info panel */}
+        <div className="w-full pt-1.5 pb-4">
           <GameInfo
             movesLeft={game.movesLeft}
             score={game.score}
