@@ -1,6 +1,6 @@
 /**
  * Ads abstraction layer.
- * In native (Capacitor) context → uses AdMob.
+ * In native (Capacitor) context → uses AdMob (install @capacitor-community/admob when building native).
  * In web/PWA context → shows a simulated ad (placeholder).
  */
 
@@ -14,8 +14,10 @@ export function useAds() {
   const showRewardedAd = async (): Promise<AdResult> => {
     if (isNativeApp()) {
       try {
-        const { AdMob, RewardAdPluginEvents } = await import('@capacitor-community/admob');
-        
+        // Dynamic import — only works when @capacitor-community/admob is installed in native build
+        const admob = await (Function('return import("@capacitor-community/admob")')() as Promise<any>);
+        const { AdMob, RewardAdPluginEvents } = admob;
+
         return new Promise<AdResult>((resolve) => {
           const listener = AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
             listener.remove();
@@ -29,7 +31,7 @@ export function useAds() {
           });
 
           AdMob.showRewardVideoAd({
-            adId: 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY', // Replace with real ad unit ID
+            adId: 'ca-app-pub-XXXXXXXXXXXXXXXX/YYYYYYYYYY',
           }).catch(() => {
             listener.remove();
             failListener.remove();
@@ -43,25 +45,23 @@ export function useAds() {
 
     // Web/PWA fallback: simulate a short "ad" delay
     return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true, reward: 0.5 });
-      }, 2000);
+      setTimeout(() => resolve({ success: true, reward: 0.5 }), 2000);
     });
   };
 
   const showInterstitialAd = async (): Promise<boolean> => {
     if (isNativeApp()) {
       try {
-        const { AdMob } = await import('@capacitor-community/admob');
-        await AdMob.showInterstitial({
-          adId: 'ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ', // Replace with real ad unit ID
+        const admob = await (Function('return import("@capacitor-community/admob")')() as Promise<any>);
+        await admob.AdMob.showInterstitial({
+          adId: 'ca-app-pub-XXXXXXXXXXXXXXXX/ZZZZZZZZZZ',
         });
         return true;
       } catch {
         return false;
       }
     }
-    return false; // No web interstitials
+    return false;
   };
 
   return { showRewardedAd, showInterstitialAd, isNative: isNativeApp() };
