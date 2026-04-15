@@ -21,8 +21,20 @@ export function useBackgroundMusic(playing: boolean) {
       audio.pause();
     }
 
+    const handleVisibility = () => {
+      if (!audioRef.current) return;
+      if (document.hidden) {
+        audioRef.current.pause();
+      } else if (playing && settings.musicEnabled) {
+        audioRef.current.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       audio.pause();
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [playing, settings.musicEnabled]);
 
