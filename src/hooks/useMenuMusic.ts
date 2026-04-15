@@ -21,8 +21,20 @@ export function useMenuMusic() {
     audio.volume = settings.musicVolume * 0.5;
     audio.play().catch(() => {});
 
+    const handleVisibility = () => {
+      if (!audioRef.current) return;
+      if (document.hidden) {
+        audioRef.current.pause();
+      } else if (settings.musicEnabled) {
+        audioRef.current.play().catch(() => {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+
     return () => {
       audio.pause();
+      document.removeEventListener('visibilitychange', handleVisibility);
     };
   }, [settings.musicEnabled]);
 
