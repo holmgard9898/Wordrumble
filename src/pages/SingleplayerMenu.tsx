@@ -21,17 +21,9 @@ interface ModeData {
   infoKey: 'infoClassic' | 'infoSurge' | 'infoFiveplus' | 'infoOneword' | 'infoBomb';
 }
 
-const ChainOverlay = () => (
+const LockOverlay = () => (
   <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 100" preserveAspectRatio="none">
-      {[20, 50, 80, 110, 130].map((x) => (
-        <ellipse key={`l-${x}`} cx={x} cy={50} rx={12} ry={7} fill="none" stroke="hsl(220, 10%, 55%)" strokeWidth={2.5} opacity={0.8} />
-      ))}
-      {[300, 270, 240, 210, 190].map((x) => (
-        <ellipse key={`r-${x}`} cx={x} cy={50} rx={12} ry={7} fill="none" stroke="hsl(220, 10%, 55%)" strokeWidth={2.5} opacity={0.8} />
-      ))}
-    </svg>
-    <div className="relative z-30 bg-gradient-to-b from-gray-400 to-gray-600 rounded-md p-1.5 shadow-lg border border-gray-500/50">
+    <div className="bg-gradient-to-b from-gray-400 to-gray-600 rounded-md p-1.5 shadow-lg border border-gray-500/50">
       <Lock className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
     </div>
   </div>
