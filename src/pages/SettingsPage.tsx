@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Volume2, Music, Globe } from 'lucide-react';
+import { ArrowLeft, Volume2, Music, Globe, Shield } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -88,7 +88,14 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
+      <button
+        onClick={() => { playClick(); navigate('/privacy'); }}
+        className="mt-6 flex items-center gap-2 text-white/50 hover:text-white/90 text-sm transition-colors"
+      >
+        <Shield className="w-4 h-4" /> Privacy Policy
+      </button>
+
+      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-4 gap-2 text-white/60 hover:text-white hover:bg-white/10">
         <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
       </Button>
     </div>

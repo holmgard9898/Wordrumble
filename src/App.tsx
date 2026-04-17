@@ -13,6 +13,7 @@ import SettingsPage from "./pages/SettingsPage";
 import Statistics from "./pages/Statistics";
 import Shop from "./pages/Shop";
 import AuthPage from "./pages/AuthPage";
+import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
