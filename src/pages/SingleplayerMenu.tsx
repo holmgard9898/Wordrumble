@@ -66,7 +66,7 @@ const SingleplayerMenu = () => {
           <p className="text-white/60 mb-8 drop-shadow">{t.chooseMode}</p>
         </div>
 
-        <div className="flex flex-col gap-3 w-full max-w-xs">
+        <div className="flex flex-col gap-2 w-full max-w-xs">
           {modes.map((m) => {
             const isExpanded = expandedMode === m.path;
             const isHidden = expanded && !isExpanded;
@@ -75,7 +75,7 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
                     {locked && <LockOverlay />}
                     <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
@@ -115,7 +115,7 @@ const SingleplayerMenu = () => {
         </div>
 
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 60, opacity: expanded ? 0 : 1 }}>
-          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-8 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
+          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-4 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
             <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
           </Button>
         </div>
