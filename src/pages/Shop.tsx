@@ -94,7 +94,7 @@ const Shop = () => {
     else if (infoItem.method === 'ad') { unlock(infoItem.itemId); setInfoItem(null); }
   };
 
-  const handleWatchAd = () => { playClick(); addCoins(0.5); };
+  const handleWatchAd = () => { playClick(); addCoins(10); };
 
   const renderCard = (opt: { id: string; name: string; preview: React.ReactNode }, isActive: boolean, locked: boolean, unlockMethod: UnlockMethod, onSelect: () => void) => (
     <button key={opt.id} onClick={onSelect} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97] flex-1" style={{ border: isActive ? '3px solid rgba(139,92,246,0.8)' : '3px solid rgba(255,255,255,0.1)', boxShadow: isActive ? '0 0 20px rgba(139,92,246,0.3)' : 'none' }}>

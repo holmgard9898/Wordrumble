@@ -21,7 +21,7 @@ export function useAds() {
         return new Promise<AdResult>((resolve) => {
           const listener = AdMob.addListener(RewardAdPluginEvents.Rewarded, () => {
             listener.remove();
-            resolve({ success: true, reward: 0.5 });
+            resolve({ success: true, reward: 10 });
           });
 
           const failListener = AdMob.addListener(RewardAdPluginEvents.FailedToLoad, () => {
@@ -45,7 +45,7 @@ export function useAds() {
 
     // Web/PWA fallback: simulate a short "ad" delay
     return new Promise((resolve) => {
-      setTimeout(() => resolve({ success: true, reward: 0.5 }), 2000);
+      setTimeout(() => resolve({ success: true, reward: 10 }), 2000);
     });
   };
 
