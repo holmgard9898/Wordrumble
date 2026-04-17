@@ -66,7 +66,7 @@ const SingleplayerMenu = () => {
           <p className="text-white/60 mb-8 drop-shadow">{t.chooseMode}</p>
         </div>
 
-        <div className="flex flex-col gap-3 w-full max-w-xs">
+        <div className="flex flex-col gap-2 w-full max-w-xs">
           {modes.map((m) => {
             const isExpanded = expandedMode === m.path;
             const isHidden = expanded && !isExpanded;
@@ -115,7 +115,7 @@ const SingleplayerMenu = () => {
         </div>
 
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 60, opacity: expanded ? 0 : 1 }}>
-          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-8 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
+          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-4 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
             <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
           </Button>
         </div>
