@@ -21,17 +21,9 @@ interface ModeData {
   infoKey: 'infoClassic' | 'infoSurge' | 'infoFiveplus' | 'infoOneword' | 'infoBomb';
 }
 
-const ChainOverlay = () => (
+const LockOverlay = () => (
   <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
-    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 100" preserveAspectRatio="none">
-      {[20, 50, 80, 110, 130].map((x) => (
-        <ellipse key={`l-${x}`} cx={x} cy={50} rx={12} ry={7} fill="none" stroke="hsl(220, 10%, 55%)" strokeWidth={2.5} opacity={0.8} />
-      ))}
-      {[300, 270, 240, 210, 190].map((x) => (
-        <ellipse key={`r-${x}`} cx={x} cy={50} rx={12} ry={7} fill="none" stroke="hsl(220, 10%, 55%)" strokeWidth={2.5} opacity={0.8} />
-      ))}
-    </svg>
-    <div className="relative z-30 bg-gradient-to-b from-gray-400 to-gray-600 rounded-md p-1.5 shadow-lg border border-gray-500/50">
+    <div className="bg-gradient-to-b from-gray-400 to-gray-600 rounded-md p-1.5 shadow-lg border border-gray-500/50">
       <Lock className="w-5 h-5 text-gray-800" strokeWidth={2.5} />
     </div>
   </div>
@@ -74,7 +66,7 @@ const SingleplayerMenu = () => {
           <p className="text-white/60 mb-8 drop-shadow">{t.chooseMode}</p>
         </div>
 
-        <div className="flex flex-col gap-4 w-full max-w-xs">
+        <div className="flex flex-col gap-3 w-full max-w-xs">
           {modes.map((m) => {
             const isExpanded = expandedMode === m.path;
             const isHidden = expanded && !isExpanded;
@@ -83,8 +75,8 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
-                    {locked && <ChainOverlay />}
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
+                    {locked && <LockOverlay />}
                     <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
                       <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
