@@ -114,7 +114,7 @@ export const miscShopItems: MiscShopItem[] = [
   {
     id: 'watch-ad',
     name: 'Se reklam',
-    description: 'Titta på en video (~30s) och få 0.5 coins',
+    description: 'Titta på en video (~30s) och få 10 coins',
     icon: '📺',
     type: 'action',
     actionLabel: 'Se video',
