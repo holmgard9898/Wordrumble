@@ -75,8 +75,8 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-5 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
-                    {locked && <ChainOverlay />}
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-4 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
+                    {locked && <LockOverlay />}
                     <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
                       <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
