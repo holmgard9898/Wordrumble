@@ -12,6 +12,7 @@ import { GameBoard } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
+import { VersusHeader } from '@/components/multiplayer/VersusHeader';
 import { Button } from '@/components/ui/button';
 import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2 } from 'lucide-react';
 import { BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
