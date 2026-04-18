@@ -125,15 +125,23 @@ const MultiplayerGamePage = () => {
 
     setMatch(data as unknown as MatchData);
 
-    // Load opponent name
+    // Load opponent + my profile
     const opponentId = data.player1_id === user?.id ? data.player2_id : data.player1_id;
-    if (opponentId) {
-      const { data: profile } = await supabase
+    const profileIds = [user?.id, opponentId].filter(Boolean) as string[];
+    if (profileIds.length) {
+      const { data: profiles } = await supabase
         .from('profiles')
-        .select('display_name')
-        .eq('user_id', opponentId)
-        .single();
-      if (profile) setOpponentName(profile.display_name);
+        .select('user_id, display_name, avatar_url')
+        .in('user_id', profileIds);
+      profiles?.forEach((p: any) => {
+        if (p.user_id === opponentId) {
+          setOpponentName(p.display_name || 'Motståndare');
+          setOpponentAvatarUrl(p.avatar_url);
+        } else if (p.user_id === user?.id) {
+          setMyName(p.display_name || 'Du');
+          setMyAvatarUrl(p.avatar_url);
+        }
+      });
     }
 
     setLoadingMatch(false);
