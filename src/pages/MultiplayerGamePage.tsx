@@ -68,6 +68,9 @@ const MultiplayerGamePage = () => {
 
   const [match, setMatch] = useState<MatchData | null>(null);
   const [opponentName, setOpponentName] = useState('Motståndare');
+  const [opponentAvatarUrl, setOpponentAvatarUrl] = useState<string | null>(null);
+  const [myName, setMyName] = useState('Du');
+  const [myAvatarUrl, setMyAvatarUrl] = useState<string | null>(null);
   const [loadingMatch, setLoadingMatch] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
