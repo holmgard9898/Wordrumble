@@ -375,31 +375,52 @@ const MultiplayerGamePage = () => {
     );
   }
 
+  // Build per-round results for dots
+  const myRoundsData: any[] = (isPlayer1 ? match.player1_rounds_data : match.player2_rounds_data) || [];
+  const opRoundsData: any[] = (isPlayer1 ? match.player2_rounds_data : match.player1_rounds_data) || [];
+  const totalRounds = match.total_rounds || 2;
+  const isOneWordMode = match.mode === 'oneword';
+  const roundResults = Array.from({ length: totalRounds }, (_, i) => {
+    const roundNum = i + 1;
+    const myRd = myRoundsData.find((r: any) => r.round === roundNum);
+    const opRd = opRoundsData.find((r: any) => r.round === roundNum);
+    const myVal = isOneWordMode ? (myRd?.best_word_score ?? 0) : (myRd?.score ?? 0);
+    const opVal = isOneWordMode ? (opRd?.best_word_score ?? 0) : (opRd?.score ?? 0);
+    return {
+      myScore: myVal,
+      opponentScore: opVal,
+      bothPlayed: !!myRd && !!opRd,
+    };
+  });
+  const opponentPlayedCurrent = opRoundsData.some((r: any) => r.round === match.current_round);
+
   // Playing phase
   return (
     <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
-      <div className="w-full max-w-4xl flex items-center justify-between mb-2 md:mb-4 px-1">
-        <div>
-          <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
-            {MODE_LABELS[match.mode]}
-          </h1>
-          <p className="text-white/50 text-xs">
-            Omgång {match.current_round}/{match.total_rounds} • Fas {match.current_phase || 1}/3 • vs {opponentName}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <p className="text-white/40 text-xs">Poäng</p>
-            <div className="flex gap-2 text-sm">
-              <span className="text-blue-400 font-bold">{myScore}</span>
-              <span className="text-white/30">-</span>
-              <span className="text-red-400 font-bold">{opponentScore}</span>
-            </div>
-          </div>
-          <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-            <Menu className="w-6 h-6 text-white" />
-          </button>
-        </div>
+      {/* Compact title row */}
+      <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-1">
+        <h1 className="text-base md:text-xl font-bold text-white tracking-tight">
+          Word Rumble <span className="text-white/40 font-normal text-xs md:text-sm">• {MODE_LABELS[match.mode]} • Omg {match.current_round}/{match.total_rounds}</span>
+        </h1>
+        <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+          <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
+        </button>
+      </div>
+
+      {/* Versus header */}
+      <div className="w-full max-w-4xl mb-2 md:mb-4">
+        <VersusHeader
+          opponentName={opponentName}
+          opponentAvatarUrl={opponentAvatarUrl}
+          myName={myName}
+          myAvatarUrl={myAvatarUrl}
+          myScore={myScore}
+          opponentScore={opponentScore}
+          opponentHasPlayedCurrentRound={opponentPlayedCurrent}
+          totalRounds={totalRounds}
+          currentRound={match.current_round}
+          rounds={roundResults}
+        />
       </div>
 
       <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
