@@ -62,7 +62,7 @@ const MultiplayerGamePage = () => {
   const { matchId } = useParams<{ matchId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const bg = useGameBackground();
   const langConfig = getLanguageConfig(settings.language);
 
