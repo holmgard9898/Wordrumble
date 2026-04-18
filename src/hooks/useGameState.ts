@@ -104,12 +104,12 @@ function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMo
   if (mode === 'classic' || mode === 'fiveplus' || mode === 'oneword') {
     if (len <= 3) return letterPoints;
     if (len === 4) return letterPoints + 2;
-    if (len === 5) return letterPoints + 4;
-    if (len === 6) return letterPoints + 6;
-    if (len === 7) return letterPoints + 8;
-    if (len === 8) return letterPoints + 10;
-    if (len === 9) return letterPoints * 2;
-    if (len >= 10) return letterPoints * 3;
+    if (len === 5) return letterPoints + 5;
+    if (len === 6) return letterPoints + 8;
+    if (len === 7) return letterPoints + 10;
+    if (len === 8) return letterPoints * 2;
+    if (len === 9) return letterPoints * 3;
+    if (len >= 10) return letterPoints * 4;
   }
 
   return letterPoints;
