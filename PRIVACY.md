@@ -23,4 +23,4 @@ Measuring ad performance and providing rewards (coins) for watched videos.
 By using Wordrumble, you consent to the collection and use of information as outlined in this policy and by Google's Privacy Policy.
 
 5. Contact
-If you have any questions, please contact: gustav.holmgard@gmail.com
+If you have any questions, please contact: wordrumble.support@gmail.com
