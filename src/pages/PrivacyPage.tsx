@@ -55,7 +55,7 @@ const PrivacyPage = () => {
 
         <section>
           <h2 className="text-lg font-semibold text-white mb-2">5. Contact</h2>
-          <p>If you have any questions, please contact: <a href="mailto:gustav.holmgard@gmail.com" className="text-purple-300 underline">gustav.holmgard@gmail.com</a></p>
+          <p>If you have any questions, please contact: <a href="mailto:wordrumble.support@gmail.com" className="text-purple-300 underline">wordrumble.support@gmail.com</a></p>
         </section>
       </div>
 
