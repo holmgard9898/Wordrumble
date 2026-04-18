@@ -91,8 +91,26 @@ const Statistics = () => {
     setLoadingOnline(false);
   };
 
-  const filtered = selectedMode === 'all' ? scores : scores.filter(s => s.mode === selectedMode);
+  const filtered = selectedMode === 'all' ? scores : scores.filter(s => normaliseMode(s.mode) === selectedMode);
   const winRate = onlineStats.totalMatches > 0 ? Math.round((onlineStats.wins / onlineStats.totalMatches) * 100) : 0;
+
+  // Map stable mode key → translated label for display
+  const modeLabel = (m: string): string => {
+    const key = normaliseMode(m);
+    switch (key) {
+      case 'classic': return t.modeClassic;
+      case 'surge': return t.modeSurge;
+      case 'fiveplus': return t.modeFiveplus;
+      case 'oneword': return t.modeOneword;
+      case 'bomb': return t.modeBomb;
+      default: return m;
+    }
+  };
+
+  // Achievement: unlock Sports tile at 30 online wins
+  useEffect(() => {
+    if (onlineStats.wins >= 30) unlock('tile-sports');
+  }, [onlineStats.wins, unlock]);
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
@@ -128,7 +146,7 @@ const Statistics = () => {
                       <span className={`font-bold text-lg w-8 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-300' : i === 2 ? 'text-amber-600' : 'text-white/40'}`}>#{i + 1}</span>
                       <div>
                         <span className="text-white font-semibold">{s.score} {t.points}</span>
-                        <span className="text-white/40 text-xs ml-2">{s.wordsFound} {t.words.toLowerCase()} · {s.mode}</span>
+                        <span className="text-white/40 text-xs ml-2">{s.wordsFound} {t.words.toLowerCase()} · {modeLabel(s.mode)}</span>
                       </div>
                     </div>
                     <span className="text-white/30 text-xs">{new Date(s.date).toLocaleDateString('sv')}</span>
