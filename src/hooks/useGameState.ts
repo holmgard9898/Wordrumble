@@ -104,12 +104,12 @@ function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMo
   if (mode === 'classic' || mode === 'fiveplus' || mode === 'oneword') {
     if (len <= 3) return letterPoints;
     if (len === 4) return letterPoints + 2;
-    if (len === 5) return letterPoints + 4;
-    if (len === 6) return letterPoints + 6;
-    if (len === 7) return letterPoints + 8;
-    if (len === 8) return letterPoints + 10;
-    if (len === 9) return letterPoints * 2;
-    if (len >= 10) return letterPoints * 3;
+    if (len === 5) return letterPoints + 5;
+    if (len === 6) return letterPoints + 8;
+    if (len === 7) return letterPoints + 10;
+    if (len === 8) return letterPoints * 2;
+    if (len === 9) return letterPoints * 3;
+    if (len >= 10) return letterPoints * 4;
   }
 
   return letterPoints;
@@ -308,25 +308,22 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
 
-    // X2/X3 multiplier popup for 9+ letter words (all modes that use calcWordScore)
+    // Multiplier popup for 8+ letter words (all modes that use calcWordScore)
     if (mode !== 'bomb') {
-      if (wordLen >= 10) {
+      let multiplier = 0;
+      let label = '';
+      if (wordLen >= 10) { multiplier = 4; label = 'X4'; }
+      else if (wordLen === 9) { multiplier = 3; label = 'X3'; }
+      else if (wordLen === 8) { multiplier = 2; label = 'X2'; }
+
+      if (multiplier > 0) {
         setBonusPopups((prev) => [...prev, {
           id: `bonus-${bonusEventId++}`,
-          amount: 3,
+          amount: multiplier,
           color: wordColor,
           row: centerPos.row,
           col: centerPos.col,
-          label: 'X3',
-        }]);
-      } else if (wordLen >= 9) {
-        setBonusPopups((prev) => [...prev, {
-          id: `bonus-${bonusEventId++}`,
-          amount: 2,
-          color: wordColor,
-          row: centerPos.row,
-          col: centerPos.col,
-          label: 'X2',
+          label,
         }]);
       }
     }
