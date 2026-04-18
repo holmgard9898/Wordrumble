@@ -4,6 +4,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useCoins } from '@/hooks/useCoins';
+import { useUnlocks } from '@/hooks/useUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameProgress } from '@/hooks/useGameProgress';
@@ -51,6 +52,7 @@ const GamePage = () => {
   const game = useGameState(isValidWord, gameMode, settings.language);
   const { addScore } = useHighScores();
   const { addCoins } = useCoins();
+  const { unlock } = useUnlocks();
   const { recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore } = useGameProgress();
   const { playSwap, playWordFound, playGameOver } = useSfx();
   const [showWords, setShowWords] = useState(false);
@@ -75,12 +77,17 @@ const GamePage = () => {
 
   useEffect(() => {
     if (game.gameOver && !scoreSaved) {
-      addScore({ score: finalScore, wordsFound: game.usedWords.length, mode: MODE_LABELS[gameMode], date: new Date().toISOString() });
+      addScore({ score: finalScore, wordsFound: game.usedWords.length, mode: gameMode, date: new Date().toISOString() });
       if (coinReward && coinReward.total > 0) addCoins(coinReward.total);
       setScoreSaved(true);
       if (gameMode === 'classic') recordClassicPlayed();
       if (gameMode === 'surge') recordSurgeMoves(game.movesUsed);
-      if (gameMode === 'bomb') { recordBombScore(game.score); playGameOver(); }
+      if (gameMode === 'bomb') {
+        recordBombScore(game.score);
+        playGameOver();
+        // Achievement: unlock Volcano background at 150+ points in Bomb Mode
+        if (game.score >= 150) unlock('bg-volcano');
+      }
       if (game.bestWordScore > 0) recordBestSingleWord(game.bestWordScore);
     }
   }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore, coinReward, addCoins]);
