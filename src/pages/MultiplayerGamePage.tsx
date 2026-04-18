@@ -14,7 +14,7 @@ import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { VersusHeader } from '@/components/multiplayer/VersusHeader';
 import { Button } from '@/components/ui/button';
-import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2 } from 'lucide-react';
+import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2, Volume2, VolumeX, Music } from 'lucide-react';
 import { BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import { createWordlessGrid } from '@/utils/gridGeneration';
