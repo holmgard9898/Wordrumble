@@ -10,6 +10,7 @@ import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useUnlocks } from '@/hooks/useUnlocks';
 import { supabase } from '@/integrations/supabase/client';
 
 interface OnlineStats {
@@ -25,18 +26,21 @@ const Statistics = () => {
   const bg = useGameBackground();
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { unlock } = useUnlocks();
   const [selectedMode, setSelectedMode] = useState('all');
   const [onlineMode, setOnlineMode] = useState('all');
   const [onlineStats, setOnlineStats] = useState<OnlineStats>({ wins: 0, losses: 0, draws: 0, totalMatches: 0, totalScore: 0, bestScore: 0, bestWord: null, bestWordScore: 0 });
   const [loadingOnline, setLoadingOnline] = useState(true);
 
+  // Stable English keys used both for storage AND filter values.
+  // Legacy stored values (translated strings or "Bomb Mode" / "Word Surge") are mapped at filter-time below.
   const MODE_OPTIONS = [
     { value: 'all', label: t.allModes },
-    { value: 'Classic', label: t.modeClassic },
-    { value: 'Word Surge', label: t.modeSurge },
-    { value: t.modeFiveplus, label: t.modeFiveplus },
-    { value: t.modeOneword, label: t.modeOneword },
-    { value: 'Bomb Mode', label: t.modeBomb },
+    { value: 'classic', label: t.modeClassic },
+    { value: 'surge', label: t.modeSurge },
+    { value: 'fiveplus', label: t.modeFiveplus },
+    { value: 'oneword', label: t.modeOneword },
+    { value: 'bomb', label: t.modeBomb },
   ];
 
   const ONLINE_MODE_OPTIONS = [
@@ -46,6 +50,17 @@ const Statistics = () => {
     { value: 'fiveplus', label: t.modeFiveplus },
     { value: 'oneword', label: t.modeOneword },
   ];
+
+  /** Normalise legacy mode strings (translated text or old English labels) to the stable key. */
+  const normaliseMode = (m: string): string => {
+    const lower = m.toLowerCase();
+    if (['classic', 'klassisk', 'clásico', 'classique', 'classico', 'clássico', 'klassiek', 'klassinen'].includes(lower)) return 'classic';
+    if (lower === 'word surge' || lower === 'surge') return 'surge';
+    if (lower === 'bomb mode' || lower === 'bomb' || lower.includes('bomb') || lower.includes('bomba') || lower.includes('bombe') || lower.includes('pommi')) return 'bomb';
+    if (lower === 'fiveplus' || lower.includes('5+')) return 'fiveplus';
+    if (lower === 'oneword' || ['ett ord', 'one word', 'ein wort', 'una palabra', 'un mot', 'una parola', 'uma palavra', 'eén woord', 'et ord', 'yksi sana'].includes(lower)) return 'oneword';
+    return lower;
+  };
 
   useEffect(() => { if (user) loadOnlineStats(); }, [user, onlineMode]);
 
