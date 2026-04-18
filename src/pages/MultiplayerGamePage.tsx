@@ -397,14 +397,41 @@ const MultiplayerGamePage = () => {
   // Playing phase
   return (
     <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
-      {/* Compact title row */}
-      <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-1">
-        <h1 className="text-base md:text-xl font-bold text-white tracking-tight">
-          Word Rumble <span className="text-white/40 font-normal text-xs md:text-sm">• {MODE_LABELS[match.mode]} • Omg {match.current_round}/{match.total_rounds}</span>
+      {/* Top bar: sound/music left, centered title, menu right */}
+      <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-1 gap-2">
+        <div className="flex items-center gap-1 flex-1">
+          <button
+            onClick={() => updateSettings({ sfxEnabled: !settings.sfxEnabled })}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Toggle sound"
+          >
+            {settings.sfxEnabled ? <Volume2 className="w-5 h-5 text-white/80" /> : <VolumeX className="w-5 h-5 text-white/40" />}
+          </button>
+          <button
+            onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label="Toggle music"
+          >
+            <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-white/80' : 'text-white/40'}`} />
+          </button>
+        </div>
+
+        <h1 className="text-2xl md:text-3xl tracking-wide text-center" style={{ fontFamily: '"Fredoka One", cursive' }}>
+          <span className="text-yellow-400">Word</span>
+          <span className="text-white/90"> </span>
+          <span className="text-pink-400">Rumble</span>
         </h1>
-        <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-          <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
-        </button>
+
+        <div className="flex items-center justify-end flex-1">
+          <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+            <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
+          </button>
+        </div>
+      </div>
+
+      {/* Mode + round indicator */}
+      <div className="w-full max-w-4xl text-center mb-2 px-1">
+        <span className="text-white/50 text-xs md:text-sm">{MODE_LABELS[match.mode]} • Omg {match.current_round}/{match.total_rounds}</span>
       </div>
 
       {/* Versus header */}
