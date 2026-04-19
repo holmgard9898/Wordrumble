@@ -457,6 +457,22 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
       }
     }
 
+    // Bomb mode: detect free5 powerup popped within the word
+    if (mode === 'bomb') {
+      const free5Hit = word.positions.some(p => currentGrid[p.row][p.col].powerup === 'free5');
+      if (free5Hit) {
+        setFreeMovesRemaining(n => n + 5);
+        setBonusPopups((prev) => [...prev, {
+          id: `bonus-${bonusEventId++}`,
+          amount: 5,
+          color: wordColor,
+          row: centerPos.row,
+          col: centerPos.col,
+          label: '+5 FRI',
+        }]);
+      }
+    }
+
     const colors = getColorsForMode(mode);
 
     setTimeout(() => {
