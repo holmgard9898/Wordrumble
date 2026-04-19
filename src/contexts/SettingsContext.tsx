@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { GameLanguage } from '@/data/languages';
 
-export type GameBackground = 'default' | 'clouds' | 'wood' | 'space' | 'volcano';
+export type GameBackground = 'default' | 'clouds' | 'wood' | 'space' | 'volcano' | 'beach';
 export type TileStyle = 'bubble' | 'rubik' | 'shapes' | 'soapbubble' | 'sports';
 
 interface Settings {

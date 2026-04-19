@@ -38,12 +38,15 @@ export const MAX_WORD_LENGTH = 10;
 
 export const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 
+export type PowerupType = 'x2' | 'x3' | 'free5';
+
 export interface BubbleData {
   id: string;
   letter: string;
   value: number;
   color: BubbleColor;
   bomb?: number;
+  powerup?: PowerupType;
 }
 
 export interface Position {

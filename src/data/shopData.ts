@@ -56,7 +56,15 @@ export const bgShopItems: BgShopItem[] = [
     bgId: 'volcano',
     name: 'Vulkan',
     unlockMethod: 'achievement',
-    unlockDescription: 'Nå 150 poäng i Bomb Mode för att låsa upp.',
+    unlockDescription: 'Nå 200 poäng i Bomb Mode för att låsa upp.',
+  },
+  {
+    id: 'bg-beach',
+    bgId: 'beach',
+    name: 'Strand',
+    unlockMethod: 'coins',
+    cost: 75,
+    unlockDescription: 'Köp för 75 coins.',
   },
 ];
 

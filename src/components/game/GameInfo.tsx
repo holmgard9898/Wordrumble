@@ -15,12 +15,13 @@ interface GameInfoProps {
   bestWordScore?: number;
   bestWord?: string | null;
   hideBadge?: boolean;
+  freeMovesRemaining?: number;
 }
 
 export function GameInfo({
   movesLeft, score, lastFoundWord,
   onResetGame, onShowWords, usedWordsCount, blockedWordsCount = 0, mode,
-  bestWordScore = 0, bestWord, hideBadge = false,
+  bestWordScore = 0, bestWord, hideBadge = false, freeMovesRemaining = 0,
 }: GameInfoProps) {
   const { t } = useTranslation();
   const isBomb = mode === 'bomb';
@@ -75,6 +76,17 @@ export function GameInfo({
           </>
         )}
       </div>
+
+      {/* Bomb mode: free-moves shield indicator */}
+      {isBomb && freeMovesRemaining > 0 && (
+        <div className="rounded-lg md:rounded-xl py-1.5 px-3 text-center self-center flex items-center gap-2"
+          style={{ background: 'rgba(34,197,94,0.2)', border: '1px solid rgba(34,197,94,0.45)' }}>
+          <span className="text-base">🛡️</span>
+          <span className="text-sm md:text-base font-bold text-green-300">
+            {freeMovesRemaining} fri{freeMovesRemaining === 1 ? 'tt' : 'a'} drag
+          </span>
+        </div>
+      )}
 
       {/* Word found toast */}
       {lastFoundWord && (

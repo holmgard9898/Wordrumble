@@ -4,13 +4,13 @@ description: All singleplayer game modes with rules and scoring
 type: feature
 ---
 ## Length bonus scoring (Classic, 5+, Ett Ord)
-- 4 letters: +2 pts
-- 5 letters: +5 pts
-- 6 letters: +8 pts
-- 7 letters: +10 pts
-- 8 letters: x2 letter points (X2 popup)
-- 9 letters: x3 letter points (X3 popup)
-- 10 letters: x4 letter points (X4 popup)
+- 4 letters: +3 pts
+- 5 letters: +6 pts
+- 6 letters: +9 pts
+- 7 letters: +12 pts
+- 8 letters: (letters + 12) × 2 (X2 popup)
+- 9 letters: (letters + 12) × 3 (X3 popup)
+- 10 letters: (letters + 12) × 4 (X4 popup)
 
 ## Classic
 - 50 moves, standard 5 colors
@@ -28,8 +28,10 @@ type: feature
 - All words found count during play, but final score = highest single word score
 
 ## Bomb Mode
-- No move limit, standard 5 colors
-- Random vowels get bomb timers (min 10 moves), timer decrements each move
-- 1-3 bombs from start, max 5 simultaneous, 30% chance to spawn new after word found
+- No move limit, standard 5 colors, no length bonus points
+- Bombs spawn on vowels with timer 12-20 (never in corners)
+- 1-3 bombs from start; if 3 spawn, lowest forced ≥15
+- Max 5 simultaneous, 30% chance to spawn new after word found
 - Game ends when any bomb reaches 0
-- No length bonus points (like Surge)
+- Powerups: x2/x3 letter multipliers (~30% chance, max 3 total), free5 (1/50 chance, max 2) — popping free5 gives 5 free moves where bombs don't tick
+- Volcano background unlocks at 200+ pts (was 150)

@@ -43,6 +43,28 @@ function BombBadge({ bomb }: { bomb: number }) {
   );
 }
 
+function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' }) {
+  const cfg = type === 'x2'
+    ? { bg: 'linear-gradient(135deg, hsl(280, 80%, 55%), hsl(260, 75%, 40%))', label: '×2' }
+    : type === 'x3'
+    ? { bg: 'linear-gradient(135deg, hsl(45, 100%, 55%), hsl(30, 95%, 45%))', label: '×3' }
+    : { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' };
+  return (
+    <span
+      className="absolute -top-1 -right-1 px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-extrabold animate-pulse z-20"
+      style={{
+        background: cfg.bg,
+        color: '#fff',
+        border: '1.5px solid rgba(0,0,0,0.45)',
+        textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+        minWidth: '1.25rem',
+      }}
+    >
+      {cfg.label}
+    </span>
+  );
+}
+
 function ValueBadge({ value, color }: { value: number; color: string }) {
   return (
     <span
@@ -58,6 +80,7 @@ function ValueBadge({ value, color }: { value: number; color: string }) {
 function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd }: BubbleProps) {
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
 
   return (
     <button
@@ -106,6 +129,8 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       </span>
       {hasBomb ? (
         <BombBadge bomb={bubble.bomb!} />
+      ) : powerup ? (
+        <PowerupBadge type={powerup} />
       ) : (
         <span
           className="absolute bottom-0.5 right-1.5 text-[7px] md:text-[8px] font-bold z-20"
@@ -122,6 +147,7 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
 function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd }: BubbleProps) {
   const ball = SPORTS_BALLS[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
 
   return (
     <button
@@ -157,6 +183,8 @@ function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       </span>
       {hasBomb ? (
         <BombBadge bomb={bubble.bomb!} />
+      ) : powerup ? (
+        <PowerupBadge type={powerup} />
       ) : (
         <span
           className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-bold z-20"
@@ -173,6 +201,7 @@ export function Bubble(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
   const { settings } = useSettings();
   const style = settings.tileStyle;
 
@@ -204,7 +233,7 @@ export function Bubble(props: BubbleProps) {
         <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
           {bubble.letter}
         </span>
-        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
@@ -249,7 +278,7 @@ export function Bubble(props: BubbleProps) {
         >
           {bubble.letter}
         </span>
-        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
@@ -283,7 +312,7 @@ export function Bubble(props: BubbleProps) {
       <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
         {bubble.letter}
       </span>
-      {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color={colors.text} />}
+      {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color={colors.text} />}
     </button>
   );
 }

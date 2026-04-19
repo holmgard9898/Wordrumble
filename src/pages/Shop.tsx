@@ -16,6 +16,7 @@ import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
 import volcanoBg from '@/assets/bg-volcano.jpg';
+import beachBg from '@/assets/bg-beach.jpg';
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
@@ -23,6 +24,7 @@ const bgPreviews: Record<GameBackground, React.ReactNode> = {
   wood: <img src={woodBg} alt="Walnut wood" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   space: <img src={spaceBg} alt="Space" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   volcano: <img src={volcanoBg} alt="Volcano" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  beach: <img src={beachBg} alt="Beach" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
 };
 
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
