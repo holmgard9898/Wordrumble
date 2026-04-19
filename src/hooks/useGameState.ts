@@ -517,18 +517,23 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
 
       const foundWords = findWords(newGrid);
       if (foundWords.length > 0) {
-        pendingBombDecrement.current = true;
+        pendingBombTick.current += 1;
         setIsProcessing(true);
         popAndCascade(newGrid, foundWords);
       } else {
-        // No words found, decrement bombs now
+        // No words found — decrement bombs now (unless free moves active)
+        if (freeMovesRef.current > 0) {
+          setFreeMovesRemaining(n => Math.max(0, n - 1));
+          maybeSpawnExtras(newGrid);
+          setGrid(newGrid);
+          return;
+        }
         const { newGrid: bombGrid, exploded } = decrementBombs(newGrid);
         if (exploded) {
           setGrid(bombGrid);
           setGameOver(true);
           return;
         }
-        // Ensure bombs exist
         const bc = countBombs(bombGrid);
         if (bc === 0) {
           const toSpawn = 1 + Math.floor(Math.random() * 3);
@@ -536,6 +541,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
         } else if (bc < 3 && Math.random() < 0.3) {
           addBombsToGrid(bombGrid, 1, vowelSet);
         }
+        maybeSpawnExtras(bombGrid);
         setGrid(bombGrid);
       }
       return;
