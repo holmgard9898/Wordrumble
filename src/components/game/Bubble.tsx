@@ -80,6 +80,7 @@ function ValueBadge({ value, color }: { value: number; color: string }) {
 function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd }: BubbleProps) {
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
 
   return (
     <button
@@ -128,6 +129,8 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       </span>
       {hasBomb ? (
         <BombBadge bomb={bubble.bomb!} />
+      ) : powerup ? (
+        <PowerupBadge type={powerup} />
       ) : (
         <span
           className="absolute bottom-0.5 right-1.5 text-[7px] md:text-[8px] font-bold z-20"
