@@ -201,6 +201,7 @@ export function Bubble(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
   const { settings } = useSettings();
   const style = settings.tileStyle;
 
@@ -232,7 +233,7 @@ export function Bubble(props: BubbleProps) {
         <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>
           {bubble.letter}
         </span>
-        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
@@ -277,7 +278,7 @@ export function Bubble(props: BubbleProps) {
         >
           {bubble.letter}
         </span>
-        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color="#fff" />}
+        {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color="#fff" />}
       </button>
     );
   }
@@ -311,7 +312,7 @@ export function Bubble(props: BubbleProps) {
       <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
         {bubble.letter}
       </span>
-      {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : <ValueBadge value={bubble.value} color={colors.text} />}
+      {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color={colors.text} />}
     </button>
   );
 }
