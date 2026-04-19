@@ -147,6 +147,7 @@ function SoapBubbleInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
 function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd }: BubbleProps) {
   const ball = SPORTS_BALLS[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
+  const powerup = bubble.powerup;
 
   return (
     <button
@@ -182,6 +183,8 @@ function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
       </span>
       {hasBomb ? (
         <BombBadge bomb={bubble.bomb!} />
+      ) : powerup ? (
+        <PowerupBadge type={powerup} />
       ) : (
         <span
           className="absolute bottom-0 right-1 text-[8px] md:text-[9px] font-bold z-20"
