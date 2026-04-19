@@ -328,27 +328,53 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     return [found[0]];
   }, [isValidWord, minWordLen, mode]);
 
-  // After cascade completes in bomb mode, decrement bomb timers
-  useEffect(() => {
-    if (!isProcessing && pendingBombDecrement.current && !gameOver) {
-      pendingBombDecrement.current = false;
-      setGrid(prev => {
-        const { newGrid, exploded } = decrementBombs(prev);
-        if (exploded) {
-          setGameOver(true);
-        }
-        // Ensure at least 1 bomb exists
-        const bc = countBombs(newGrid);
-        if (!exploded && bc === 0) {
-          const toSpawn = 1 + Math.floor(Math.random() * 3);
-          addBombsToGrid(newGrid, toSpawn, vowelSet);
-        } else if (!exploded && bc < 3 && Math.random() < 0.3) {
-          addBombsToGrid(newGrid, 1, vowelSet);
-        }
-        return newGrid;
-      });
+  // Powerup spawn helper (mutates grid in place) — bomb mode only
+  const maybeSpawnExtras = useCallback((grid: BubbleData[][]) => {
+    // x2 / x3 letter multipliers — same chance as bombs (~30%), max 3 total
+    const multCount = countPowerups(grid, ['x2', 'x3']);
+    if (multCount < 3 && Math.random() < 0.3) {
+      const type: 'x2' | 'x3' = Math.random() < 0.6 ? 'x2' : 'x3';
+      addPowerupToGrid(grid, type);
     }
-  }, [isProcessing, gameOver, vowelSet]);
+    // 5 free moves — 1/50 chance, max 2 simultaneous
+    const freeCount = countPowerups(grid, ['free5']);
+    if (freeCount < 2 && Math.random() < 1 / 50) {
+      addPowerupToGrid(grid, 'free5');
+    }
+  }, []);
+
+  // After cascade completes in bomb mode, decrement bomb timers (guarded against double-fire)
+  useEffect(() => {
+    if (mode !== 'bomb') return;
+    if (isProcessing || gameOver) return;
+    if (pendingBombTick.current === lastProcessedBombTick.current) return;
+    lastProcessedBombTick.current = pendingBombTick.current;
+
+    setGrid(prev => {
+      // If free moves are active, skip decrement but consume one free move
+      if (freeMovesRef.current > 0) {
+        setFreeMovesRemaining(n => Math.max(0, n - 1));
+        const newGrid = prev.map(row => row.map(b => ({ ...b })));
+        maybeSpawnExtras(newGrid);
+        return newGrid;
+      }
+
+      const { newGrid, exploded } = decrementBombs(prev);
+      if (exploded) {
+        setGameOver(true);
+        return newGrid;
+      }
+      const bc = countBombs(newGrid);
+      if (bc === 0) {
+        const toSpawn = 1 + Math.floor(Math.random() * 3);
+        addBombsToGrid(newGrid, toSpawn, vowelSet);
+      } else if (bc < 3 && Math.random() < 0.3) {
+        addBombsToGrid(newGrid, 1, vowelSet);
+      }
+      maybeSpawnExtras(newGrid);
+      return newGrid;
+    });
+  }, [isProcessing, gameOver, vowelSet, mode, maybeSpawnExtras]);
 
   const popAndCascade = useCallback((currentGrid: BubbleData[][], foundWords: FoundWord[]) => {
     if (foundWords.length === 0) {
