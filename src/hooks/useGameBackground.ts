@@ -3,6 +3,7 @@ import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
 import volcanoBg from '@/assets/bg-volcano.jpg';
+import beachBg from '@/assets/bg-beach.jpg';
 
 export function useGameBackground(): { className: string; style?: React.CSSProperties } {
   const { settings } = useSettings();
@@ -32,6 +33,13 @@ export function useGameBackground(): { className: string; style?: React.CSSPrope
     return {
       className: 'game-bg-clouds',
       style: { backgroundImage: `url(${volcanoBg})` },
+    };
+  }
+
+  if (settings.background === 'beach') {
+    return {
+      className: 'game-bg-clouds',
+      style: { backgroundImage: `url(${beachBg})` },
     };
   }
 

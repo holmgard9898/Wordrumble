@@ -85,8 +85,8 @@ const GamePage = () => {
       if (gameMode === 'bomb') {
         recordBombScore(game.score);
         playGameOver();
-        // Achievement: unlock Volcano background at 150+ points in Bomb Mode
-        if (game.score >= 150) unlock('bg-volcano');
+        // Achievement: unlock Volcano background at 200+ points in Bomb Mode
+        if (game.score >= 200) unlock('bg-volcano');
       }
       if (game.bestWordScore > 0) recordBestSingleWord(game.bestWordScore);
     }
