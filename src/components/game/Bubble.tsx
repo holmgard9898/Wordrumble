@@ -43,6 +43,28 @@ function BombBadge({ bomb }: { bomb: number }) {
   );
 }
 
+function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' }) {
+  const cfg = type === 'x2'
+    ? { bg: 'linear-gradient(135deg, hsl(280, 80%, 55%), hsl(260, 75%, 40%))', label: '×2' }
+    : type === 'x3'
+    ? { bg: 'linear-gradient(135deg, hsl(45, 100%, 55%), hsl(30, 95%, 45%))', label: '×3' }
+    : { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' };
+  return (
+    <span
+      className="absolute -top-1 -right-1 px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-extrabold animate-pulse z-20"
+      style={{
+        background: cfg.bg,
+        color: '#fff',
+        border: '1.5px solid rgba(0,0,0,0.45)',
+        textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+        minWidth: '1.25rem',
+      }}
+    >
+      {cfg.label}
+    </span>
+  );
+}
+
 function ValueBadge({ value, color }: { value: number; color: string }) {
   return (
     <span

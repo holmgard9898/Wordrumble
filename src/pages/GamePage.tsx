@@ -174,6 +174,7 @@ const GamePage = () => {
           mode={gameMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
+          freeMovesRemaining={game.freeMovesRemaining}
         />
       </div>
 
@@ -219,6 +220,7 @@ const GamePage = () => {
             mode={gameMode}
             bestWordScore={game.bestWordScore}
             bestWord={game.bestWord}
+            freeMovesRemaining={game.freeMovesRemaining}
             hideBadge
           />
         </div>
