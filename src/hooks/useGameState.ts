@@ -239,13 +239,18 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [isProcessing, setIsProcessing] = useState(false);
   const [movesUsed, setMovesUsed] = useState(0);
   const [bonusPopups, setBonusPopups] = useState<BonusMovesEvent[]>([]);
+  const [freeMovesRemaining, setFreeMovesRemaining] = useState(0);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
 
   const blockedWordsRef = useRef<Set<string>>(new Set());
 
-  const pendingBombDecrement = useRef(false);
+  // Use a numeric tick id so duplicate effect fires can't double-decrement.
+  const pendingBombTick = useRef(0);
+  const lastProcessedBombTick = useRef(0);
+  const freeMovesRef = useRef(0);
+  freeMovesRef.current = freeMovesRemaining;
 
   const minWordLen = getMinWordLength(mode);
 
