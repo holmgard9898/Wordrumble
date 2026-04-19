@@ -55,6 +55,15 @@ const AuthPage = () => {
     navigate('/challenge');
   };
 
+  const handleFacebookAuth = async () => {
+    playClick();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: { redirectTo: window.location.origin + '/challenge' },
+    });
+    if (error) toast.error(error.message || 'Facebook-inloggning misslyckades');
+  };
+
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-pink-400 to-yellow-400 mb-2">Word Rumble</h1>
