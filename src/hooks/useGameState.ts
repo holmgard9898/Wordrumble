@@ -99,27 +99,45 @@ function gridHasWords(grid: BubbleData[][], isValidWord: (w: string) => boolean,
 
 function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMode): number {
   const len = positions.length;
-  const letterPoints = positions.reduce((s, p) => s + grid[p.row][p.col].value, 0);
+  // Apply per-letter powerup multipliers (x2 / x3) to letter values
+  const letterPoints = positions.reduce((s, p) => {
+    const b = grid[p.row][p.col];
+    let v = b.value;
+    if (b.powerup === 'x2') v *= 2;
+    else if (b.powerup === 'x3') v *= 3;
+    return s + v;
+  }, 0);
 
   if (mode === 'classic' || mode === 'fiveplus' || mode === 'oneword') {
     if (len <= 3) return letterPoints;
-    if (len === 4) return letterPoints + 2;
-    if (len === 5) return letterPoints + 5;
-    if (len === 6) return letterPoints + 8;
-    if (len === 7) return letterPoints + 10;
-    if (len === 8) return letterPoints * 2;
-    if (len === 9) return letterPoints * 3;
-    if (len >= 10) return letterPoints * 4;
+    if (len === 4) return letterPoints + 3;
+    if (len === 5) return letterPoints + 6;
+    if (len === 6) return letterPoints + 9;
+    if (len === 7) return letterPoints + 12;
+    if (len === 8) return (letterPoints + 12) * 2;
+    if (len === 9) return (letterPoints + 12) * 3;
+    if (len >= 10) return (letterPoints + 12) * 4;
   }
 
   return letterPoints;
+}
+
+const CORNERS = new Set(['0-0', `0-${COLS - 1}`, `${ROWS - 1}-0`, `${ROWS - 1}-${COLS - 1}`]);
+
+function isCorner(r: number, c: number) {
+  return CORNERS.has(`${r}-${c}`);
 }
 
 function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<string>): void {
   const vowelPositions: Position[] = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (vowelSet.has(grid[r][c].letter) && !grid[r][c].bomb) {
+      if (
+        vowelSet.has(grid[r][c].letter) &&
+        !grid[r][c].bomb &&
+        !grid[r][c].powerup &&
+        !isCorner(r, c)
+      ) {
         vowelPositions.push({ row: r, col: c });
       }
     }
@@ -129,10 +147,18 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
+  // Generate timers — if spawning >=3, force lowest >= 15
+  const timers: number[] = [];
+  for (let i = 0; i < toAdd; i++) {
+    timers.push(12 + Math.floor(Math.random() * 9)); // 12..20
+  }
+  if (toAdd >= 3) {
+    const minIdx = timers.reduce((m, v, i, a) => (v < a[m] ? i : m), 0);
+    if (timers[minIdx] < 15) timers[minIdx] = 15;
+  }
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    const timer = 10 + Math.floor(Math.random() * 11);
-    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: timer };
+    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: timers[i] };
   }
 }
 
@@ -144,6 +170,35 @@ function countBombs(grid: BubbleData[][]): number {
     }
   }
   return count;
+}
+
+function countPowerups(grid: BubbleData[][], types: ReadonlyArray<'x2' | 'x3' | 'free5'>): number {
+  let count = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const p = grid[r][c].powerup;
+      if (p && types.includes(p)) count++;
+    }
+  }
+  return count;
+}
+
+function addPowerupToGrid(grid: BubbleData[][], type: 'x2' | 'x3' | 'free5'): void {
+  const candidates: Position[] = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (
+        !grid[r][c].bomb &&
+        !grid[r][c].powerup &&
+        !isCorner(r, c)
+      ) {
+        candidates.push({ row: r, col: c });
+      }
+    }
+  }
+  if (candidates.length === 0) return;
+  const p = candidates[Math.floor(Math.random() * candidates.length)];
+  grid[p.row][p.col] = { ...grid[p.row][p.col], powerup: type };
 }
 
 function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean } {
