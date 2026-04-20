@@ -367,8 +367,9 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
         return newGrid;
       }
 
-      const { newGrid, exploded } = decrementBombs(prev);
+      const { newGrid, exploded, explodedAt: pos } = decrementBombs(prev);
       if (exploded) {
+        if (pos) setExplodedAt(pos);
         setGameOver(true);
         return newGrid;
       }
