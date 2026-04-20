@@ -625,7 +625,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombTick.current = 0;
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
-  }, [isValidWord, mode, pool, values, vowelSet]);
+    setExplodedAt(null);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
@@ -642,6 +642,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombTick.current = 0;
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
+    setExplodedAt(null);
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
 
@@ -676,5 +677,5 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     bonusPopups,
     removeBonusPopup,
     freeMovesRemaining,
-  };
+    explodedAt,
 }
