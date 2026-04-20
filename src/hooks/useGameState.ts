@@ -678,4 +678,5 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     removeBonusPopup,
     freeMovesRemaining,
     explodedAt,
+  };
 }
