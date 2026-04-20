@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, Volume2, VolumeX, Music, Home } from 'lucide-react';
+import { X, Volume2, Music, Home } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 import { useSfx } from '@/hooks/useSfx';
 import { useTranslation } from '@/hooks/useTranslation';
 
@@ -19,34 +21,44 @@ export function InGameMenu({ open, onClose }: InGameMenuProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="rounded-2xl p-6 w-full max-w-xs space-y-4" style={{ background: 'linear-gradient(135deg, hsl(220,40%,18%), hsl(260,35%,22%))' }}>
-        <div className="flex items-center justify-between mb-2">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+      <div className="rounded-2xl p-6 w-full max-w-xs space-y-5" style={{ background: 'linear-gradient(135deg, hsl(220,40%,18%), hsl(260,35%,22%))' }}>
+        <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-white">{t.pause}</h2>
           <button onClick={() => { playClick(); onClose(); }} className="text-white/60 hover:text-white">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="space-y-3">
-          <button
-            onClick={() => { playClick(); updateSettings({ sfxEnabled: !settings.sfxEnabled }); }}
-            className="w-full flex items-center gap-3 rounded-xl p-3 hover:bg-white/10 transition-colors"
-          >
-            {settings.sfxEnabled ? <Volume2 className="w-5 h-5 text-green-400" /> : <VolumeX className="w-5 h-5 text-red-400" />}
-            <span className="text-white">{t.sound}: {settings.sfxEnabled ? t.on : t.off}</span>
-          </button>
-
-          <button
-            onClick={() => { playClick(); updateSettings({ musicEnabled: !settings.musicEnabled }); }}
-            className="w-full flex items-center gap-3 rounded-xl p-3 hover:bg-white/10 transition-colors"
-          >
-            <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-blue-400' : 'text-red-400'}`} />
-            <span className="text-white">{t.music}: {settings.musicEnabled ? t.on : t.off}</span>
-          </button>
+        {/* Music */}
+        <div className="rounded-xl p-3 space-y-3" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-blue-400' : 'text-white/40'}`} />
+              <span className="text-white text-sm font-medium">{t.music}</span>
+            </div>
+            <Switch checked={settings.musicEnabled} onCheckedChange={(v) => updateSettings({ musicEnabled: v })} />
+          </div>
+          {settings.musicEnabled && (
+            <Slider dir="ltr" value={[settings.musicVolume * 100]} onValueChange={([v]) => updateSettings({ musicVolume: v / 100 })} max={100} step={1} className="w-full" />
+          )}
         </div>
 
-        <div className="pt-3 space-y-2">
+        {/* SFX */}
+        <div className="rounded-xl p-3 space-y-3" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Volume2 className={`w-5 h-5 ${settings.sfxEnabled ? 'text-green-400' : 'text-white/40'}`} />
+              <span className="text-white text-sm font-medium">{t.soundEffects}</span>
+            </div>
+            <Switch checked={settings.sfxEnabled} onCheckedChange={(v) => updateSettings({ sfxEnabled: v })} />
+          </div>
+          {settings.sfxEnabled && (
+            <Slider dir="ltr" value={[settings.sfxVolume * 100]} onValueChange={([v]) => updateSettings({ sfxVolume: v / 100 })} max={100} step={1} className="w-full" />
+          )}
+        </div>
+
+        <div className="space-y-2 pt-1">
           <Button onClick={() => { playClick(); onClose(); }} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
             {t.continuePlay}
           </Button>
