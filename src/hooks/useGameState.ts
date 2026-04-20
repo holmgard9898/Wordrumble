@@ -477,7 +477,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
           color: wordColor,
           row: centerPos.row,
           col: centerPos.col,
-          label: '+5 FRI',
+          label: `+5 ${freeLabel}`,
         }]);
       }
     }
@@ -553,9 +553,10 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
           setGrid(newGrid);
           return;
         }
-        const { newGrid: bombGrid, exploded } = decrementBombs(newGrid);
+        const { newGrid: bombGrid, exploded, explodedAt: pos } = decrementBombs(newGrid);
         if (exploded) {
           setGrid(bombGrid);
+          if (pos) setExplodedAt(pos);
           setGameOver(true);
           return;
         }
