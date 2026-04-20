@@ -220,6 +220,12 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
 }
 
 export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic', language: GameLanguage = 'en') {
+  // Localized FREE label (used for free5 powerup popup)
+  const FREE_LABELS: Record<string, string> = {
+    en: 'FREE', sv: 'FRI', de: 'FREI', es: 'GRATIS', fr: 'LIBRE', it: 'LIBERO',
+    pt: 'GRÁTIS', nl: 'VRIJ', no: 'FRI', da: 'FRI', fi: 'VAPAA',
+  };
+  const freeLabel = FREE_LABELS[language] ?? 'FREE';
   const langConfig = getLanguageConfig(language);
   const pool = langConfig.letterPool;
   const values = langConfig.letterValues;
@@ -235,6 +241,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [score, setScore] = useState(0);
   const [usedWords, setUsedWords] = useState<UsedWord[]>([]);
   const [gameOver, setGameOver] = useState(false);
+  const [explodedAt, setExplodedAt] = useState<Position | null>(null);
   const [poppingCells, setPoppingCells] = useState<Set<string>>(new Set());
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
