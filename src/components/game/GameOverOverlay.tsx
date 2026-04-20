@@ -15,9 +15,10 @@ interface GameOverOverlayProps {
   bestWord?: string | null;
   bestWordScore?: number;
   coinReward?: CoinBreakdown | null;
+  explodedAt?: { row: number; col: number } | null;
 }
 
-export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore, coinReward }: GameOverOverlayProps) {
+export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore, coinReward, explodedAt }: GameOverOverlayProps) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { t } = useTranslation();
@@ -85,10 +86,15 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
       <div className={`absolute inset-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} />
 
       {isBomb && explosionPhase >= 1 && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="rounded-full" style={{
-            width: explosionPhase >= 3 ? '200vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
-            height: explosionPhase >= 3 ? '200vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute rounded-full" style={{
+            // Position the explosion at the exact bomb cell.
+            // The bubble grid is 8 cols x 10 rows; convert cell -> percentage of viewport.
+            left: explodedAt ? `${((explodedAt.col + 0.5) / 8) * 100}%` : '50%',
+            top: explodedAt ? `${((explodedAt.row + 0.5) / 10) * 100}%` : '50%',
+            transform: 'translate(-50%, -50%)',
+            width: explosionPhase >= 3 ? '300vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
+            height: explosionPhase >= 3 ? '300vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
             background: `radial-gradient(circle, rgba(255,200,50,${explosionPhase >= 3 ? 0 : 0.9}) 0%, rgba(255,100,0,${explosionPhase >= 3 ? 0 : 0.7}) 30%, rgba(200,30,0,${explosionPhase >= 3 ? 0 : 0.5}) 60%, transparent 100%)`,
             transition: 'all 0.4s ease-out',
           }} />

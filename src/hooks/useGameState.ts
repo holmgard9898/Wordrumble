@@ -147,7 +147,7 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
-  // Generate timers — if spawning >=3, force lowest >= 15
+  // Generate timers — strict minimum 12, max 20.
   const timers: number[] = [];
   for (let i = 0; i < toAdd; i++) {
     timers.push(12 + Math.floor(Math.random() * 9)); // 12..20
@@ -158,7 +158,8 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
   }
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: timers[i] };
+    const t = Math.max(12, timers[i]); // hard floor 12
+    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: t };
   }
 }
 
@@ -201,7 +202,7 @@ function addPowerupToGrid(grid: BubbleData[][], type: 'x2' | 'x3' | 'free5'): vo
   grid[p.row][p.col] = { ...grid[p.row][p.col], powerup: type };
 }
 
-function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean } {
+function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean; explodedAt: Position | null } {
   const newGrid = grid.map(row => row.map(b => {
     if (b.bomb !== undefined) {
       return { ...b, bomb: b.bomb - 1 };
@@ -211,14 +212,20 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (newGrid[r][c].bomb !== undefined && newGrid[r][c].bomb! <= 0) {
-        return { newGrid, exploded: true };
+        return { newGrid, exploded: true, explodedAt: { row: r, col: c } };
       }
     }
   }
-  return { newGrid, exploded: false };
+  return { newGrid, exploded: false, explodedAt: null };
 }
 
 export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic', language: GameLanguage = 'en') {
+  // Localized FREE label (used for free5 powerup popup)
+  const FREE_LABELS: Record<string, string> = {
+    en: 'FREE', sv: 'FRI', de: 'FREI', es: 'GRATIS', fr: 'LIBRE', it: 'LIBERO',
+    pt: 'GRÁTIS', nl: 'VRIJ', no: 'FRI', da: 'FRI', fi: 'VAPAA',
+  };
+  const freeLabel = FREE_LABELS[language] ?? 'FREE';
   const langConfig = getLanguageConfig(language);
   const pool = langConfig.letterPool;
   const values = langConfig.letterValues;
@@ -234,6 +241,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const [score, setScore] = useState(0);
   const [usedWords, setUsedWords] = useState<UsedWord[]>([]);
   const [gameOver, setGameOver] = useState(false);
+  const [explodedAt, setExplodedAt] = useState<Position | null>(null);
   const [poppingCells, setPoppingCells] = useState<Set<string>>(new Set());
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -359,8 +367,9 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
         return newGrid;
       }
 
-      const { newGrid, exploded } = decrementBombs(prev);
+      const { newGrid, exploded, explodedAt: pos } = decrementBombs(prev);
       if (exploded) {
+        if (pos) setExplodedAt(pos);
         setGameOver(true);
         return newGrid;
       }
@@ -468,7 +477,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
           color: wordColor,
           row: centerPos.row,
           col: centerPos.col,
-          label: '+5 FRI',
+          label: `+5 ${freeLabel}`,
         }]);
       }
     }
@@ -544,9 +553,10 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
           setGrid(newGrid);
           return;
         }
-        const { newGrid: bombGrid, exploded } = decrementBombs(newGrid);
+        const { newGrid: bombGrid, exploded, explodedAt: pos } = decrementBombs(newGrid);
         if (exploded) {
           setGrid(bombGrid);
+          if (pos) setExplodedAt(pos);
           setGameOver(true);
           return;
         }
@@ -615,6 +625,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombTick.current = 0;
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
+    setExplodedAt(null);
   }, [isValidWord, mode, pool, values, vowelSet]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
@@ -632,6 +643,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     pendingBombTick.current = 0;
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
+    setExplodedAt(null);
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
 
@@ -666,5 +678,6 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     bonusPopups,
     removeBonusPopup,
     freeMovesRemaining,
+    explodedAt,
   };
 }
