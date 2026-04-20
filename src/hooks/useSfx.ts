@@ -41,6 +41,7 @@ export function useSfx() {
   const playPop = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -57,6 +58,7 @@ export function useSfx() {
   const playSwap = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -73,6 +75,7 @@ export function useSfx() {
   const playWordFound = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const notes = [523, 659, 784]; // C5, E5, G5
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -91,6 +94,7 @@ export function useSfx() {
   const playClick = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -106,6 +110,7 @@ export function useSfx() {
   const playGameOver = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const notes = [523, 440, 349, 262];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
