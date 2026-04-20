@@ -40,7 +40,7 @@ const MainMenu = () => {
         <Button onClick={() => go('/statistics')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
           <BarChart3 className="w-5 h-5" /> {t.statistics}
         </Button>
-        <Button onClick={() => go('/settings')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white shadow-lg shadow-yellow-500/30">
+        <Button onClick={() => go('/settings')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-500/30">
           <Settings className="w-5 h-5" /> {t.settingsTitle}
         </Button>
       </div>
