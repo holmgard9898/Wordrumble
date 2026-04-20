@@ -742,6 +742,16 @@ const translations = {
   opponentForfeit: { en: 'Opponent forfeited', sv: 'Motståndaren gav upp', de: 'Gegner aufgegeben', es: 'El oponente se retiró', fr: "L'adversaire a abandonné", it: "L'avversario si è ritirato", pt: 'Oponente desistiu', nl: 'Tegenstander opgegeven', no: 'Motstanderen ga opp', da: 'Modstanderen opgav', fi: 'Vastustaja luovutti' },
   draw: { en: 'Draw', sv: 'Oavgjort', de: 'Unentschieden', es: 'Empate', fr: 'Match nul', it: 'Pareggio', pt: 'Empate', nl: 'Gelijkspel', no: 'Uavgjort', da: 'Uafgjort', fi: 'Tasapeli' },
   win: { en: 'Win', sv: 'Vinst', de: 'Sieg', es: 'Victoria', fr: 'Victoire', it: 'Vittoria', pt: 'Vitória', nl: 'Overwinning', no: 'Seier', da: 'Sejr', fi: 'Voitto' },
+
+  // ─── Account / Settings ───
+  account: { en: 'Account', sv: 'Konto', de: 'Konto', es: 'Cuenta', fr: 'Compte', it: 'Account', pt: 'Conta', nl: 'Account', no: 'Konto', da: 'Konto', fi: 'Tili' },
+  notLoggedIn: { en: 'Not logged in', sv: 'Inte inloggad', de: 'Nicht eingeloggt', es: 'No has iniciado sesión', fr: 'Non connecté', it: 'Non connesso', pt: 'Não conectado', nl: 'Niet ingelogd', no: 'Ikke logget inn', da: 'Ikke logget ind', fi: 'Et ole kirjautunut' },
+  changeAvatar: { en: 'Change avatar', sv: 'Byt avatar', de: 'Avatar ändern', es: 'Cambiar avatar', fr: 'Changer d\'avatar', it: 'Cambia avatar', pt: 'Mudar avatar', nl: 'Avatar wijzigen', no: 'Bytt avatar', da: 'Skift avatar', fi: 'Vaihda avatar' },
+  uploading: { en: 'Uploading...', sv: 'Laddar upp...', de: 'Wird hochgeladen...', es: 'Subiendo...', fr: 'Téléchargement...', it: 'Caricamento...', pt: 'Enviando...', nl: 'Uploaden...', no: 'Laster opp...', da: 'Uploader...', fi: 'Ladataan...' },
+  avatarUpdated: { en: 'Avatar updated', sv: 'Avatar uppdaterad', de: 'Avatar aktualisiert', es: 'Avatar actualizado', fr: 'Avatar mis à jour', it: 'Avatar aggiornato', pt: 'Avatar atualizado', nl: 'Avatar bijgewerkt', no: 'Avatar oppdatert', da: 'Avatar opdateret', fi: 'Avatar päivitetty' },
+  uploadFailed: { en: 'Upload failed', sv: 'Kunde inte ladda upp', de: 'Upload fehlgeschlagen', es: 'Error al subir', fr: 'Échec du téléchargement', it: 'Caricamento fallito', pt: 'Falha no envio', nl: 'Uploaden mislukt', no: 'Opplasting feilet', da: 'Upload mislykkedes', fi: 'Lataus epäonnistui' },
+  loggedOut: { en: 'Logged out', sv: 'Utloggad', de: 'Abgemeldet', es: 'Sesión cerrada', fr: 'Déconnecté', it: 'Disconnesso', pt: 'Desconectado', nl: 'Uitgelogd', no: 'Logget ut', da: 'Logget ud', fi: 'Kirjautunut ulos' },
+  logOut: { en: 'Log out', sv: 'Logga ut', de: 'Abmelden', es: 'Cerrar sesión', fr: 'Se déconnecter', it: 'Disconnetti', pt: 'Sair', nl: 'Uitloggen', no: 'Logg ut', da: 'Log ud', fi: 'Kirjaudu ulos' },
 } as const;
 
 type TranslationKey = keyof typeof translations;

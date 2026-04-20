@@ -1,5 +1,18 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { GameLanguage } from '@/data/languages';
+import { AVAILABLE_LANGUAGES, type GameLanguage } from '@/data/languages';
+
+function detectBrowserLanguage(): GameLanguage {
+  try {
+    const langs = (typeof navigator !== 'undefined' && navigator.languages?.length)
+      ? navigator.languages
+      : [typeof navigator !== 'undefined' ? navigator.language : 'en'];
+    for (const l of langs) {
+      const code = l.toLowerCase().split('-')[0] as GameLanguage;
+      if (AVAILABLE_LANGUAGES.includes(code)) return code;
+    }
+  } catch {}
+  return 'en';
+}
 
 export type GameBackground = 'default' | 'clouds' | 'wood' | 'space' | 'volcano' | 'beach';
 export type TileStyle = 'bubble' | 'rubik' | 'shapes' | 'soapbubble' | 'sports';
@@ -29,20 +42,23 @@ const defaultSettings: Settings = {
   tileStyle: 'bubble',
 };
 
+function getInitialSettings(): Settings {
+  try {
+    const saved = localStorage.getItem('wr-settings');
+    if (saved) {
+      return { ...defaultSettings, language: detectBrowserLanguage(), ...JSON.parse(saved) };
+    }
+  } catch {}
+  return { ...defaultSettings, language: detectBrowserLanguage() };
+}
+
 const SettingsContext = createContext<SettingsContextType>({
   settings: defaultSettings,
   updateSettings: () => {},
 });
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(() => {
-    try {
-      const saved = localStorage.getItem('wr-settings');
-      return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-    } catch {
-      return defaultSettings;
-    }
-  });
+  const [settings, setSettings] = useState<Settings>(getInitialSettings);
 
   useEffect(() => {
     localStorage.setItem('wr-settings', JSON.stringify(settings));
