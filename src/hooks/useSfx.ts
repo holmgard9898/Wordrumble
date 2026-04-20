@@ -1,21 +1,47 @@
 import { useCallback, useRef, useEffect } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
 
+// Module-level shared context so unlock works across all hook instances
+let sharedCtx: AudioContext | null = null;
+let unlockBound = false;
+
+function ensureCtx(): AudioContext | null {
+  if (typeof window === 'undefined') return null;
+  if (!sharedCtx) {
+    const AC = (window.AudioContext || (window as any).webkitAudioContext);
+    if (!AC) return null;
+    sharedCtx = new AC();
+  }
+  if (sharedCtx.state === 'suspended') {
+    sharedCtx.resume().catch(() => {});
+  }
+  return sharedCtx;
+}
+
+function bindUnlock() {
+  if (unlockBound || typeof window === 'undefined') return;
+  unlockBound = true;
+  const unlock = () => {
+    const ctx = ensureCtx();
+    if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+  };
+  ['touchstart', 'touchend', 'mousedown', 'click', 'keydown'].forEach((ev) =>
+    window.addEventListener(ev, unlock, { passive: true })
+  );
+}
+
 // Simple synthesized sound effects using Web Audio API
 export function useSfx() {
   const { settings } = useSettings();
-  const ctxRef = useRef<AudioContext | null>(null);
 
-  const getCtx = useCallback(() => {
-    if (!ctxRef.current) {
-      ctxRef.current = new AudioContext();
-    }
-    return ctxRef.current;
-  }, []);
+  useEffect(() => { bindUnlock(); }, []);
+
+  const getCtx = useCallback(() => ensureCtx(), []);
 
   const playPop = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -32,6 +58,7 @@ export function useSfx() {
   const playSwap = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -48,6 +75,7 @@ export function useSfx() {
   const playWordFound = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const notes = [523, 659, 784]; // C5, E5, G5
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -66,6 +94,7 @@ export function useSfx() {
   const playClick = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
@@ -81,6 +110,7 @@ export function useSfx() {
   const playGameOver = useCallback(() => {
     if (!settings.sfxEnabled) return;
     const ctx = getCtx();
+    if (!ctx) return;
     const notes = [523, 440, 349, 262];
     notes.forEach((freq, i) => {
       const osc = ctx.createOscillator();

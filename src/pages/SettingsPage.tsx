@@ -53,9 +53,9 @@ const SettingsPage = () => {
       const { error: updErr } = await supabase.from('profiles').update({ avatar_url: newUrl }).eq('user_id', user.id);
       if (updErr) throw updErr;
       setAvatarUrl(newUrl);
-      toast.success('Avatar uppdaterad');
+      toast.success(t.avatarUpdated);
     } catch (err: any) {
-      toast.error(err.message || 'Kunde inte ladda upp');
+      toast.error(err.message || t.uploadFailed);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -71,7 +71,7 @@ const SettingsPage = () => {
         <div className="rounded-2xl p-5 space-y-4" style={{ background: 'rgba(0,0,0,0.3)' }}>
           <div className="flex items-center gap-3 mb-1">
             <User className="w-5 h-5 text-pink-400" />
-            <span className="text-white font-semibold">Konto</span>
+            <span className="text-white font-semibold">{t.account}</span>
           </div>
 
           {user ? (
@@ -96,24 +96,24 @@ const SettingsPage = () => {
                 variant="outline"
                 className="w-full gap-2 bg-white/10 border-white/20 text-white hover:bg-white/20"
               >
-                <Camera className="w-4 h-4" /> {uploading ? 'Laddar upp...' : 'Byt avatar'}
+                <Camera className="w-4 h-4" /> {uploading ? t.uploading : t.changeAvatar}
               </Button>
               <Button
-                onClick={async () => { playClick(); await signOut(); toast.success('Utloggad'); }}
+                onClick={async () => { playClick(); await signOut(); toast.success(t.loggedOut); }}
                 variant="outline"
                 className="w-full gap-2 bg-white/5 border-white/20 text-white/80 hover:bg-white/10"
               >
-                <LogOut className="w-4 h-4" /> Logga ut
+                <LogOut className="w-4 h-4" /> {t.logOut}
               </Button>
             </>
           ) : (
             <>
-              <p className="text-white/60 text-sm">Inte inloggad</p>
+              <p className="text-white/60 text-sm">{t.notLoggedIn}</p>
               <Button
                 onClick={() => { playClick(); navigate('/auth'); }}
                 className="w-full gap-2 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-500 hover:to-pink-400 text-white"
               >
-                <LogIn className="w-4 h-4" /> Logga in
+                <LogIn className="w-4 h-4" /> {t.logIn}
               </Button>
             </>
           )}
