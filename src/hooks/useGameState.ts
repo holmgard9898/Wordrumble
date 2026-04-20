@@ -147,7 +147,7 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
-  // Generate timers — if spawning >=3, force lowest >= 15
+  // Generate timers — strict minimum 12, max 20.
   const timers: number[] = [];
   for (let i = 0; i < toAdd; i++) {
     timers.push(12 + Math.floor(Math.random() * 9)); // 12..20
@@ -158,7 +158,8 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
   }
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: timers[i] };
+    const t = Math.max(12, timers[i]); // hard floor 12
+    grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: t };
   }
 }
 
@@ -201,7 +202,7 @@ function addPowerupToGrid(grid: BubbleData[][], type: 'x2' | 'x3' | 'free5'): vo
   grid[p.row][p.col] = { ...grid[p.row][p.col], powerup: type };
 }
 
-function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean } {
+function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean; explodedAt: Position | null } {
   const newGrid = grid.map(row => row.map(b => {
     if (b.bomb !== undefined) {
       return { ...b, bomb: b.bomb - 1 };
@@ -211,11 +212,11 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (newGrid[r][c].bomb !== undefined && newGrid[r][c].bomb! <= 0) {
-        return { newGrid, exploded: true };
+        return { newGrid, exploded: true, explodedAt: { row: r, col: c } };
       }
     }
   }
-  return { newGrid, exploded: false };
+  return { newGrid, exploded: false, explodedAt: null };
 }
 
 export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic', language: GameLanguage = 'en') {
