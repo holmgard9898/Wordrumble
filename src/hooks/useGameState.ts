@@ -626,6 +626,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
+  }, [isValidWord, mode, pool, values, vowelSet]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
