@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Coins, Check, ChevronLeft, ChevronRight, Lock, Video, HelpCircle, X } from 'lucide-react';
+import { ArrowLeft, Coins, Check, ChevronLeft, ChevronRight, Lock, Video, HelpCircle } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useSettings, type GameBackground, type TileStyle } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
@@ -17,6 +17,10 @@ import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
 import volcanoBg from '@/assets/bg-volcano.jpg';
 import beachBg from '@/assets/bg-beach.jpg';
+import underwaterBg from '@/assets/bg-underwater.jpg';
+import shipwreckBg from '@/assets/bg-shipwreck.jpg';
+import caveBg from '@/assets/bg-cave.jpg';
+import cityBg from '@/assets/bg-city.jpg';
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
@@ -25,6 +29,10 @@ const bgPreviews: Record<GameBackground, React.ReactNode> = {
   space: <img src={spaceBg} alt="Space" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   volcano: <img src={volcanoBg} alt="Volcano" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   beach: <img src={beachBg} alt="Beach" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  underwater: <img src={underwaterBg} alt="Underwater" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  shipwreck: <img src={shipwreckBg} alt="Shipwreck" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  cave: <img src={caveBg} alt="Cave" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  city: <img src={cityBg} alt="City" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
 };
 
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
@@ -74,7 +82,9 @@ const Shop = () => {
 
   // Translated shop item names
   const itemNames: Record<string, string> = {
-    'bg-default': 'Cosmic Night', 'bg-clouds': 'Blue Sky', 'bg-wood': t.shopWalnut, 'bg-space': t.shopSpace, 'bg-volcano': t.shopVolcano,
+    'bg-default': t.shopCosmicNight, 'bg-clouds': t.shopBlueSky, 'bg-wood': t.shopWalnut, 'bg-space': t.shopSpace,
+    'bg-volcano': t.shopVolcano, 'bg-beach': t.shopBeach,
+    'bg-shipwreck': t.shopShipwreck, 'bg-city': t.shopCity, 'bg-underwater': t.shopUnderwater, 'bg-cave': t.shopCave,
     'tile-bubble': t.shopBubbles, 'tile-rubik': 'Rubik', 'tile-shapes': t.shopShapes, 'tile-soapbubble': t.shopSoapBubbles, 'tile-sports': t.shopSport,
   };
 
@@ -141,13 +151,15 @@ const Shop = () => {
           <h2 className="text-lg font-semibold text-white/80 text-center mb-3">{t.other}</h2>
           <div className="grid grid-cols-2 gap-3">
             {miscShopItems.map(item => (
-              <button key={item.id} onClick={() => item.type === 'action' ? handleWatchAd() : playClick()} disabled={item.type === 'coming-soon'} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97] disabled:opacity-50 disabled:hover:scale-100" style={{ border: '3px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)' }}>
+              <button key={item.id} onClick={() => {
+                if (item.type === 'action') handleWatchAd();
+                else if (item.type === 'navigate' && item.navigateTo) { playClick(); navigate(item.navigateTo); }
+              }} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97]" style={{ border: '3px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)' }}>
                 <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1 p-3">
                   <span className="text-3xl">{item.icon}</span>
                   <span className="text-white text-sm font-semibold">{item.id === 'watch-ad' ? t.shopWatchAd : item.id === 'adventure-mode' ? t.shopAdventure : item.name}</span>
-                  <span className="text-white/50 text-[11px] leading-tight text-center">{item.id === 'watch-ad' ? t.shopWatchAdDesc : item.description}</span>
+                  <span className="text-white/50 text-[11px] leading-tight text-center">{item.id === 'watch-ad' ? t.shopWatchAdDesc : item.id === 'adventure-mode' ? t.shopAdventureDesc : item.description}</span>
                 </div>
-                {item.type === 'coming-soon' && <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-2xl"><span className="text-white/80 text-xs font-bold uppercase tracking-wider">{t.comingSoon}</span></div>}
               </button>
             ))}
           </div>

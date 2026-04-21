@@ -2,7 +2,7 @@ import { BubbleData, Position } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
 import { BonusMovePopup } from './BonusMovePopup';
 import type { BonusPopupData } from './BonusMovePopup';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
 
 interface GameBoardProps {
@@ -15,10 +15,26 @@ interface GameBoardProps {
   onBonusPopupDone?: (id: string) => void;
 }
 
-export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone }: GameBoardProps) {
+export interface GameBoardHandle {
+  /** Returns the absolute viewport rect of cell (row, col), or null if missing. */
+  getCellRect: (row: number, col: number) => DOMRect | null;
+}
+
+export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function GameBoard(
+  { grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone },
+  ref,
+) {
   const touchStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
+  const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { settings } = useSettings();
   const isRubik = settings.tileStyle === 'rubik';
+
+  useImperativeHandle(ref, () => ({
+    getCellRect: (row, col) => {
+      const el = cellRefs.current.get(`${row}-${col}`);
+      return el ? el.getBoundingClientRect() : null;
+    },
+  }));
 
   const handleTouchStart = useCallback((row: number, col: number, e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -69,15 +85,23 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
             const isSelected = selectedBubble?.row === r && selectedBubble?.col === c;
             const isPopping = poppingCells.has(`${r}-${c}`);
             return (
-              <Bubble
+              <div
                 key={bubble.id}
-                bubble={bubble}
-                isSelected={isSelected}
-                isPopping={isPopping}
-                onClick={() => onBubbleClick(r, c)}
-                onTouchStart={(e) => handleTouchStart(r, c, e)}
-                onTouchEnd={handleTouchEnd}
-              />
+                ref={(el) => {
+                  const k = `${r}-${c}`;
+                  if (el) cellRefs.current.set(k, el);
+                  else cellRefs.current.delete(k);
+                }}
+              >
+                <Bubble
+                  bubble={bubble}
+                  isSelected={isSelected}
+                  isPopping={isPopping}
+                  onClick={() => onBubbleClick(r, c)}
+                  onTouchStart={(e) => handleTouchStart(r, c, e)}
+                  onTouchEnd={handleTouchEnd}
+                />
+              </div>
             );
           })
         )}
@@ -88,4 +112,4 @@ export function GameBoard({ grid, selectedBubble, poppingCells, onBubbleClick, o
       ))}
     </div>
   );
-}
+});
