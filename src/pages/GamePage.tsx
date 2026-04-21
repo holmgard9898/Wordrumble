@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
@@ -11,7 +11,7 @@ import { useGameProgress } from '@/hooks/useGameProgress';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
-import { GameBoard } from '@/components/game/GameBoard';
+import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
@@ -58,8 +58,19 @@ const GamePage = () => {
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [scoreSaved, setScoreSaved] = useState(false);
+  const [explosionPx, setExplosionPx] = useState<{ x: number; y: number } | null>(null);
+  const boardRef = useRef<GameBoardHandle | null>(null);
 
   useBackgroundMusic(!game.gameOver && !showMenu);
+
+  // Capture pixel coords of the bomb cell when it explodes (before grid changes).
+  useEffect(() => {
+    if (game.gameOver && game.explodedAt && boardRef.current) {
+      const rect = boardRef.current.getCellRect(game.explodedAt.row, game.explodedAt.col);
+      if (rect) setExplosionPx({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    }
+    if (!game.gameOver) setExplosionPx(null);
+  }, [game.gameOver, game.explodedAt]);
 
   useEffect(() => {
     if (!loading) {
@@ -155,6 +166,7 @@ const GamePage = () => {
       <div className="hidden lg:flex gap-6 items-start w-full max-w-4xl flex-1 px-4">
         <div className="w-[450px] shrink-0">
           <GameBoard
+            ref={boardRef}
             grid={game.grid}
             selectedBubble={game.selectedBubble}
             poppingCells={game.poppingCells}
@@ -198,6 +210,7 @@ const GamePage = () => {
         {/* Game board */}
         <div className="flex items-center justify-center w-full">
           <GameBoard
+            ref={boardRef}
             grid={game.grid}
             selectedBubble={game.selectedBubble}
             poppingCells={game.poppingCells}
@@ -229,7 +242,7 @@ const GamePage = () => {
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
       {game.gameOver && (
-        <GameOverOverlay score={finalScore} wordsFound={game.usedWords.length} mode={gameMode} onRestart={handleReset} bestWord={game.bestWord} bestWordScore={game.bestWordScore} coinReward={coinReward} explodedAt={game.explodedAt} />
+        <GameOverOverlay score={finalScore} wordsFound={game.usedWords.length} mode={gameMode} onRestart={handleReset} bestWord={game.bestWord} bestWordScore={game.bestWordScore} coinReward={coinReward} explosionPx={explosionPx} />
       )}
     </div>
   );

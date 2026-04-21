@@ -1,23 +1,46 @@
 import * as React from "react";
-import * as SliderPrimitive from "@radix-ui/react-slider";
-
 import { cn } from "@/lib/utils";
 
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
->(({ className, ...props }, ref) => (
-  <SliderPrimitive.Root
-    ref={ref}
-    className={cn("relative flex w-full touch-none select-none items-center", className)}
-    {...props}
-  >
-    <SliderPrimitive.Track className="relative h-3 w-full grow overflow-hidden rounded-full bg-black/40 border border-white/10">
-      <SliderPrimitive.Range className="absolute h-full bg-white" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-6 w-6 rounded-full border-2 border-white bg-white shadow-lg ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 touch-none" />
-  </SliderPrimitive.Root>
-));
-Slider.displayName = SliderPrimitive.Root.displayName;
+interface SliderProps {
+  value: number[];
+  onValueChange: (value: number[]) => void;
+  max?: number;
+  min?: number;
+  step?: number;
+  className?: string;
+  dir?: "ltr" | "rtl";
+}
+
+/**
+ * Native range input styled white-fill-from-left.
+ * More reliable on mobile (iOS/Android WebKit) than Radix pointer events.
+ */
+const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
+  ({ value, onValueChange, max = 100, min = 0, step = 1, className }, ref) => {
+    const v = value?.[0] ?? 0;
+    const pct = ((v - min) / (max - min)) * 100;
+
+    return (
+      <div className={cn("relative flex w-full items-center py-2", className)}>
+        <input
+          ref={ref}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={v}
+          onChange={(e) => onValueChange([Number(e.target.value)])}
+          className="wr-slider w-full h-3 appearance-none rounded-full cursor-pointer outline-none"
+          style={{
+            background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(0,0,0,0.45) ${pct}%, rgba(0,0,0,0.45) 100%)`,
+            border: "1px solid rgba(255,255,255,0.15)",
+            touchAction: "none",
+          }}
+        />
+      </div>
+    );
+  }
+);
+Slider.displayName = "Slider";
 
 export { Slider };

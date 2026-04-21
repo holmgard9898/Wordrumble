@@ -21,91 +21,24 @@ export interface TileShopItem extends ShopItem {
 }
 
 export const bgShopItems: BgShopItem[] = [
-  {
-    id: 'bg-default',
-    bgId: 'default',
-    name: 'Cosmic Night',
-    unlockMethod: 'free',
-    unlockDescription: 'Upplåst från början!',
-  },
-  {
-    id: 'bg-clouds',
-    bgId: 'clouds',
-    name: 'Blue Sky',
-    unlockMethod: 'coins',
-    cost: 10,
-    unlockDescription: 'Köp för 10 coins.',
-  },
-  {
-    id: 'bg-wood',
-    bgId: 'wood',
-    name: 'Valnöt',
-    unlockMethod: 'ad',
-    unlockDescription: 'Titta på en reklamvideo för att låsa upp.',
-  },
-  {
-    id: 'bg-space',
-    bgId: 'space',
-    name: 'Rymden',
-    unlockMethod: 'coins',
-    cost: 100,
-    unlockDescription: 'Köp för 100 coins.',
-  },
-  {
-    id: 'bg-volcano',
-    bgId: 'volcano',
-    name: 'Vulkan',
-    unlockMethod: 'achievement',
-    unlockDescription: 'Nå 200 poäng i Bomb Mode för att låsa upp.',
-  },
-  {
-    id: 'bg-beach',
-    bgId: 'beach',
-    name: 'Strand',
-    unlockMethod: 'coins',
-    cost: 75,
-    unlockDescription: 'Köp för 75 coins.',
-  },
+  { id: 'bg-default', bgId: 'default', name: 'Cosmic Night', unlockMethod: 'free', unlockDescription: 'Unlocked from the start!' },
+  { id: 'bg-clouds', bgId: 'clouds', name: 'Blue Sky', unlockMethod: 'coins', cost: 10, unlockDescription: 'Buy for 10 coins.' },
+  { id: 'bg-wood', bgId: 'wood', name: 'Walnut', unlockMethod: 'ad', unlockDescription: 'Watch an ad to unlock.' },
+  { id: 'bg-space', bgId: 'space', name: 'Space', unlockMethod: 'coins', cost: 100, unlockDescription: 'Buy for 100 coins.' },
+  { id: 'bg-volcano', bgId: 'volcano', name: 'Volcano', unlockMethod: 'achievement', unlockDescription: 'Score 200 in Bomb Mode to unlock.' },
+  { id: 'bg-beach', bgId: 'beach', name: 'Beach', unlockMethod: 'coins', cost: 75, unlockDescription: 'Buy for 75 coins.' },
+  { id: 'bg-shipwreck', bgId: 'shipwreck', name: 'Shipwreck', unlockMethod: 'coins', cost: 250, unlockDescription: 'Buy for 250 coins.' },
+  { id: 'bg-city', bgId: 'city', name: 'City', unlockMethod: 'coins', cost: 300, unlockDescription: 'Buy for 300 coins.' },
+  { id: 'bg-underwater', bgId: 'underwater', name: 'Underwater', unlockMethod: 'coins', cost: 450, unlockDescription: 'Buy for 450 coins.' },
+  { id: 'bg-cave', bgId: 'cave', name: 'Cave', unlockMethod: 'achievement', unlockDescription: 'Reach the first cave level in Adventure Mode.' },
 ];
 
 export const tileShopItems: TileShopItem[] = [
-  {
-    id: 'tile-bubble',
-    tileId: 'bubble',
-    name: 'Bubblor',
-    unlockMethod: 'free',
-    unlockDescription: 'Upplåst från början!',
-  },
-  {
-    id: 'tile-rubik',
-    tileId: 'rubik',
-    name: 'Rubik',
-    unlockMethod: 'coins',
-    cost: 30,
-    unlockDescription: 'Köp för 30 coins.',
-  },
-  {
-    id: 'tile-shapes',
-    tileId: 'shapes',
-    name: 'Former',
-    unlockMethod: 'free',
-    unlockDescription: 'Upplåst från början!',
-  },
-  {
-    id: 'tile-soapbubble',
-    tileId: 'soapbubble',
-    name: 'Såpbubblor',
-    unlockMethod: 'coins',
-    cost: 200,
-    unlockDescription: 'Köp för 200 coins.',
-  },
-  {
-    id: 'tile-sports',
-    tileId: 'sports',
-    name: 'Sport',
-    unlockMethod: 'achievement',
-    unlockDescription: 'Vinn 30 online-spel för att låsa upp.',
-  },
+  { id: 'tile-bubble', tileId: 'bubble', name: 'Bubbles', unlockMethod: 'free', unlockDescription: 'Unlocked from the start!' },
+  { id: 'tile-rubik', tileId: 'rubik', name: 'Rubik', unlockMethod: 'coins', cost: 30, unlockDescription: 'Buy for 30 coins.' },
+  { id: 'tile-shapes', tileId: 'shapes', name: 'Shapes', unlockMethod: 'free', unlockDescription: 'Unlocked from the start!' },
+  { id: 'tile-soapbubble', tileId: 'soapbubble', name: 'Soap Bubbles', unlockMethod: 'coins', cost: 200, unlockDescription: 'Buy for 200 coins.' },
+  { id: 'tile-sports', tileId: 'sports', name: 'Sports', unlockMethod: 'achievement', unlockDescription: 'Win 30 online games to unlock.' },
 ];
 
 export interface MiscShopItem {
@@ -113,25 +46,13 @@ export interface MiscShopItem {
   name: string;
   description: string;
   icon: string;
-  type: 'action' | 'coming-soon';
-  /** For action items: what happens on click */
+  type: 'action' | 'navigate';
   actionLabel?: string;
+  /** For 'navigate' items */
+  navigateTo?: string;
 }
 
 export const miscShopItems: MiscShopItem[] = [
-  {
-    id: 'watch-ad',
-    name: 'Se reklam',
-    description: 'Titta på en video (~30s) och få 10 coins',
-    icon: '📺',
-    type: 'action',
-    actionLabel: 'Se video',
-  },
-  {
-    id: 'adventure-mode',
-    name: 'Äventyr',
-    description: 'Kommer snart!',
-    icon: '🗺️',
-    type: 'coming-soon',
-  },
+  { id: 'watch-ad', name: 'Watch ad', description: 'Watch a video (~30s) and get 10 coins', icon: '📺', type: 'action', actionLabel: 'Watch video' },
+  { id: 'adventure-mode', name: 'Adventure', description: 'Embark on a treasure-map journey!', icon: '🗺️', type: 'navigate', navigateTo: '/adventure' },
 ];

@@ -752,6 +752,30 @@ const translations = {
   uploadFailed: { en: 'Upload failed', sv: 'Kunde inte ladda upp', de: 'Upload fehlgeschlagen', es: 'Error al subir', fr: 'Échec du téléchargement', it: 'Caricamento fallito', pt: 'Falha no envio', nl: 'Uploaden mislukt', no: 'Opplasting feilet', da: 'Upload mislykkedes', fi: 'Lataus epäonnistui' },
   loggedOut: { en: 'Logged out', sv: 'Utloggad', de: 'Abgemeldet', es: 'Sesión cerrada', fr: 'Déconnecté', it: 'Disconnesso', pt: 'Desconectado', nl: 'Uitgelogd', no: 'Logget ut', da: 'Logget ud', fi: 'Kirjautunut ulos' },
   logOut: { en: 'Log out', sv: 'Logga ut', de: 'Abmelden', es: 'Cerrar sesión', fr: 'Se déconnecter', it: 'Disconnetti', pt: 'Sair', nl: 'Uitloggen', no: 'Logg ut', da: 'Log ud', fi: 'Kirjaudu ulos' },
+
+  // ─── Shop background names (added) ───
+  shopCosmicNight: { en: 'Cosmic Night', sv: 'Kosmisk Natt', de: 'Kosmische Nacht', es: 'Noche Cósmica', fr: 'Nuit Cosmique', it: 'Notte Cosmica', pt: 'Noite Cósmica', nl: 'Kosmische Nacht', no: 'Kosmisk Natt', da: 'Kosmisk Nat', fi: 'Kosminen Yö' },
+  shopBlueSky: { en: 'Blue Sky', sv: 'Blå Himmel', de: 'Blauer Himmel', es: 'Cielo Azul', fr: 'Ciel Bleu', it: 'Cielo Blu', pt: 'Céu Azul', nl: 'Blauwe Lucht', no: 'Blå Himmel', da: 'Blå Himmel', fi: 'Sininen Taivas' },
+  shopBeach: { en: 'Beach', sv: 'Strand', de: 'Strand', es: 'Playa', fr: 'Plage', it: 'Spiaggia', pt: 'Praia', nl: 'Strand', no: 'Strand', da: 'Strand', fi: 'Ranta' },
+  shopShipwreck: { en: 'Shipwreck', sv: 'Skeppsvrak', de: 'Schiffswrack', es: 'Naufragio', fr: 'Épave', it: 'Relitto', pt: 'Naufrágio', nl: 'Scheepswrak', no: 'Skipsvrak', da: 'Skibsvrag', fi: 'Hylky' },
+  shopCity: { en: 'City', sv: 'Storstad', de: 'Großstadt', es: 'Ciudad', fr: 'Ville', it: 'Città', pt: 'Cidade', nl: 'Stad', no: 'Storby', da: 'Storby', fi: 'Suurkaupunki' },
+  shopUnderwater: { en: 'Underwater', sv: 'Under Havet', de: 'Unter Wasser', es: 'Bajo el Agua', fr: 'Sous la Mer', it: 'Sott\'acqua', pt: 'Submarino', nl: 'Onderwater', no: 'Under Vann', da: 'Under Vand', fi: 'Veden alla' },
+  shopCave: { en: 'Cave', sv: 'Grotta', de: 'Höhle', es: 'Cueva', fr: 'Grotte', it: 'Grotta', pt: 'Caverna', nl: 'Grot', no: 'Hule', da: 'Hule', fi: 'Luola' },
+  shopAdventureDesc: { en: 'Embark on a treasure-map journey!', sv: 'Ge dig ut på en skattkarteresa!', de: 'Begib dich auf eine Schatzkartenreise!', es: '¡Embárcate en un viaje del mapa del tesoro!', fr: 'Partez pour un voyage de carte au trésor !', it: 'Parti per un viaggio sulla mappa del tesoro!', pt: 'Embarque numa jornada do mapa do tesouro!', nl: 'Ga op een schatkaartreis!', no: 'Dra på en skattekartreise!', da: 'Tag på en skattekortrejse!', fi: 'Lähde aarrekarttamatkalle!' },
+
+  // ─── Adventure ───
+  adventureTitle: { en: 'Adventure', sv: 'Äventyr', de: 'Abenteuer', es: 'Aventura', fr: 'Aventure', it: 'Avventura', pt: 'Aventura', nl: 'Avontuur', no: 'Eventyr', da: 'Eventyr', fi: 'Seikkailu' },
+  adventureLevel: { en: 'Level', sv: 'Nivå', de: 'Level', es: 'Nivel', fr: 'Niveau', it: 'Livello', pt: 'Nível', nl: 'Niveau', no: 'Nivå', da: 'Niveau', fi: 'Taso' },
+  adventureGoal: { en: 'Goal', sv: 'Mål', de: 'Ziel', es: 'Objetivo', fr: 'Objectif', it: 'Obiettivo', pt: 'Objetivo', nl: 'Doel', no: 'Mål', da: 'Mål', fi: 'Tavoite' },
+  adventureStart: { en: 'Start', sv: 'Starta', de: 'Start', es: 'Empezar', fr: 'Commencer', it: 'Inizia', pt: 'Começar', nl: 'Start', no: 'Start', da: 'Start', fi: 'Aloita' },
+  adventureLevelComplete: { en: 'Level complete!', sv: 'Nivå klar!', de: 'Level geschafft!', es: '¡Nivel completado!', fr: 'Niveau terminé !', it: 'Livello completato!', pt: 'Nível completo!', nl: 'Niveau voltooid!', no: 'Nivå fullført!', da: 'Niveau gennemført!', fi: 'Taso suoritettu!' },
+  adventureNextLevel: { en: 'Next level', sv: 'Nästa nivå', de: 'Nächstes Level', es: 'Siguiente nivel', fr: 'Niveau suivant', it: 'Livello successivo', pt: 'Próximo nível', nl: 'Volgend niveau', no: 'Neste nivå', da: 'Næste niveau', fi: 'Seuraava taso' },
+  adventureBackToMap: { en: 'Back to map', sv: 'Till kartan', de: 'Zurück zur Karte', es: 'Volver al mapa', fr: 'Retour à la carte', it: 'Torna alla mappa', pt: 'Voltar ao mapa', nl: 'Terug naar kaart', no: 'Tilbake til kart', da: 'Tilbage til kort', fi: 'Takaisin kartalle' },
+  adventureLocked: { en: 'Complete the previous level first.', sv: 'Klara föregående nivå först.', de: 'Schließe zuerst das vorherige Level ab.', es: 'Completa el nivel anterior primero.', fr: 'Terminez d\'abord le niveau précédent.', it: 'Completa prima il livello precedente.', pt: 'Complete o nível anterior primeiro.', nl: 'Voltooi eerst het vorige niveau.', no: 'Fullfør forrige nivå først.', da: 'Gennemfør det forrige niveau først.', fi: 'Suorita ensin edellinen taso.' },
+  goalFindWords: { en: 'Find these words:', sv: 'Hitta dessa ord:', de: 'Finde diese Wörter:', es: 'Encuentra estas palabras:', fr: 'Trouvez ces mots :', it: 'Trova queste parole:', pt: 'Encontre estas palavras:', nl: 'Vind deze woorden:', no: 'Finn disse ordene:', da: 'Find disse ord:', fi: 'Löydä nämä sanat:' },
+  goalReachScore: { en: 'Reach score:', sv: 'Nå poäng:', de: 'Erreiche Punkte:', es: 'Alcanza puntos:', fr: 'Atteindre score :', it: 'Raggiungi punti:', pt: 'Alcance pontos:', nl: 'Behaal score:', no: 'Nå poeng:', da: 'Nå score:', fi: 'Saavuta pisteet:' },
+  goalLongWord: { en: 'Find a word with at least', sv: 'Hitta ett ord med minst', de: 'Finde ein Wort mit mindestens', es: 'Encuentra una palabra de al menos', fr: 'Trouvez un mot d\'au moins', it: 'Trova una parola con almeno', pt: 'Encontre uma palavra com pelo menos', nl: 'Vind een woord van minstens', no: 'Finn et ord med minst', da: 'Find et ord med mindst', fi: 'Löydä sana, jossa on vähintään' },
+  letters: { en: 'letters', sv: 'bokstäver', de: 'Buchstaben', es: 'letras', fr: 'lettres', it: 'lettere', pt: 'letras', nl: 'letters', no: 'bokstaver', da: 'bogstaver', fi: 'kirjainta' },
 } as const;
 
 type TranslationKey = keyof typeof translations;

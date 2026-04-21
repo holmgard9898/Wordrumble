@@ -147,18 +147,18 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
-  // Generate timers — strict minimum 12, max 20.
+  // Generate timers — strict minimum 10, max 20.
   const timers: number[] = [];
   for (let i = 0; i < toAdd; i++) {
-    timers.push(12 + Math.floor(Math.random() * 9)); // 12..20
+    timers.push(10 + Math.floor(Math.random() * 11)); // 10..20
   }
   if (toAdd >= 3) {
     const minIdx = timers.reduce((m, v, i, a) => (v < a[m] ? i : m), 0);
-    if (timers[minIdx] < 15) timers[minIdx] = 15;
+    if (timers[minIdx] < 13) timers[minIdx] = 13;
   }
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    const t = Math.max(12, timers[i]); // hard floor 12
+    const t = Math.max(10, timers[i]); // hard floor 10
     grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: t };
   }
 }

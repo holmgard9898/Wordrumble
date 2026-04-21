@@ -14,7 +14,9 @@ function detectBrowserLanguage(): GameLanguage {
   return 'en';
 }
 
-export type GameBackground = 'default' | 'clouds' | 'wood' | 'space' | 'volcano' | 'beach';
+export type GameBackground =
+  | 'default' | 'clouds' | 'wood' | 'space' | 'volcano' | 'beach'
+  | 'underwater' | 'shipwreck' | 'cave' | 'city';
 export type TileStyle = 'bubble' | 'rubik' | 'shapes' | 'soapbubble' | 'sports';
 
 interface Settings {
