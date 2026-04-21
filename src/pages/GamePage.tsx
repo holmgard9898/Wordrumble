@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
@@ -11,7 +11,7 @@ import { useGameProgress } from '@/hooks/useGameProgress';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
-import { GameBoard } from '@/components/game/GameBoard';
+import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
