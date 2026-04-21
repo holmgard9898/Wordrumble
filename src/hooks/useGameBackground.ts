@@ -1,47 +1,41 @@
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSettings, type GameBackground } from '@/contexts/SettingsContext';
 import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
 import volcanoBg from '@/assets/bg-volcano.jpg';
 import beachBg from '@/assets/bg-beach.jpg';
+import underwaterBg from '@/assets/bg-underwater.jpg';
+import shipwreckBg from '@/assets/bg-shipwreck.jpg';
+import caveBg from '@/assets/bg-cave.jpg';
+import cityBg from '@/assets/bg-city.jpg';
 
-export function useGameBackground(): { className: string; style?: React.CSSProperties } {
+const BG_IMAGES: Partial<Record<GameBackground, string>> = {
+  clouds: cloudsBg,
+  wood: woodBg,
+  space: spaceBg,
+  volcano: volcanoBg,
+  beach: beachBg,
+  underwater: underwaterBg,
+  shipwreck: shipwreckBg,
+  cave: caveBg,
+  city: cityBg,
+};
+
+/**
+ * @param override Optional GameBackground that overrides the user's setting.
+ *                 Used by Adventure Mode so each level uses a fixed background
+ *                 without unlocking it for the rest of the game.
+ */
+export function useGameBackground(override?: GameBackground): { className: string; style?: React.CSSProperties } {
   const { settings } = useSettings();
+  const active = override ?? settings.background;
 
-  if (settings.background === 'clouds') {
+  const img = BG_IMAGES[active];
+  if (img) {
     return {
       className: 'game-bg-clouds',
-      style: { backgroundImage: `url(${cloudsBg})` },
+      style: { backgroundImage: `url(${img})` },
     };
   }
-
-  if (settings.background === 'wood') {
-    return {
-      className: 'game-bg-clouds',
-      style: { backgroundImage: `url(${woodBg})` },
-    };
-  }
-
-  if (settings.background === 'space') {
-    return {
-      className: 'game-bg-clouds',
-      style: { backgroundImage: `url(${spaceBg})` },
-    };
-  }
-
-  if (settings.background === 'volcano') {
-    return {
-      className: 'game-bg-clouds',
-      style: { backgroundImage: `url(${volcanoBg})` },
-    };
-  }
-
-  if (settings.background === 'beach') {
-    return {
-      className: 'game-bg-clouds',
-      style: { backgroundImage: `url(${beachBg})` },
-    };
-  }
-
   return { className: 'game-bg' };
 }
