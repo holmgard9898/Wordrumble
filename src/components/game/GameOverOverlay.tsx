@@ -15,10 +15,11 @@ interface GameOverOverlayProps {
   bestWord?: string | null;
   bestWordScore?: number;
   coinReward?: CoinBreakdown | null;
-  explodedAt?: { row: number; col: number } | null;
+  /** Pixel center of the bomb cell that exploded, in viewport coords. */
+  explosionPx?: { x: number; y: number } | null;
 }
 
-export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore, coinReward, explodedAt }: GameOverOverlayProps) {
+export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, bestWordScore, coinReward, explosionPx }: GameOverOverlayProps) {
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { t } = useTranslation();
@@ -81,6 +82,10 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
     return () => { ctx.close(); };
   }, [showContent, isBomb, settings.sfxEnabled, settings.sfxVolume]);
 
+  // Use exact pixel coordinates (clientX/Y) of the bomb cell when provided.
+  const explosionLeft = explosionPx ? `${explosionPx.x}px` : '50%';
+  const explosionTop = explosionPx ? `${explosionPx.y}px` : '50%';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className={`absolute inset-0 transition-opacity duration-500 ${showContent ? 'opacity-100' : 'opacity-0'}`} style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} />
@@ -88,10 +93,8 @@ export function GameOverOverlay({ score, wordsFound, mode, onRestart, bestWord, 
       {isBomb && explosionPhase >= 1 && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute rounded-full" style={{
-            // Position the explosion at the exact bomb cell.
-            // The bubble grid is 8 cols x 10 rows; convert cell -> percentage of viewport.
-            left: explodedAt ? `${((explodedAt.col + 0.5) / 8) * 100}%` : '50%',
-            top: explodedAt ? `${((explodedAt.row + 0.5) / 10) * 100}%` : '50%',
+            left: explosionLeft,
+            top: explosionTop,
             transform: 'translate(-50%, -50%)',
             width: explosionPhase >= 3 ? '300vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
             height: explosionPhase >= 3 ? '300vmax' : explosionPhase >= 2 ? '80vw' : '20vw',
