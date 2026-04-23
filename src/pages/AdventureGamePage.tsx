@@ -26,7 +26,11 @@ const AdventureGamePage = () => {
   const level = getLevelById(levelId);
   const bg = useGameBackground(level?.background);
   const { isValidWord, loading } = useDictionary(settings.language);
-  const game = useGameState(isValidWord, 'classic', settings.language);
+  const adventureSeed = useMemo(() => {
+    if (!level || level.goal.type !== 'find-words') return undefined;
+    return { targetWords: level.goal.words[settings.language] };
+  }, [level, settings.language]);
+  const game = useGameState(isValidWord, 'classic', settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
   const { markCompleted } = useAdventureProgress();

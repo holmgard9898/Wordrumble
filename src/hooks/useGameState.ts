@@ -1,12 +1,92 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS,
+  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, type BubbleColor,
 } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
-import { createWordlessGrid } from '@/utils/gridGeneration';
+import { createWordlessGrid, ensureGridHasNoWords } from '@/utils/gridGeneration';
+
+export interface AdventureSeed {
+  /** Target words (any case) that should be plantable on the start grid in matching color. */
+  targetWords: string[];
+}
+
+let seedBubbleCounter = 0;
+function makeSeedBubble(letter: string, color: BubbleColor, values: Record<string, number>): BubbleData {
+  return {
+    id: `seed-${seedBubbleCounter++}`,
+    letter: letter.toUpperCase(),
+    value: values[letter.toUpperCase()] ?? 1,
+    color,
+  };
+}
+
+function buildSeededGrid(
+  targetWords: string[],
+  isValidWord: (w: string) => boolean,
+  minWordLen: number,
+  colors: BubbleColor[],
+  pool: string,
+  values: Record<string, number>,
+): BubbleData[][] {
+  // Build target letter pool (weighted) for refill bias
+  const targetLetters = targetWords.join('').toUpperCase().replace(/[^A-ZÅÄÖÉÈÊËÀÂÎÏÔÛÙÜÇÑ]/g, '');
+  const weightedRefill = () => {
+    if (targetLetters.length > 0 && Math.random() < 0.6) {
+      const letter = targetLetters[Math.floor(Math.random() * targetLetters.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return makeSeedBubble(letter, color, values);
+    }
+    return createRandomBubble(colors, pool, values);
+  };
+
+  const tryBuild = (): BubbleData[][] | null => {
+    const grid: (BubbleData | null)[][] = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    // Plant each word in a chosen color, scattered randomly on free cells
+    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+    for (let wi = 0; wi < targetWords.length; wi++) {
+      const word = targetWords[wi].toUpperCase();
+      const color = shuffledColors[wi % shuffledColors.length];
+      // Collect free cells, shuffle, take word.length
+      const free: Position[] = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!grid[r][c]) free.push({ row: r, col: c });
+      if (free.length < word.length) return null;
+      free.sort(() => Math.random() - 0.5);
+      for (let i = 0; i < word.length; i++) {
+        const p = free[i];
+        grid[p.row][p.col] = makeSeedBubble(word[i], color, values);
+      }
+    }
+    // Fill remaining
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!grid[r][c]) grid[r][c] = weightedRefill();
+      }
+    }
+    return grid as BubbleData[][];
+  };
+
+  // Try a few times; then run ensureGridHasNoWords with weighted refill on non-seed cells.
+  // To preserve seeded letters, mark them: we treat any pre-existing valid word as a problem, but
+  // ensureGridHasNoWords replaces matched runs entirely. To keep it simple we just re-build a few times.
+  for (let attempt = 0; attempt < 25; attempt++) {
+    const g = tryBuild();
+    if (!g) continue;
+    // Use ensureGridHasNoWords with weightedRefill — this may overwrite seeded letters in rare cases,
+    // but planted letters of one word share a color and are scattered, so collisions are unlikely.
+    const cleaned = ensureGridHasNoWords(g, {
+      isValidWord,
+      minWordLength: minWordLen,
+      createBubble: weightedRefill,
+      maxPasses: 50,
+    });
+    return cleaned;
+  }
+  // Fallback
+  return createWordlessGrid({ isValidWord, minWordLength: minWordLen, colors, pool, values });
+}
 
 interface UsedWord {
   word: string;
@@ -219,7 +299,12 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   return { newGrid, exploded: false, explodedAt: null };
 }
 
-export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic', language: GameLanguage = 'en') {
+export function useGameState(
+  isValidWord: (word: string) => boolean,
+  mode: GameMode = 'classic',
+  language: GameLanguage = 'en',
+  adventureSeed?: AdventureSeed,
+) {
   // Localized FREE label (used for free5 powerup popup)
   const FREE_LABELS: Record<string, string> = {
     en: 'FREE', sv: 'FRI', de: 'FREI', es: 'GRATIS', fr: 'LIBRE', it: 'LIBERO',
@@ -231,8 +316,38 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   const values = langConfig.letterValues;
   const vowelSet = langConfig.vowels;
 
+  // Stable target letters for adventure refill bias
+  const targetLettersRef = useRef<string>('');
+  targetLettersRef.current = (adventureSeed?.targetWords ?? []).join('').toUpperCase();
+
+  const createInitialGrid = useCallback((): BubbleData[][] => {
+    if (adventureSeed && adventureSeed.targetWords.length > 0) {
+      return buildSeededGrid(
+        adventureSeed.targetWords,
+        isValidWord,
+        getMinWordLength(mode),
+        getColorsForMode(mode),
+        pool,
+        values,
+      );
+    }
+    return createCleanGrid(isValidWord, mode, pool, values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
+
+  // Refill bubble for cascades — biased toward target letters in adventure mode
+  const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
+    const tl = targetLettersRef.current;
+    if (tl.length > 0 && Math.random() < 0.45) {
+      const letter = tl[Math.floor(Math.random() * tl.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return makeSeedBubble(letter, color, values);
+    }
+    return createRandomBubble(colors, pool, values);
+  }, [pool, values]);
+
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
-    const g = createCleanGrid(isValidWord, mode, pool, values);
+    const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     return g;
   });
@@ -498,7 +613,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
           if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
         }
         const newBubbles: BubbleData[] = [];
-        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(createRandomBubble(colors, pool, values));
+        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
         const fullColumn = [...newBubbles, ...remaining];
         for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
       }
@@ -517,7 +632,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
         }
       }, 300);
     }, 500);
-  }, [findWords, mode, pool, values]);
+  }, [findWords, mode, pool, values, refillBubble]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
@@ -609,7 +724,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
   }, [gameOver, isProcessing, performSwap]);
 
   const resetGame = useCallback(() => {
-    const newGrid = createCleanGrid(isValidWord, mode, pool, values);
+    const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     setGrid(newGrid);
     setSelectedBubble(null);
@@ -626,7 +741,7 @@ export function useGameState(isValidWord: (word: string) => boolean, mode: GameM
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
-  }, [isValidWord, mode, pool, values, vowelSet]);
+  }, [createInitialGrid, mode, vowelSet]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
