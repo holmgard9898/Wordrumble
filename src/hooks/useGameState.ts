@@ -613,7 +613,7 @@ export function useGameState(
           if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
         }
         const newBubbles: BubbleData[] = [];
-        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(createRandomBubble(colors, pool, values));
+        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
         const fullColumn = [...newBubbles, ...remaining];
         for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
       }
