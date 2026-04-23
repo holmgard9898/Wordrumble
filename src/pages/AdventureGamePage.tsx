@@ -57,7 +57,10 @@ const AdventureGamePage = () => {
     let done = false;
     if (level.goal.type === 'find-words') done = foundTargets.length >= targetWords.length && targetWords.length > 0;
     else if (level.goal.type === 'reach-score') done = game.score >= level.goal.target;
-    else if (level.goal.type === 'find-long-word') done = game.usedWords.some(w => w.word.length >= level.goal.minLength);
+    else if (level.goal.type === 'find-long-word') {
+      const minLen = level.goal.minLength;
+      done = game.usedWords.some(w => w.word.length >= minLen);
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
