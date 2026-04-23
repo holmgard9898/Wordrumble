@@ -20,6 +20,8 @@ export interface AdventureLevel {
   /** Connects (line drawn) to these other level ids */
   connectsTo: string[];
   icon: string;
+  /** Override default moves (e.g. easier early levels) */
+  maxMoves?: number;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
@@ -61,6 +63,7 @@ export const adventureLevels: AdventureLevel[] = [
     ) },
     mapPosition: { x: 18, y: 82 },
     connectsTo: ['adv-2'],
+    maxMoves: 100,
   },
   {
     id: 'adv-2', number: 2, icon: '🏖️',
