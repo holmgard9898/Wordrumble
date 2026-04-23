@@ -187,16 +187,56 @@ const AdventureGamePage = () => {
         <DialogContent className="max-w-xs rounded-2xl border-emerald-500/30" style={{ background: 'linear-gradient(135deg, rgba(20,80,40,0.95), rgba(10,40,20,0.95))' }}>
           <DialogHeader>
             <DialogTitle className="text-white text-center text-2xl flex items-center justify-center gap-2">
-              <Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureLevelComplete}
+              <Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureCongrats}
             </DialogTitle>
-            <DialogDescription className="text-white/80 text-center pt-2">+20 coins</DialogDescription>
+            <DialogDescription className="text-white/80 text-center pt-2">{t.adventureLevelComplete} +20 coins</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 mt-2">
-            <Button onClick={() => navigate('/adventure')} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+            {nextLevel && (
+              <Button onClick={() => { setShowSuccess(false); navigate(`/adventure/${nextLevel.id}`); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white gap-2">
+                <Play className="w-4 h-4" /> {t.adventureNextLevel}
+              </Button>
+            )}
+            <Button onClick={() => navigate('/adventure')} variant="outline" className="w-full gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
               <MapIcon className="w-4 h-4" /> {t.adventureBackToMap}
             </Button>
-            <Button onClick={() => navigate('/')} variant="ghost" className="w-full gap-2 text-white/70 hover:text-white hover:bg-white/10">
-              <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
+            <Button onClick={() => { setShowSuccess(false); game.resetGame(); }} variant="ghost" className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/10">
+              <RotateCcw className="w-4 h-4" /> {t.adventurePlayAgain}
+            </Button>
+            <Button onClick={() => navigate('/')} variant="ghost" className="w-full gap-2 text-white/60 hover:text-white hover:bg-white/10">
+              <Home className="w-4 h-4" /> {t.mainMenu}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Game over modal */}
+      <Dialog open={game.gameOver && !showSuccess && !watchingAd} onOpenChange={() => {}}>
+        <DialogContent className="max-w-xs rounded-2xl border-red-500/30" style={{ background: 'linear-gradient(135deg, rgba(80,20,20,0.95), rgba(40,10,10,0.95))' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white text-center text-2xl">💥 {t.adventureGameOver}</DialogTitle>
+            <DialogDescription className="text-white/80 text-center pt-2">{t.score}: {game.score}</DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2 mt-2">
+            <Button
+              onClick={async () => {
+                setWatchingAd(true);
+                const res = await showRewardedAd();
+                setWatchingAd(false);
+                if (res.success) game.addMoves(5);
+              }}
+              className="w-full bg-yellow-500 hover:bg-yellow-400 text-black gap-2"
+            >
+              <Video className="w-4 h-4" /> {t.adventureWatchAd}
+            </Button>
+            <Button onClick={() => game.resetGame()} variant="outline" className="w-full gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <RotateCcw className="w-4 h-4" /> {t.adventureTryAgain}
+            </Button>
+            <Button onClick={() => navigate('/adventure')} variant="ghost" className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/10">
+              <MapIcon className="w-4 h-4" /> {t.adventureBackToMap}
+            </Button>
+            <Button onClick={() => navigate('/')} variant="ghost" className="w-full gap-2 text-white/60 hover:text-white hover:bg-white/10">
+              <Home className="w-4 h-4" /> {t.mainMenu}
             </Button>
           </div>
         </DialogContent>
