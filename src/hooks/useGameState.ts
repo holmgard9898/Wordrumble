@@ -632,7 +632,7 @@ export function useGameState(
         }
       }, 300);
     }, 500);
-  }, [findWords, mode, pool, values]);
+  }, [findWords, mode, pool, values, refillBubble]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
