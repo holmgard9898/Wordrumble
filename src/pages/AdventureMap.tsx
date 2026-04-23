@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Lock, Check } from 'lucide-react';
+import { ArrowLeft, X, Check } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -67,7 +67,7 @@ const AdventureMap = () => {
                 border: '3px solid rgba(255,255,255,0.9)',
                 boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
               }}>
-                {!unlocked ? <Lock className="w-6 h-6 text-white" /> : <span>{lvl.icon}</span>}
+                {!unlocked ? <X className="w-7 h-7 text-white" strokeWidth={4} style={{ color: '#dc2626' }} /> : <span>{lvl.icon}</span>}
                 {completed && <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-white flex items-center justify-center"><Check className="w-3 h-3 text-green-600" /></div>}
               </div>
               <div className="text-center mt-1 text-xs font-bold" style={{ color: '#3a2510', textShadow: '1px 1px 0 rgba(255,255,255,0.5)' }}>
