@@ -299,7 +299,12 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   return { newGrid, exploded: false, explodedAt: null };
 }
 
-export function useGameState(isValidWord: (word: string) => boolean, mode: GameMode = 'classic', language: GameLanguage = 'en') {
+export function useGameState(
+  isValidWord: (word: string) => boolean,
+  mode: GameMode = 'classic',
+  language: GameLanguage = 'en',
+  adventureSeed?: AdventureSeed,
+) {
   // Localized FREE label (used for free5 powerup popup)
   const FREE_LABELS: Record<string, string> = {
     en: 'FREE', sv: 'FRI', de: 'FREI', es: 'GRATIS', fr: 'LIBRE', it: 'LIBERO',
