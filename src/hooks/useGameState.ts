@@ -724,7 +724,7 @@ export function useGameState(
   }, [gameOver, isProcessing, performSwap]);
 
   const resetGame = useCallback(() => {
-    const newGrid = createCleanGrid(isValidWord, mode, pool, values);
+    const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     setGrid(newGrid);
     setSelectedBubble(null);
@@ -741,7 +741,7 @@ export function useGameState(
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
-  }, [isValidWord, mode, pool, values, vowelSet]);
+  }, [createInitialGrid, mode, vowelSet]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
