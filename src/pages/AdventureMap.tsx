@@ -7,6 +7,7 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useSettings } from '@/contexts/SettingsContext';
+import adventureMapBg from '@/assets/adventure-map.jpg';
 
 const AdventureMap = () => {
   useMenuMusic();
@@ -33,14 +34,13 @@ const AdventureMap = () => {
       </h1>
 
       <div className="relative w-full max-w-2xl flex-1 my-4 rounded-2xl overflow-hidden" style={{
-        aspectRatio: '3/4',
-        boxShadow: 'inset 0 0 60px rgba(120,70,30,0.4), 0 8px 30px rgba(0,0,0,0.3)',
-        border: '4px solid rgba(120,70,30,0.5)',
+        aspectRatio: '9/16',
+        backgroundImage: `url(${adventureMapBg})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        boxShadow: 'inset 0 0 60px rgba(60,30,10,0.5), 0 8px 30px rgba(0,0,0,0.4)',
+        border: '4px solid rgba(120,70,30,0.6)',
       }}>
-        {/* Landmass blobs */}
-        <div className="absolute" style={{ left: '5%', top: '60%', width: '60%', height: '38%', background: 'radial-gradient(ellipse, rgba(220,200,140,0.7), rgba(180,150,90,0.4) 60%, transparent 80%)', borderRadius: '50%' }} />
-        <div className="absolute" style={{ left: '55%', top: '35%', width: '40%', height: '30%', background: 'radial-gradient(ellipse, rgba(200,160,90,0.7), rgba(160,110,50,0.4) 60%, transparent 80%)', borderRadius: '50%' }} />
-        <div className="absolute" style={{ left: '50%', top: '5%', width: '45%', height: '28%', background: 'radial-gradient(ellipse, rgba(220,200,140,0.7), rgba(180,150,90,0.4) 60%, transparent 80%)', borderRadius: '50%' }} />
 
         {/* SVG dashed paths */}
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
