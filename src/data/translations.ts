@@ -776,6 +776,12 @@ const translations = {
   goalReachScore: { en: 'Reach score:', sv: 'Nå poäng:', de: 'Erreiche Punkte:', es: 'Alcanza puntos:', fr: 'Atteindre score :', it: 'Raggiungi punti:', pt: 'Alcance pontos:', nl: 'Behaal score:', no: 'Nå poeng:', da: 'Nå score:', fi: 'Saavuta pisteet:' },
   goalLongWord: { en: 'Find a word with at least', sv: 'Hitta ett ord med minst', de: 'Finde ein Wort mit mindestens', es: 'Encuentra una palabra de al menos', fr: 'Trouvez un mot d\'au moins', it: 'Trova una parola con almeno', pt: 'Encontre uma palavra com pelo menos', nl: 'Vind een woord van minstens', no: 'Finn et ord med minst', da: 'Find et ord med mindst', fi: 'Löydä sana, jossa on vähintään' },
   letters: { en: 'letters', sv: 'bokstäver', de: 'Buchstaben', es: 'letras', fr: 'lettres', it: 'lettere', pt: 'letras', nl: 'letters', no: 'bokstaver', da: 'bogstaver', fi: 'kirjainta' },
+  adventureGameOver: { en: 'Out of moves!', sv: 'Slut på drag!', de: 'Keine Züge mehr!', es: '¡Sin movimientos!', fr: 'Plus de coups !', it: 'Mosse esaurite!', pt: 'Sem jogadas!', nl: 'Geen zetten meer!', no: 'Tom for trekk!', da: 'Ingen træk tilbage!', fi: 'Siirrot loppu!' },
+  adventureWatchAd: { en: 'Watch ad: +5 moves', sv: 'Kolla annons: +5 drag', de: 'Werbung: +5 Züge', es: 'Ver anuncio: +5 movimientos', fr: 'Voir pub : +5 coups', it: 'Guarda annuncio: +5 mosse', pt: 'Ver anúncio: +5 jogadas', nl: 'Bekijk advertentie: +5 zetten', no: 'Se annonse: +5 trekk', da: 'Se reklame: +5 træk', fi: 'Katso mainos: +5 siirtoa' },
+  adventureTryAgain: { en: 'Try again', sv: 'Försök igen', de: 'Erneut versuchen', es: 'Intentar de nuevo', fr: 'Réessayer', it: 'Riprova', pt: 'Tentar novamente', nl: 'Opnieuw', no: 'Prøv igjen', da: 'Prøv igen', fi: 'Yritä uudelleen' },
+  adventurePlayAgain: { en: 'Play again', sv: 'Spela igen', de: 'Nochmal spielen', es: 'Jugar de nuevo', fr: 'Rejouer', it: 'Gioca ancora', pt: 'Jogar de novo', nl: 'Opnieuw spelen', no: 'Spill igjen', da: 'Spil igen', fi: 'Pelaa uudelleen' },
+  adventureCongrats: { en: 'Congratulations!', sv: 'Grattis!', de: 'Glückwunsch!', es: '¡Felicidades!', fr: 'Félicitations !', it: 'Congratulazioni!', pt: 'Parabéns!', nl: 'Gefeliciteerd!', no: 'Gratulerer!', da: 'Tillykke!', fi: 'Onnittelut!' },
+  adventureLoading: { en: 'Loading...', sv: 'Laddar...', de: 'Lädt...', es: 'Cargando...', fr: 'Chargement...', it: 'Caricamento...', pt: 'Carregando...', nl: 'Laden...', no: 'Laster...', da: 'Indlæser...', fi: 'Ladataan...' },
 } as const;
 
 type TranslationKey = keyof typeof translations;

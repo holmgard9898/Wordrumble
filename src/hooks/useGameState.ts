@@ -11,6 +11,8 @@ import { createWordlessGrid, ensureGridHasNoWords } from '@/utils/gridGeneration
 export interface AdventureSeed {
   /** Target words (any case) that should be plantable on the start grid in matching color. */
   targetWords: string[];
+  /** Override max moves for this run (adventure mode). */
+  maxMoves?: number;
 }
 
 let seedBubbleCounter = 0;
@@ -352,7 +354,7 @@ export function useGameState(
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
-  const [movesLeft, setMovesLeft] = useState(getMaxMoves(mode));
+  const [movesLeft, setMovesLeft] = useState(adventureSeed?.maxMoves ?? getMaxMoves(mode));
   const [score, setScore] = useState(0);
   const [usedWords, setUsedWords] = useState<UsedWord[]>([]);
   const [gameOver, setGameOver] = useState(false);
@@ -728,7 +730,7 @@ export function useGameState(
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     setGrid(newGrid);
     setSelectedBubble(null);
-    setMovesLeft(getMaxMoves(mode));
+    setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
     setScore(0);
     setUsedWords([]);
     setGameOver(false);
@@ -741,7 +743,14 @@ export function useGameState(
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
-  }, [createInitialGrid, mode, vowelSet]);
+  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves]);
+
+  /** Grant additional moves (e.g. ad reward) and clear game over if applicable. */
+  const addMoves = useCallback((amount: number) => {
+    if (amount <= 0) return;
+    setMovesLeft((prev) => prev + amount);
+    setGameOver(false);
+  }, []);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
@@ -794,5 +803,6 @@ export function useGameState(
     removeBonusPopup,
     freeMovesRemaining,
     explodedAt,
+    addMoves,
   };
 }
