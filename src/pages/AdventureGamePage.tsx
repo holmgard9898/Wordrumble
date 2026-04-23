@@ -25,6 +25,11 @@ const AdventureGamePage = () => {
   const { settings } = useSettings();
   const { t } = useTranslation();
   const level = getLevelById(levelId);
+  const nextLevel = useMemo(() => {
+    if (!level) return null;
+    const nextId = level.connectsTo[0];
+    return nextId ? adventureLevels.find(l => l.id === nextId) ?? null : null;
+  }, [level]);
   const bg = useGameBackground(level?.background);
   const { isValidWord, loading } = useDictionary(settings.language);
   const adventureSeed = useMemo(() => {
