@@ -316,8 +316,38 @@ export function useGameState(
   const values = langConfig.letterValues;
   const vowelSet = langConfig.vowels;
 
+  // Stable target letters for adventure refill bias
+  const targetLettersRef = useRef<string>('');
+  targetLettersRef.current = (adventureSeed?.targetWords ?? []).join('').toUpperCase();
+
+  const createInitialGrid = useCallback((): BubbleData[][] => {
+    if (adventureSeed && adventureSeed.targetWords.length > 0) {
+      return buildSeededGrid(
+        adventureSeed.targetWords,
+        isValidWord,
+        getMinWordLength(mode),
+        getColorsForMode(mode),
+        pool,
+        values,
+      );
+    }
+    return createCleanGrid(isValidWord, mode, pool, values);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
+
+  // Refill bubble for cascades — biased toward target letters in adventure mode
+  const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
+    const tl = targetLettersRef.current;
+    if (tl.length > 0 && Math.random() < 0.45) {
+      const letter = tl[Math.floor(Math.random() * tl.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return makeSeedBubble(letter, color, values);
+    }
+    return createRandomBubble(colors, pool, values);
+  }, [pool, values]);
+
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
-    const g = createCleanGrid(isValidWord, mode, pool, values);
+    const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     return g;
   });
