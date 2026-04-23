@@ -1,12 +1,92 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS,
+  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, type BubbleColor,
 } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
-import { createWordlessGrid } from '@/utils/gridGeneration';
+import { createWordlessGrid, ensureGridHasNoWords } from '@/utils/gridGeneration';
+
+export interface AdventureSeed {
+  /** Target words (any case) that should be plantable on the start grid in matching color. */
+  targetWords: string[];
+}
+
+let seedBubbleCounter = 0;
+function makeSeedBubble(letter: string, color: BubbleColor, values: Record<string, number>): BubbleData {
+  return {
+    id: `seed-${seedBubbleCounter++}`,
+    letter: letter.toUpperCase(),
+    value: values[letter.toUpperCase()] ?? 1,
+    color,
+  };
+}
+
+function buildSeededGrid(
+  targetWords: string[],
+  isValidWord: (w: string) => boolean,
+  minWordLen: number,
+  colors: BubbleColor[],
+  pool: string,
+  values: Record<string, number>,
+): BubbleData[][] {
+  // Build target letter pool (weighted) for refill bias
+  const targetLetters = targetWords.join('').toUpperCase().replace(/[^A-ZÅÄÖÉÈÊËÀÂÎÏÔÛÙÜÇÑ]/g, '');
+  const weightedRefill = () => {
+    if (targetLetters.length > 0 && Math.random() < 0.6) {
+      const letter = targetLetters[Math.floor(Math.random() * targetLetters.length)];
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      return makeSeedBubble(letter, color, values);
+    }
+    return createRandomBubble(colors, pool, values);
+  };
+
+  const tryBuild = (): BubbleData[][] | null => {
+    const grid: (BubbleData | null)[][] = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    // Plant each word in a chosen color, scattered randomly on free cells
+    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
+    for (let wi = 0; wi < targetWords.length; wi++) {
+      const word = targetWords[wi].toUpperCase();
+      const color = shuffledColors[wi % shuffledColors.length];
+      // Collect free cells, shuffle, take word.length
+      const free: Position[] = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!grid[r][c]) free.push({ row: r, col: c });
+      if (free.length < word.length) return null;
+      free.sort(() => Math.random() - 0.5);
+      for (let i = 0; i < word.length; i++) {
+        const p = free[i];
+        grid[p.row][p.col] = makeSeedBubble(word[i], color, values);
+      }
+    }
+    // Fill remaining
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (!grid[r][c]) grid[r][c] = weightedRefill();
+      }
+    }
+    return grid as BubbleData[][];
+  };
+
+  // Try a few times; then run ensureGridHasNoWords with weighted refill on non-seed cells.
+  // To preserve seeded letters, mark them: we treat any pre-existing valid word as a problem, but
+  // ensureGridHasNoWords replaces matched runs entirely. To keep it simple we just re-build a few times.
+  for (let attempt = 0; attempt < 25; attempt++) {
+    const g = tryBuild();
+    if (!g) continue;
+    // Use ensureGridHasNoWords with weightedRefill — this may overwrite seeded letters in rare cases,
+    // but planted letters of one word share a color and are scattered, so collisions are unlikely.
+    const cleaned = ensureGridHasNoWords(g, {
+      isValidWord,
+      minWordLength: minWordLen,
+      createBubble: weightedRefill,
+      maxPasses: 50,
+    });
+    return cleaned;
+  }
+  // Fallback
+  return createWordlessGrid({ isValidWord, minWordLength: minWordLen, colors, pool, values });
+}
 
 interface UsedWord {
   word: string;
