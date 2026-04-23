@@ -14,9 +14,10 @@ import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Menu, Trophy, Map as MapIcon } from 'lucide-react';
-import { getLevelById } from '@/data/adventureLevels';
+import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home } from 'lucide-react';
+import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
+import { useAds } from '@/hooks/useAds';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
@@ -27,17 +28,22 @@ const AdventureGamePage = () => {
   const bg = useGameBackground(level?.background);
   const { isValidWord, loading } = useDictionary(settings.language);
   const adventureSeed = useMemo(() => {
-    if (!level || level.goal.type !== 'find-words') return undefined;
-    return { targetWords: level.goal.words[settings.language] };
+    if (!level) return undefined;
+    if (level.goal.type === 'find-words') {
+      return { targetWords: level.goal.words[settings.language], maxMoves: level.maxMoves };
+    }
+    return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
   const game = useGameState(isValidWord, 'classic', settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
   const { markCompleted } = useAdventureProgress();
   const { playWordFound } = useSfx();
+  const { showRewardedAd } = useAds();
   const [showIntro, setShowIntro] = useState(true);
   const [showMenu, setShowMenu] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [watchingAd, setWatchingAd] = useState(false);
   const boardRef = useRef<GameBoardHandle | null>(null);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
