@@ -158,7 +158,7 @@ export const adventureLevels: AdventureLevel[] = [
     },
     background: 'underwater',
     goal: { type: 'reach-score', target: 50 },
-    mapPosition: { x: 45, y: 45 },
+    mapPosition: { x: 38, y: 50 },
     connectsTo: ['adv-6'],
   },
   {
