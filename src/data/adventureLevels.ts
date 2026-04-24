@@ -137,7 +137,7 @@ export const adventureLevels: AdventureLevel[] = [
       ['skib', 'mast', 'reb', 'sejl', 'træ'],
       ['laiva', 'masto', 'köysi', 'purje', 'puu'],
     ) },
-    mapPosition: { x: 22, y: 56 },
+    mapPosition: { x: 14, y: 64 },
     connectsTo: ['adv-5'],
   },
   {
