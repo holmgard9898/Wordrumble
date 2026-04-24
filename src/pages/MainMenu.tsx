@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Gamepad2, Swords, ShoppingBag, BarChart3, Settings } from 'lucide-react';
+import { Gamepad2, Swords, ShoppingBag, BarChart3, Settings, Map } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
@@ -37,9 +37,14 @@ const MainMenu = () => {
         <Button onClick={() => go('/shop')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white shadow-lg shadow-yellow-500/30">
           <ShoppingBag className="w-5 h-5" /> {t.shop}
         </Button>
-        <Button onClick={() => go('/statistics')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
-          <BarChart3 className="w-5 h-5" /> {t.statistics}
-        </Button>
+        <div className="grid grid-cols-2 gap-3">
+          <Button onClick={() => go('/adventure')} size="lg" className="gap-2 text-base sm:text-lg h-14 px-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
+            <Map className="w-5 h-5 shrink-0" /> <span className="truncate">{t.adventureTitle}</span>
+          </Button>
+          <Button onClick={() => go('/statistics')} size="lg" className="gap-2 text-base sm:text-lg h-14 px-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
+            <BarChart3 className="w-5 h-5 shrink-0" /> <span className="truncate">{t.statistics}</span>
+          </Button>
+        </div>
         <Button onClick={() => go('/settings')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-500/30">
           <Settings className="w-5 h-5" /> {t.settingsTitle}
         </Button>
