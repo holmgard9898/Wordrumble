@@ -49,11 +49,22 @@ const AdventureGamePage = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [watchingAd, setWatchingAd] = useState(false);
+  const [ready, setReady] = useState(false);
   const boardRef = useRef<GameBoardHandle | null>(null);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
-  useEffect(() => { if (!loading) game.resetGame(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [loading, levelId, settings.language]);
+  // Reset game when level/language changes; mark ready on next tick so the
+  // success-detection effect doesn't fire against stale state from the prior level.
+  useEffect(() => {
+    if (loading) return;
+    setReady(false);
+    setShowSuccess(false);
+    game.resetGame();
+    const id = requestAnimationFrame(() => setReady(true));
+    return () => cancelAnimationFrame(id);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [loading, levelId, settings.language]);
 
   // Per-level target words (lowercase)
   const targetWords = useMemo<string[]>(() => {
@@ -68,7 +79,7 @@ const AdventureGamePage = () => {
 
   // Goal completion
   useEffect(() => {
-    if (!level || showSuccess) return;
+    if (!level || showSuccess || !ready) return;
     let done = false;
     if (level.goal.type === 'find-words') done = foundTargets.length >= targetWords.length && targetWords.length > 0;
     else if (level.goal.type === 'reach-score') done = game.score >= level.goal.target;
@@ -82,7 +93,7 @@ const AdventureGamePage = () => {
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, foundTargets, targetWords, level, showSuccess, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
