@@ -34,20 +34,20 @@ const MainMenu = () => {
         <Button onClick={() => go('/challenge')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white shadow-lg shadow-red-500/30">
           <Swords className="w-5 h-5" /> {t.challenge}
         </Button>
+        <Button onClick={() => go('/adventure')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
+          <Map className="w-5 h-5" /> {t.adventureTitle}
+        </Button>
         <Button onClick={() => go('/shop')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-yellow-600 to-yellow-500 hover:from-yellow-500 hover:to-yellow-400 text-white shadow-lg shadow-yellow-500/30">
           <ShoppingBag className="w-5 h-5" /> {t.shop}
         </Button>
         <div className="grid grid-cols-2 gap-3">
-          <Button onClick={() => go('/adventure')} size="lg" className="gap-2 text-base sm:text-lg h-14 px-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
-            <Map className="w-5 h-5 shrink-0" /> <span className="truncate">{t.adventureTitle}</span>
+          <Button onClick={() => go('/statistics')} size="lg" className="gap-2 text-sm sm:text-base h-11 px-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-md shadow-purple-500/20">
+            <BarChart3 className="w-4 h-4 shrink-0" /> <span className="truncate">{t.statistics}</span>
           </Button>
-          <Button onClick={() => go('/statistics')} size="lg" className="gap-2 text-base sm:text-lg h-14 px-3 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white shadow-lg shadow-green-500/30">
-            <BarChart3 className="w-5 h-5 shrink-0" /> <span className="truncate">{t.statistics}</span>
+          <Button onClick={() => go('/settings')} size="lg" className="gap-2 text-sm sm:text-base h-11 px-3 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-md shadow-purple-500/20">
+            <Settings className="w-4 h-4 shrink-0" /> <span className="truncate">{t.settingsTitle}</span>
           </Button>
         </div>
-        <Button onClick={() => go('/settings')} size="lg" className="gap-3 text-lg h-14 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-500/30">
-          <Settings className="w-5 h-5" /> {t.settingsTitle}
-        </Button>
       </div>
     </div>
   );
