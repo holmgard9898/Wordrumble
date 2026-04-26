@@ -73,12 +73,48 @@ const GamePage = () => {
     if (!game.gameOver) setExplosionPx(null);
   }, [game.gameOver, game.explodedAt]);
 
+  const savedGame = useSavedGame(`mode-${gameMode}`);
+
+  // On load: restore saved in-progress game if any, else fresh reset
   useEffect(() => {
-    if (!loading) {
-      setScoreSaved(false);
+    if (loading) return;
+    setScoreSaved(false);
+    const saved = savedGame.load();
+    if (saved && saved.movesLeft > 0 && saved.usedWords) {
+      game.restoreSavedGame({
+        grid: saved.grid,
+        movesLeft: saved.movesLeft,
+        score: saved.score,
+        usedWords: saved.usedWords,
+        movesUsed: saved.movesUsed,
+        freeMovesRemaining: saved.freeMovesRemaining,
+      });
+    } else {
       game.resetGame();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, gameMode, settings.language]);
+
+  // Persist in-progress game on every meaningful change
+  useEffect(() => {
+    if (loading || game.gameOver) return;
+    // Skip saving the pristine starting state (no progress yet)
+    if (game.movesUsed === 0 && game.usedWords.length === 0) return;
+    savedGame.save({
+      grid: game.grid,
+      movesLeft: game.movesLeft,
+      score: game.score,
+      usedWords: game.usedWords,
+      movesUsed: game.movesUsed,
+      freeMovesRemaining: game.freeMovesRemaining,
+    });
+  }, [loading, game.gameOver, game.grid, game.movesLeft, game.score, game.usedWords, game.movesUsed, game.freeMovesRemaining, savedGame]);
+
+  // Clear saved game on game over
+  useEffect(() => {
+    if (game.gameOver) savedGame.clear();
+  }, [game.gameOver, savedGame]);
+
 
   const finalScore = gameMode === 'oneword' ? game.bestWordScore : game.score;
 
