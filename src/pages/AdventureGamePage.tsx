@@ -123,13 +123,14 @@ const AdventureGamePage = () => {
       const minLen = level.goal.minLength;
       done = game.usedWords.some(w => w.word.length >= minLen);
     }
+    else if (level.goal.type === 'survive-moves') done = game.movesUsed >= level.goal.moves;
     if (done) {
       setShowSuccess(true);
       addCoins(20);
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
