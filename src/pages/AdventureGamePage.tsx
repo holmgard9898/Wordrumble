@@ -155,7 +155,10 @@ const AdventureGamePage = () => {
   const goalText = (() => {
     if (level.goal.type === 'reach-score') return `${t.goalReachScore} ${level.goal.target}`;
     if (level.goal.type === 'find-long-word') return `${t.goalLongWord} ${level.goal.minLength} ${t.letters}`;
-    if (level.goal.type === 'survive-moves') return `${t.goalSurviveMoves ?? 'Survive moves:'} ${level.goal.moves}`;
+    if (level.goal.type === 'survive-moves') {
+      const labels: Record<string, string> = { en: 'Survive moves:', sv: 'Överlev drag:', de: 'Überlebe Züge:', es: 'Sobrevive movimientos:', fr: 'Survivez aux coups :', it: 'Sopravvivi mosse:', pt: 'Sobreviva jogadas:', nl: 'Overleef zetten:', no: 'Overlev trekk:', da: 'Overlev træk:', fi: 'Selviä siirroista:' };
+      return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
+    }
     return t.goalFindWords;
   })();
 
