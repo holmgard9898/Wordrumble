@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, Volume2, Music, Home } from 'lucide-react';
+import { X, Volume2, Music, Home, Map as MapIcon } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -10,9 +10,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 interface InGameMenuProps {
   open: boolean;
   onClose: () => void;
+  /** When provided, shows a "Back to map" button (used in adventure mode). */
+  onBackToMap?: () => void;
 }
 
-export function InGameMenu({ open, onClose }: InGameMenuProps) {
+export function InGameMenu({ open, onClose, onBackToMap }: InGameMenuProps) {
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
   const { playClick } = useSfx();
