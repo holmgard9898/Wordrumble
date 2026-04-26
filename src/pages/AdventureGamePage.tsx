@@ -13,6 +13,7 @@ import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home } from 'lucide-react';
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
@@ -33,6 +34,7 @@ const AdventureGamePage = () => {
   }, [level]);
   const bg = useGameBackground(level?.background);
   const { isValidWord, loading } = useDictionary(settings.language);
+  const levelMode = level?.mode ?? 'classic';
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
     if (level.goal.type === 'find-words') {
@@ -40,7 +42,7 @@ const AdventureGamePage = () => {
     }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
-  const game = useGameState(isValidWord, 'classic', settings.language, adventureSeed);
+  const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
   const { markCompleted } = useAdventureProgress();
@@ -121,13 +123,14 @@ const AdventureGamePage = () => {
       const minLen = level.goal.minLength;
       done = game.usedWords.some(w => w.word.length >= minLen);
     }
+    else if (level.goal.type === 'survive-moves') done = game.movesUsed >= level.goal.moves;
     if (done) {
       setShowSuccess(true);
       addCoins(20);
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
@@ -152,7 +155,18 @@ const AdventureGamePage = () => {
   const goalText = (() => {
     if (level.goal.type === 'reach-score') return `${t.goalReachScore} ${level.goal.target}`;
     if (level.goal.type === 'find-long-word') return `${t.goalLongWord} ${level.goal.minLength} ${t.letters}`;
+    if (level.goal.type === 'survive-moves') {
+      const labels: Record<string, string> = { en: 'Survive moves:', sv: 'Överlev drag:', de: 'Überlebe Züge:', es: 'Sobrevive movimientos:', fr: 'Survivez aux coups :', it: 'Sopravvivi mosse:', pt: 'Sobreviva jogadas:', nl: 'Overleef zetten:', no: 'Overlev trekk:', da: 'Overlev træk:', fi: 'Selviä siirroista:' };
+      return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
+    }
     return t.goalFindWords;
+  })();
+
+  const progressPct = (() => {
+    if (!level.showProgressBar) return null;
+    if (level.goal.type === 'reach-score') return Math.min(100, Math.round((game.score / level.goal.target) * 100));
+    if (level.goal.type === 'survive-moves') return Math.min(100, Math.round((game.movesUsed / level.goal.moves) * 100));
+    return null;
   })();
 
   return (
@@ -187,6 +201,15 @@ const AdventureGamePage = () => {
               })}
             </div>
           )}
+          {progressPct !== null && (
+            <div className="mt-2 px-1">
+              <Progress value={progressPct} className="h-2 bg-white/10" />
+              <div className="text-[11px] text-white/70 mt-1">
+                {level.goal.type === 'reach-score' && `${game.score} / ${level.goal.target}`}
+                {level.goal.type === 'survive-moves' && `${game.movesUsed} / ${level.goal.moves}`}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -211,7 +234,7 @@ const AdventureGamePage = () => {
           onResetGame={() => game.resetGame()}
           onShowWords={() => {}}
           usedWordsCount={game.usedWords.length}
-          mode={'classic'}
+          mode={levelMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
           freeMovesRemaining={game.freeMovesRemaining}
