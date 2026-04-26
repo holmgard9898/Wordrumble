@@ -148,7 +148,7 @@ const GamePage = () => {
     if (hadSelection) playSwap();
   }, [game, playSwap]);
 
-  const handleReset = useCallback(() => { setScoreSaved(false); game.resetGame(); }, [game]);
+  const handleReset = useCallback(() => { setScoreSaved(false); savedGame.clear(); game.resetGame(); }, [game, savedGame]);
 
   const badgeConfig = MODE_BADGE_CONFIG[gameMode];
 
