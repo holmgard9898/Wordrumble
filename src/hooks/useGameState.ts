@@ -822,6 +822,7 @@ export function useGameState(
     handleSwipe,
     resetGame,
     startFromState,
+    restoreSavedGame,
     bestWordScore,
     bestWord,
     movesUsed,
