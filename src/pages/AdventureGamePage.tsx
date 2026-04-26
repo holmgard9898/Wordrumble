@@ -34,6 +34,7 @@ const AdventureGamePage = () => {
   }, [level]);
   const bg = useGameBackground(level?.background);
   const { isValidWord, loading } = useDictionary(settings.language);
+  const levelMode = level?.mode ?? 'classic';
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
     if (level.goal.type === 'find-words') {
@@ -41,7 +42,7 @@ const AdventureGamePage = () => {
     }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
-  const game = useGameState(isValidWord, 'classic', settings.language, adventureSeed);
+  const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
   const { markCompleted } = useAdventureProgress();
