@@ -234,7 +234,7 @@ const AdventureGamePage = () => {
           onResetGame={() => game.resetGame()}
           onShowWords={() => {}}
           usedWordsCount={game.usedWords.length}
-          mode={'classic'}
+          mode={levelMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
           freeMovesRemaining={game.freeMovesRemaining}
