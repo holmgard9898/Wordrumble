@@ -752,6 +752,32 @@ export function useGameState(
     setGameOver(false);
   }, []);
 
+  /** Restore a previously-saved in-progress game (preserves score, usedWords, etc.) */
+  const restoreSavedGame = useCallback((saved: {
+    grid: BubbleData[][];
+    movesLeft: number;
+    score: number;
+    usedWords: { word: string; score: number }[];
+    movesUsed: number;
+    freeMovesRemaining: number;
+  }) => {
+    setGrid(saved.grid.map(row => row.map(b => ({ ...b }))));
+    setSelectedBubble(null);
+    setMovesLeft(saved.movesLeft);
+    setScore(saved.score);
+    setUsedWords(saved.usedWords);
+    setGameOver(false);
+    setPoppingCells(new Set());
+    setLastFoundWord(null);
+    setIsProcessing(false);
+    setMovesUsed(saved.movesUsed);
+    setBonusPopups([]);
+    pendingBombTick.current = 0;
+    lastProcessedBombTick.current = 0;
+    setFreeMovesRemaining(saved.freeMovesRemaining);
+    setExplodedAt(null);
+  }, []);
+
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
     setSelectedBubble(null);
@@ -796,6 +822,7 @@ export function useGameState(
     handleSwipe,
     resetGame,
     startFromState,
+    restoreSavedGame,
     bestWordScore,
     bestWord,
     movesUsed,

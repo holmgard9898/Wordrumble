@@ -18,6 +18,7 @@ import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home }
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
+import { useSavedGame } from '@/hooks/useSavedGame';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
@@ -54,17 +55,50 @@ const AdventureGamePage = () => {
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
-  // Reset game when level/language changes; mark ready on next tick so the
-  // success-detection effect doesn't fire against stale state from the prior level.
+  const savedGame = useSavedGame(`adv-${levelId}`);
+
+  // Reset game when level/language changes; restore saved progress if any.
   useEffect(() => {
     if (loading) return;
     setReady(false);
     setShowSuccess(false);
-    game.resetGame();
+    const saved = savedGame.load();
+    if (saved && saved.movesLeft > 0 && saved.usedWords) {
+      game.restoreSavedGame({
+        grid: saved.grid,
+        movesLeft: saved.movesLeft,
+        score: saved.score,
+        usedWords: saved.usedWords,
+        movesUsed: saved.movesUsed,
+        freeMovesRemaining: saved.freeMovesRemaining,
+      });
+      setShowIntro(false);
+    } else {
+      game.resetGame();
+    }
     const id = requestAnimationFrame(() => setReady(true));
     return () => cancelAnimationFrame(id);
     /* eslint-disable-next-line react-hooks/exhaustive-deps */
   }, [loading, levelId, settings.language]);
+
+  // Persist in-progress state
+  useEffect(() => {
+    if (loading || game.gameOver || showSuccess) return;
+    if (game.movesUsed === 0 && game.usedWords.length === 0) return;
+    savedGame.save({
+      grid: game.grid,
+      movesLeft: game.movesLeft,
+      score: game.score,
+      usedWords: game.usedWords,
+      movesUsed: game.movesUsed,
+      freeMovesRemaining: game.freeMovesRemaining,
+    });
+  }, [loading, game.gameOver, showSuccess, game.grid, game.movesLeft, game.score, game.usedWords, game.movesUsed, game.freeMovesRemaining, savedGame]);
+
+  // Clear saved on success or game over
+  useEffect(() => {
+    if (showSuccess || game.gameOver) savedGame.clear();
+  }, [showSuccess, game.gameOver, savedGame]);
 
   // Per-level target words (lowercase)
   const targetWords = useMemo<string[]>(() => {
@@ -185,7 +219,7 @@ const AdventureGamePage = () => {
         />
       </div>
 
-      <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
+      <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} onBackToMap={() => { setShowMenu(false); navigate('/adventure'); }} />
 
       {/* Intro modal */}
       <Dialog open={showIntro} onOpenChange={setShowIntro}>

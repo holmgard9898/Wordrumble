@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, Volume2, Music, Home } from 'lucide-react';
+import { X, Volume2, Music, Home, Map as MapIcon } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -10,9 +10,11 @@ import { useTranslation } from '@/hooks/useTranslation';
 interface InGameMenuProps {
   open: boolean;
   onClose: () => void;
+  /** When provided, shows a "Back to map" button (used in adventure mode). */
+  onBackToMap?: () => void;
 }
 
-export function InGameMenu({ open, onClose }: InGameMenuProps) {
+export function InGameMenu({ open, onClose, onBackToMap }: InGameMenuProps) {
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings();
   const { playClick } = useSfx();
@@ -62,6 +64,11 @@ export function InGameMenu({ open, onClose }: InGameMenuProps) {
           <Button onClick={() => { playClick(); onClose(); }} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
             {t.continuePlay}
           </Button>
+          {onBackToMap && (
+            <Button onClick={() => { playClick(); onBackToMap(); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+              <MapIcon className="w-4 h-4 mr-2" /> {t.adventureBackToMap}
+            </Button>
+          )}
           <Button onClick={() => { playClick(); navigate('/'); }} className="w-full bg-white/15 hover:bg-white/25 text-white border border-white/20">
             <Home className="w-4 h-4 mr-2" /> {t.mainMenu}
           </Button>
