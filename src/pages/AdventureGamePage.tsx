@@ -18,6 +18,7 @@ import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home }
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
+import { useSavedGame } from '@/hooks/useSavedGame';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
