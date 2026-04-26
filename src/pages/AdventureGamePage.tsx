@@ -13,6 +13,7 @@ import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home } from 'lucide-react';
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
