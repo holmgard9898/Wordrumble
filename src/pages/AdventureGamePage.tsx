@@ -155,7 +155,15 @@ const AdventureGamePage = () => {
   const goalText = (() => {
     if (level.goal.type === 'reach-score') return `${t.goalReachScore} ${level.goal.target}`;
     if (level.goal.type === 'find-long-word') return `${t.goalLongWord} ${level.goal.minLength} ${t.letters}`;
+    if (level.goal.type === 'survive-moves') return `${t.goalSurviveMoves ?? 'Survive moves:'} ${level.goal.moves}`;
     return t.goalFindWords;
+  })();
+
+  const progressPct = (() => {
+    if (!level.showProgressBar) return null;
+    if (level.goal.type === 'reach-score') return Math.min(100, Math.round((game.score / level.goal.target) * 100));
+    if (level.goal.type === 'survive-moves') return Math.min(100, Math.round((game.movesUsed / level.goal.moves) * 100));
+    return null;
   })();
 
   return (
