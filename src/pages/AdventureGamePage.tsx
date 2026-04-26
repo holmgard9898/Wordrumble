@@ -219,7 +219,7 @@ const AdventureGamePage = () => {
         />
       </div>
 
-      <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
+      <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} onBackToMap={() => { setShowMenu(false); navigate('/adventure'); }} />
 
       {/* Intro modal */}
       <Dialog open={showIntro} onOpenChange={setShowIntro}>
