@@ -64,6 +64,11 @@ export function InGameMenu({ open, onClose, onBackToMap }: InGameMenuProps) {
           <Button onClick={() => { playClick(); onClose(); }} className="w-full bg-blue-600 hover:bg-blue-500 text-white">
             {t.continuePlay}
           </Button>
+          {onBackToMap && (
+            <Button onClick={() => { playClick(); onBackToMap(); }} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white">
+              <MapIcon className="w-4 h-4 mr-2" /> {t.adventureBackToMap}
+            </Button>
+          )}
           <Button onClick={() => { playClick(); navigate('/'); }} className="w-full bg-white/15 hover:bg-white/25 text-white border border-white/20">
             <Home className="w-4 h-4 mr-2" /> {t.mainMenu}
           </Button>
