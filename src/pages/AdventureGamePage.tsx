@@ -201,6 +201,15 @@ const AdventureGamePage = () => {
               })}
             </div>
           )}
+          {progressPct !== null && (
+            <div className="mt-2 px-1">
+              <Progress value={progressPct} className="h-2 bg-white/10" />
+              <div className="text-[11px] text-white/70 mt-1">
+                {level.goal.type === 'reach-score' && `${game.score} / ${level.goal.target}`}
+                {level.goal.type === 'survive-moves' && `${game.movesUsed} / ${level.goal.moves}`}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
