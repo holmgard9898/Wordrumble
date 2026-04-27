@@ -6,7 +6,9 @@ export type AdventureGoal =
   | { type: 'find-words'; words: Record<GameLanguage, string[]> }
   | { type: 'reach-score'; target: number }
   | { type: 'find-long-word'; minLength: number }
-  | { type: 'survive-moves'; moves: number };
+  | { type: 'survive-moves'; moves: number }
+  /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
+  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
 
 export interface AdventureLevel {
   id: string;
