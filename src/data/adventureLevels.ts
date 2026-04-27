@@ -77,7 +77,7 @@ export const adventureLevels: AdventureLevel[] = [
   },
   {
     id: 'adv-2', number: 2, icon: '⚡',
-    name: { en: 'Word Surge Beach', sv: 'Word Surge-strand', de: 'Wortwelle', es: 'Ola de Palabras', fr: 'Vague de Mots', it: 'Onda Parole', pt: 'Onda Palavras', nl: 'Woordgolf', no: 'Ordbølge', da: 'Ordbølge', fi: 'Sana-aalto' },
+    name: { en: 'Surf Cove', sv: 'Surfviken', de: 'Surfbucht', es: 'Cala del Surf', fr: 'Crique Surf', it: 'Baia del Surf', pt: 'Baía do Surf', nl: 'Surfbaai', no: 'Surfbukt', da: 'Surfbugt', fi: 'Lainelahti' },
     intro: {
       en: 'Word Surge! Reach 80 points in 50 moves. Long words give bonus moves!',
       sv: 'Word Surge! Nå 80 poäng på 50 drag. Långa ord ger bonusdrag!',
@@ -138,8 +138,8 @@ export const adventureLevels: AdventureLevel[] = [
     maxMoves: 80,
   },
   {
-    id: 'adv-4', number: 4, icon: '💣',
-    name: { en: 'Bomb Wreck', sv: 'Bombvrak', de: 'Bombenwrack', es: 'Naufragio Bomba', fr: 'Épave Bombe', it: 'Relitto Bomba', pt: 'Naufrágio Bomba', nl: 'Bommenwrak', no: 'Bombevrak', da: 'Bombevrag', fi: 'Pommihylky' },
+    id: 'adv-4', number: 4, icon: '🚢',
+    name: { en: 'Shipwreck', sv: 'Skeppsvrak', de: 'Schiffswrack', es: 'Naufragio', fr: 'Épave', it: 'Relitto', pt: 'Naufrágio', nl: 'Scheepswrak', no: 'Skipsvrak', da: 'Skibsvrag', fi: 'Hylky' },
     intro: {
       en: 'Bombs everywhere! Score 120 points before they explode!',
       sv: 'Bomber överallt! Nå 120 poäng innan de exploderar!',
@@ -195,7 +195,7 @@ export const adventureLevels: AdventureLevel[] = [
   },
   {
     id: 'adv-6', number: 6, icon: '🌋',
-    name: { en: 'Volcano Bombs', sv: 'Vulkanbomber', de: 'Vulkanbomben', es: 'Bombas Volcán', fr: 'Bombes Volcan', it: 'Bombe Vulcano', pt: 'Bombas Vulcão', nl: 'Vulkaanbommen', no: 'Vulkanbomber', da: 'Vulkanbomber', fi: 'Tulivuoripommit' },
+    name: { en: 'Volcano', sv: 'Vulkanen', de: 'Vulkan', es: 'Volcán', fr: 'Volcan', it: 'Vulcano', pt: 'Vulcão', nl: 'Vulkaan', no: 'Vulkanen', da: 'Vulkanen', fi: 'Tulivuori' },
     intro: {
       en: 'Survive 90 moves in Bomb Mode!',
       sv: 'Överlev 90 drag i Bombläge!',
