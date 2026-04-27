@@ -6,7 +6,9 @@ export type AdventureGoal =
   | { type: 'find-words'; words: Record<GameLanguage, string[]> }
   | { type: 'reach-score'; target: number }
   | { type: 'find-long-word'; minLength: number }
-  | { type: 'survive-moves'; moves: number };
+  | { type: 'survive-moves'; moves: number }
+  /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
+  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
 
 export interface AdventureLevel {
   id: string;
@@ -28,6 +30,8 @@ export interface AdventureLevel {
   icon: string;
   /** Override default moves (e.g. easier early levels) */
   maxMoves?: number;
+  /** Number of free rockets the player gets at start (level 8 powerup). */
+  freeRockets?: number;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
@@ -96,25 +100,42 @@ export const adventureLevels: AdventureLevel[] = [
     maxMoves: 50,
   },
   {
-    id: 'adv-3', number: 3, icon: '🏖️',
-    name: { en: 'Hidden Cove', sv: 'Dold vik', de: 'Versteckte Bucht', es: 'Cala Oculta', fr: 'Crique', it: 'Insenatura', pt: 'Enseada', nl: 'Verborgen Baai', no: 'Skjult Vik', da: 'Skjult Bugt', fi: 'Salainen Lahti' },
+    id: 'adv-3', number: 3, icon: '🔍',
+    name: { en: 'Hidden Cove', sv: 'Dold vik', de: 'Versteckte Bucht', es: 'Cala Oculta', fr: 'Crique Cachée', it: 'Insenatura Nascosta', pt: 'Enseada Oculta', nl: 'Verborgen Baai', no: 'Skjult Vik', da: 'Skjult Bugt', fi: 'Salainen Lahti' },
     intro: {
-      en: 'Find a 6-letter word!',
-      sv: 'Hitta ett ord med 6 bokstäver!',
-      de: 'Finde ein 6-Buchstaben-Wort!',
-      es: '¡Encuentra una palabra de 6 letras!',
-      fr: 'Trouvez un mot de 6 lettres !',
-      it: 'Trova una parola di 6 lettere!',
-      pt: 'Encontre uma palavra de 6 letras!',
-      nl: 'Vind een woord van 6 letters!',
-      no: 'Finn et ord på 6 bokstaver!',
-      da: 'Find et ord på 6 bogstaver!',
-      fi: 'Löydä 6-kirjaiminen sana!',
+      en: 'Find the beach words to reveal a hidden word, letter by letter!',
+      sv: 'Hitta strandorden för att avslöja ett dolt ord, bokstav för bokstav!',
+      de: 'Finde die Strandwörter, um ein verstecktes Wort zu enthüllen!',
+      es: '¡Encuentra las palabras de playa para revelar la palabra oculta!',
+      fr: 'Trouvez les mots de plage pour révéler le mot caché !',
+      it: 'Trova le parole della spiaggia per rivelare la parola nascosta!',
+      pt: 'Encontre as palavras de praia para revelar a palavra oculta!',
+      nl: 'Vind de strandwoorden om het verborgen woord te onthullen!',
+      no: 'Finn strandordene for å avsløre det skjulte ordet!',
+      da: 'Find strandordene for at afsløre det skjulte ord!',
+      fi: 'Löydä rantasanat paljastaaksesi salaisen sanan!',
     },
     background: 'beach',
-    goal: { type: 'find-long-word', minLength: 6 },
+    goal: {
+      type: 'hidden-word',
+      hiddenWord: { en: 'OCEAN', sv: 'SKEPP', de: 'STRAND', es: 'PLAYA', fr: 'PLAGE', it: 'SPIAGGIA', pt: 'PRAIA', nl: 'STRAND', no: 'STRAND', da: 'STRAND', fi: 'RANTA' },
+      thematicWords: wl(
+        ['surf', 'tide', 'crab', 'dune', 'reef', 'salt', 'foam', 'gull'],
+        ['våg', 'sand', 'måsen', 'salt', 'kust', 'ö', 'ebb', 'fyr'],
+        ['sand', 'welle', 'meer', 'sonne', 'salz', 'küste', 'möwe', 'ebbe'],
+        ['mar', 'sol', 'ola', 'sal', 'roca', 'duna', 'gaviota', 'arena'],
+        ['mer', 'sel', 'vague', 'rive', 'dune', 'algue', 'phare', 'côte'],
+        ['mare', 'sale', 'onda', 'duna', 'riva', 'alga', 'sole', 'molo'],
+        ['mar', 'sal', 'onda', 'praia', 'duna', 'alga', 'sol', 'maré'],
+        ['zee', 'zout', 'golf', 'duin', 'kust', 'meeuw', 'eb', 'kiezel'],
+        ['hav', 'salt', 'sand', 'vik', 'kyst', 'måke', 'fyr', 'tang'],
+        ['hav', 'salt', 'sand', 'vig', 'kyst', 'måge', 'fyr', 'tang'],
+        ['meri', 'suola', 'aalto', 'ranta', 'lokki', 'hiekka', 'kallio', 'majakka'],
+      ),
+    },
     mapPosition: { x: 46, y: 73 },
     connectsTo: ['adv-4'],
+    maxMoves: 80,
   },
   {
     id: 'adv-4', number: 4, icon: '💣',
@@ -232,34 +253,25 @@ export const adventureLevels: AdventureLevel[] = [
     id: 'adv-8', number: 8, icon: '🚀',
     name: { en: 'Rocket Launch', sv: 'Raketuppskjutning', de: 'Raketenstart', es: 'Lanzamiento', fr: 'Lancement', it: 'Lancio', pt: 'Lançamento', nl: 'Lancering', no: 'Rakettoppskyting', da: 'Raketopsendelse', fi: 'Raketin laukaisu' },
     intro: {
-      en: 'Blast off! Find 5 words.',
-      sv: 'Uppskjutning! Hitta 5 ord.',
-      de: 'Start! Finde 5 Wörter.',
-      es: '¡Despega! Encuentra 5 palabras.',
-      fr: 'Décollage ! Trouvez 5 mots.',
-      it: 'Decollo! Trova 5 parole.',
-      pt: 'Decolar! Encontre 5 palavras.',
-      nl: 'Lanceren! Vind 5 woorden.',
-      no: 'Avgang! Finn 5 ord.',
-      da: 'Opsendelse! Find 5 ord.',
-      fi: 'Lähtö! Löydä 5 sanaa.',
+      en: 'Blast off! Score 250 with 5+ letter words. You have 2 free rockets — fire them up a column to pop every bubble!',
+      sv: 'Uppskjutning! Nå 250 poäng med ord på 5+ bokstäver. Du har 2 gratisraketer — skjut upp en lodrätt rad och spräck alla bubblor!',
+      de: 'Start! Erreiche 250 Punkte mit 5+ Buchstaben. Du hast 2 Gratisraketen — schieße eine Spalte ab!',
+      es: '¡Despega! Consigue 250 con palabras de 5+ letras. ¡Tienes 2 cohetes gratis para limpiar columnas!',
+      fr: 'Décollage ! 250 points avec des mots de 5+ lettres. 2 fusées gratuites pour nettoyer une colonne !',
+      it: 'Decollo! 250 punti con parole di 5+ lettere. Hai 2 razzi gratis per ripulire una colonna!',
+      pt: 'Decolar! 250 pontos com palavras de 5+ letras. Tem 2 foguetes grátis para limpar uma coluna!',
+      nl: 'Lanceren! 250 punten met woorden van 5+ letters. 2 gratis raketten om een kolom leeg te schieten!',
+      no: 'Avgang! 250 poeng med 5+ bokstaver. 2 gratis raketter for å rense en kolonne!',
+      da: 'Opsendelse! 250 point med 5+ bogstaver. 2 gratis raketter til at rense en kolonne!',
+      fi: 'Lähtö! 250 pistettä 5+ kirjaimen sanoilla. 2 ilmaista rakettia tyhjentämään sarake!',
     },
     background: 'space',
-    goal: { type: 'find-words', words: wl(
-      ['star', 'moon', 'mars', 'orbit', 'space'],
-      ['stjärna', 'måne', 'mars', 'rymd', 'planet'],
-      ['stern', 'mond', 'mars', 'planet', 'raum'],
-      ['estrella', 'luna', 'marte', 'planeta', 'cohete'],
-      ['étoile', 'lune', 'mars', 'planète', 'fusée'],
-      ['stella', 'luna', 'marte', 'pianeta', 'razzo'],
-      ['estrela', 'lua', 'marte', 'planeta', 'foguete'],
-      ['ster', 'maan', 'mars', 'planeet', 'raket'],
-      ['stjerne', 'måne', 'mars', 'planet', 'rakett'],
-      ['stjerne', 'måne', 'mars', 'planet', 'raket'],
-      ['tähti', 'kuu', 'mars', 'planeetta', 'raketti'],
-    ) },
+    mode: 'fiveplus',
+    goal: { type: 'reach-score', target: 250 },
     mapPosition: { x: 78, y: 14 },
     connectsTo: [],
+    maxMoves: 80,
+    freeRockets: 2,
   },
 ];
 

@@ -725,6 +725,50 @@ export function useGameState(
     performSwap(fromRow, fromCol, toRow, toCol);
   }, [gameOver, isProcessing, performSwap]);
 
+  /** Adventure rocket powerup: pop entire column, score letter values as if a word. */
+  const fireRocket = useCallback((col: number) => {
+    if (gameOver || isProcessing) return 0;
+    if (col < 0 || col >= COLS) return 0;
+
+    const positions: Position[] = [];
+    let letterPoints = 0;
+    let label = '';
+    for (let r = 0; r < ROWS; r++) {
+      const b = grid[r][col];
+      positions.push({ row: r, col });
+      let v = b.value;
+      if (b.powerup === 'x2') v *= 2;
+      else if (b.powerup === 'x3') v *= 3;
+      letterPoints += v;
+      label += b.letter;
+    }
+
+    const popKeys = new Set(positions.map(p => `${p.row}-${p.col}`));
+    setIsProcessing(true);
+    setPoppingCells(popKeys);
+    setLastFoundWord(`🚀 ${label}`);
+    setScore(prev => prev + letterPoints);
+    setUsedWords(prev => [...prev, { word: `🚀${label}`, score: letterPoints }]);
+
+    const colors = getColorsForMode(mode);
+    setTimeout(() => {
+      setPoppingCells(new Set());
+      setLastFoundWord(null);
+      const newGrid = grid.map(row => [...row]);
+      const newCol: BubbleData[] = [];
+      for (let r = 0; r < ROWS; r++) newCol.push(refillBubble(colors));
+      for (let r = 0; r < ROWS; r++) newGrid[r][col] = newCol[r];
+      setGrid(newGrid);
+      setTimeout(() => {
+        const next = findWords(newGrid);
+        if (next.length > 0) popAndCascade(newGrid, next);
+        else setIsProcessing(false);
+      }, 250);
+    }, 500);
+
+    return letterPoints;
+  }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade]);
+
   const resetGame = useCallback(() => {
     const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
@@ -831,5 +875,6 @@ export function useGameState(
     freeMovesRemaining,
     explodedAt,
     addMoves,
+    fireRocket,
   };
 }

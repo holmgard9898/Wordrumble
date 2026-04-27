@@ -15,7 +15,7 @@ import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home } from 'lucide-react';
+import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home, Rocket, X } from 'lucide-react';
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
@@ -40,6 +40,9 @@ const AdventureGamePage = () => {
     if (level.goal.type === 'find-words') {
       return { targetWords: level.goal.words[settings.language], maxMoves: level.maxMoves };
     }
+    if (level.goal.type === 'hidden-word') {
+      return { targetWords: level.goal.thematicWords[settings.language], maxMoves: level.maxMoves };
+    }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
@@ -54,6 +57,10 @@ const AdventureGamePage = () => {
   const [watchingAd, setWatchingAd] = useState(false);
   const [ready, setReady] = useState(false);
   const boardRef = useRef<GameBoardHandle | null>(null);
+  const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
+  const [rocketArming, setRocketArming] = useState(false);
+
+  useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
@@ -113,6 +120,28 @@ const AdventureGamePage = () => {
     return targetWords.filter(w => set.has(w));
   }, [game.usedWords, targetWords]);
 
+  // Hidden-word data
+  const hiddenWord = useMemo<string>(() => {
+    if (!level || level.goal.type !== 'hidden-word') return '';
+    return level.goal.hiddenWord[settings.language].toUpperCase();
+  }, [level, settings.language]);
+
+  const hiddenThematic = useMemo<string[]>(() => {
+    if (!level || level.goal.type !== 'hidden-word') return [];
+    return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+  }, [level, settings.language]);
+
+  // Number of hidden-word letters revealed = number of distinct thematic words found (capped at hidden word length)
+  const hiddenFoundCount = useMemo(() => {
+    if (!hiddenWord) return 0;
+    const found = new Set<string>();
+    for (const w of game.usedWords) {
+      const lw = w.word.toLowerCase();
+      if (hiddenThematic.includes(lw)) found.add(lw);
+    }
+    return Math.min(found.size, hiddenWord.length);
+  }, [game.usedWords, hiddenThematic, hiddenWord]);
+
   // Goal completion
   useEffect(() => {
     if (!level || showSuccess || !ready) return;
@@ -124,17 +153,29 @@ const AdventureGamePage = () => {
       done = game.usedWords.some(w => w.word.length >= minLen);
     }
     else if (level.goal.type === 'survive-moves') done = game.movesUsed >= level.goal.moves;
+    else if (level.goal.type === 'hidden-word') done = hiddenFoundCount >= hiddenWord.length;
     if (done) {
       setShowSuccess(true);
       addCoins(20);
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
-  const handleBubbleClick = useCallback((row: number, col: number) => game.handleBubbleClick(row, col), [game]);
+  const handleBubbleClick = useCallback((row: number, col: number) => {
+    if (rocketArming) {
+      // Fire rocket on this column
+      if (rocketsLeft > 0 && game.fireRocket) {
+        game.fireRocket(col);
+        setRocketsLeft(n => n - 1);
+      }
+      setRocketArming(false);
+      return;
+    }
+    game.handleBubbleClick(row, col);
+  }, [game, rocketArming, rocketsLeft]);
 
   if (!level) {
     return (
@@ -152,6 +193,13 @@ const AdventureGamePage = () => {
     );
   }
 
+  const hiddenLabels: Record<string, string> = {
+    en: 'Reveal the hidden word:', sv: 'Avslöja det dolda ordet:', de: 'Enthülle das versteckte Wort:',
+    es: 'Revela la palabra oculta:', fr: 'Révélez le mot caché :', it: 'Rivela la parola nascosta:',
+    pt: 'Revele a palavra oculta:', nl: 'Onthul het verborgen woord:', no: 'Avslør det skjulte ordet:',
+    da: 'Afslør det skjulte ord:', fi: 'Paljasta salainen sana:',
+  };
+
   const goalText = (() => {
     if (level.goal.type === 'reach-score') return `${t.goalReachScore} ${level.goal.target}`;
     if (level.goal.type === 'find-long-word') return `${t.goalLongWord} ${level.goal.minLength} ${t.letters}`;
@@ -159,6 +207,7 @@ const AdventureGamePage = () => {
       const labels: Record<string, string> = { en: 'Survive moves:', sv: 'Överlev drag:', de: 'Überlebe Züge:', es: 'Sobrevive movimientos:', fr: 'Survivez aux coups :', it: 'Sopravvivi mosse:', pt: 'Sobreviva jogadas:', nl: 'Overleef zetten:', no: 'Overlev trekk:', da: 'Overlev træk:', fi: 'Selviä siirroista:' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
+    if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
     return t.goalFindWords;
   })();
 
@@ -201,6 +250,23 @@ const AdventureGamePage = () => {
               })}
             </div>
           )}
+          {level.goal.type === 'hidden-word' && (
+            <>
+              <div className="flex gap-1.5 justify-center mt-2 font-mono">
+                {hiddenWord.split('').map((ch, i) => (
+                  <span
+                    key={i}
+                    className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${i < hiddenFoundCount ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}
+                  >
+                    {i < hiddenFoundCount ? ch : '_'}
+                  </span>
+                ))}
+              </div>
+              <div className="text-[11px] text-white/60 mt-1.5">
+                {hiddenFoundCount} / {hiddenWord.length}
+              </div>
+            </>
+          )}
           {progressPct !== null && (
             <div className="mt-2 px-1">
               <Progress value={progressPct} className="h-2 bg-white/10" />
@@ -213,14 +279,35 @@ const AdventureGamePage = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center w-full">
+      {/* Rocket powerup bar */}
+      {(level.freeRockets ?? 0) > 0 && (
+        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+          <Button
+            onClick={() => setRocketArming(v => !v)}
+            disabled={rocketsLeft <= 0}
+            className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
+          >
+            <Rocket className="w-4 h-4" />
+            {rocketArming
+              ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
+              : `🚀 × ${rocketsLeft}`}
+          </Button>
+          {rocketArming && (
+            <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : ''}`}>
         <GameBoard
           ref={boardRef}
           grid={game.grid}
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
-          onSwipe={game.handleSwipe}
+          onSwipe={rocketArming ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
         />
