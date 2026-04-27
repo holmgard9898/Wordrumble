@@ -250,6 +250,23 @@ const AdventureGamePage = () => {
               })}
             </div>
           )}
+          {level.goal.type === 'hidden-word' && (
+            <>
+              <div className="flex gap-1.5 justify-center mt-2 font-mono">
+                {hiddenWord.split('').map((ch, i) => (
+                  <span
+                    key={i}
+                    className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${i < hiddenFoundCount ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}
+                  >
+                    {i < hiddenFoundCount ? ch : '_'}
+                  </span>
+                ))}
+              </div>
+              <div className="text-[11px] text-white/60 mt-1.5">
+                {hiddenFoundCount} / {hiddenWord.length}
+              </div>
+            </>
+          )}
           {progressPct !== null && (
             <div className="mt-2 px-1">
               <Progress value={progressPct} className="h-2 bg-white/10" />
@@ -262,14 +279,35 @@ const AdventureGamePage = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center w-full">
+      {/* Rocket powerup bar */}
+      {(level.freeRockets ?? 0) > 0 && (
+        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+          <Button
+            onClick={() => setRocketArming(v => !v)}
+            disabled={rocketsLeft <= 0}
+            className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
+          >
+            <Rocket className="w-4 h-4" />
+            {rocketArming
+              ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
+              : `🚀 × ${rocketsLeft}`}
+          </Button>
+          {rocketArming && (
+            <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : ''}`}>
         <GameBoard
           ref={boardRef}
           grid={game.grid}
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
-          onSwipe={game.handleSwipe}
+          onSwipe={rocketArming ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
         />
