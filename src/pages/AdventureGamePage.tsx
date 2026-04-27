@@ -284,6 +284,11 @@ const AdventureGamePage = () => {
               </div>
               <div className="text-[11px] text-white/60 mt-1.5">
                 {hiddenFoundCount} / {hiddenWord.length}
+                {hiddenFoundCount >= hiddenWord.length && (
+                  <span className="block mt-1 text-emerald-300 font-bold animate-pulse">
+                    {settings.language === 'sv' ? `Skapa nu ordet ${hiddenWord} på brädet!` : `Now form ${hiddenWord} on the board!`}
+                  </span>
+                )}
               </div>
             </>
           )}
