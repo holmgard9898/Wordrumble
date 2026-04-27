@@ -121,7 +121,7 @@ export const adventureLevels: AdventureLevel[] = [
       hiddenWord: { en: 'OCEAN', sv: 'SKEPP', de: 'STRAND', es: 'PLAYA', fr: 'PLAGE', it: 'SPIAGGIA', pt: 'PRAIA', nl: 'STRAND', no: 'STRAND', da: 'STRAND', fi: 'RANTA' },
       thematicWords: wl(
         ['surf', 'tide', 'crab', 'dune', 'reef', 'salt', 'foam', 'gull'],
-        ['våg', 'sand', 'måsen', 'salt', 'kust', 'ö', 'ebb', 'fyr'],
+        ['våg', 'sand', 'måsen', 'salt', 'kust', 'segla', 'fyren', 'ebben'],
         ['sand', 'welle', 'meer', 'sonne', 'salz', 'küste', 'möwe', 'ebbe'],
         ['mar', 'sol', 'ola', 'sal', 'roca', 'duna', 'gaviota', 'arena'],
         ['mer', 'sel', 'vague', 'rive', 'dune', 'algue', 'phare', 'côte'],
