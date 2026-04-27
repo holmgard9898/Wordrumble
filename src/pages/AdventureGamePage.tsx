@@ -252,6 +252,22 @@ const AdventureGamePage = () => {
           )}
           {level.goal.type === 'hidden-word' && (
             <>
+              {/* Ledtrådsord ovan */}
+              <div className="flex flex-wrap gap-1 justify-center mt-2">
+                {hiddenThematic.map(w => {
+                  const found = game.usedWords.some(u => u.word.toLowerCase() === w);
+                  return (
+                    <span
+                      key={w}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${found ? 'line-through text-emerald-300' : 'text-white/80'}`}
+                      style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)' }}
+                    >
+                      {w.toUpperCase()}
+                    </span>
+                  );
+                })}
+              </div>
+              {/* Det dolda ordet */}
               <div className="flex gap-1.5 justify-center mt-2 font-mono">
                 {hiddenWord.split('').map((ch, i) => (
                   <span
