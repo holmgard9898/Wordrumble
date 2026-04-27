@@ -875,5 +875,6 @@ export function useGameState(
     freeMovesRemaining,
     explodedAt,
     addMoves,
+    fireRocket,
   };
 }
