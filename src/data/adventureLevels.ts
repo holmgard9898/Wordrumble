@@ -77,7 +77,7 @@ export const adventureLevels: AdventureLevel[] = [
   },
   {
     id: 'adv-2', number: 2, icon: '⚡',
-    name: { en: 'Word Surge Beach', sv: 'Word Surge-strand', de: 'Wortwelle', es: 'Ola de Palabras', fr: 'Vague de Mots', it: 'Onda Parole', pt: 'Onda Palavras', nl: 'Woordgolf', no: 'Ordbølge', da: 'Ordbølge', fi: 'Sana-aalto' },
+    name: { en: 'Surf Cove', sv: 'Surfviken', de: 'Surfbucht', es: 'Cala del Surf', fr: 'Crique Surf', it: 'Baia del Surf', pt: 'Baía do Surf', nl: 'Surfbaai', no: 'Surfbukt', da: 'Surfbugt', fi: 'Lainelahti' },
     intro: {
       en: 'Word Surge! Reach 80 points in 50 moves. Long words give bonus moves!',
       sv: 'Word Surge! Nå 80 poäng på 50 drag. Långa ord ger bonusdrag!',
