@@ -30,6 +30,8 @@ export interface AdventureLevel {
   icon: string;
   /** Override default moves (e.g. easier early levels) */
   maxMoves?: number;
+  /** Number of free rockets the player gets at start (level 8 powerup). */
+  freeRockets?: number;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
