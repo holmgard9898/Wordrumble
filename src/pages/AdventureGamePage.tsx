@@ -40,6 +40,9 @@ const AdventureGamePage = () => {
     if (level.goal.type === 'find-words') {
       return { targetWords: level.goal.words[settings.language], maxMoves: level.maxMoves };
     }
+    if (level.goal.type === 'hidden-word') {
+      return { targetWords: level.goal.thematicWords[settings.language], maxMoves: level.maxMoves };
+    }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
