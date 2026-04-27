@@ -120,6 +120,28 @@ const AdventureGamePage = () => {
     return targetWords.filter(w => set.has(w));
   }, [game.usedWords, targetWords]);
 
+  // Hidden-word data
+  const hiddenWord = useMemo<string>(() => {
+    if (!level || level.goal.type !== 'hidden-word') return '';
+    return level.goal.hiddenWord[settings.language].toUpperCase();
+  }, [level, settings.language]);
+
+  const hiddenThematic = useMemo<string[]>(() => {
+    if (!level || level.goal.type !== 'hidden-word') return [];
+    return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+  }, [level, settings.language]);
+
+  // Number of hidden-word letters revealed = number of distinct thematic words found (capped at hidden word length)
+  const hiddenFoundCount = useMemo(() => {
+    if (!hiddenWord) return 0;
+    const found = new Set<string>();
+    for (const w of game.usedWords) {
+      const lw = w.word.toLowerCase();
+      if (hiddenThematic.includes(lw)) found.add(lw);
+    }
+    return Math.min(found.size, hiddenWord.length);
+  }, [game.usedWords, hiddenThematic, hiddenWord]);
+
   // Goal completion
   useEffect(() => {
     if (!level || showSuccess || !ready) return;
@@ -131,17 +153,29 @@ const AdventureGamePage = () => {
       done = game.usedWords.some(w => w.word.length >= minLen);
     }
     else if (level.goal.type === 'survive-moves') done = game.movesUsed >= level.goal.moves;
+    else if (level.goal.type === 'hidden-word') done = hiddenFoundCount >= hiddenWord.length;
     if (done) {
       setShowSuccess(true);
       addCoins(20);
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
-  const handleBubbleClick = useCallback((row: number, col: number) => game.handleBubbleClick(row, col), [game]);
+  const handleBubbleClick = useCallback((row: number, col: number) => {
+    if (rocketArming) {
+      // Fire rocket on this column
+      if (rocketsLeft > 0 && game.fireRocket) {
+        game.fireRocket(col);
+        setRocketsLeft(n => n - 1);
+      }
+      setRocketArming(false);
+      return;
+    }
+    game.handleBubbleClick(row, col);
+  }, [game, rocketArming, rocketsLeft]);
 
   if (!level) {
     return (
