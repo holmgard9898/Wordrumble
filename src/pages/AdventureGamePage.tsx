@@ -193,6 +193,13 @@ const AdventureGamePage = () => {
     );
   }
 
+  const hiddenLabels: Record<string, string> = {
+    en: 'Reveal the hidden word:', sv: 'Avslöja det dolda ordet:', de: 'Enthülle das versteckte Wort:',
+    es: 'Revela la palabra oculta:', fr: 'Révélez le mot caché :', it: 'Rivela la parola nascosta:',
+    pt: 'Revele a palavra oculta:', nl: 'Onthul het verborgen woord:', no: 'Avslør det skjulte ordet:',
+    da: 'Afslør det skjulte ord:', fi: 'Paljasta salainen sana:',
+  };
+
   const goalText = (() => {
     if (level.goal.type === 'reach-score') return `${t.goalReachScore} ${level.goal.target}`;
     if (level.goal.type === 'find-long-word') return `${t.goalLongWord} ${level.goal.minLength} ${t.letters}`;
@@ -200,6 +207,7 @@ const AdventureGamePage = () => {
       const labels: Record<string, string> = { en: 'Survive moves:', sv: 'Överlev drag:', de: 'Überlebe Züge:', es: 'Sobrevive movimientos:', fr: 'Survivez aux coups :', it: 'Sopravvivi mosse:', pt: 'Sobreviva jogadas:', nl: 'Overleef zetten:', no: 'Overlev trekk:', da: 'Overlev træk:', fi: 'Selviä siirroista:' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
+    if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
     return t.goalFindWords;
   })();
 
