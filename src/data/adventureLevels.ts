@@ -195,7 +195,7 @@ export const adventureLevels: AdventureLevel[] = [
   },
   {
     id: 'adv-6', number: 6, icon: '🌋',
-    name: { en: 'Volcano Bombs', sv: 'Vulkanbomber', de: 'Vulkanbomben', es: 'Bombas Volcán', fr: 'Bombes Volcan', it: 'Bombe Vulcano', pt: 'Bombas Vulcão', nl: 'Vulkaanbommen', no: 'Vulkanbomber', da: 'Vulkanbomber', fi: 'Tulivuoripommit' },
+    name: { en: 'Volcano', sv: 'Vulkanen', de: 'Vulkan', es: 'Volcán', fr: 'Volcan', it: 'Vulcano', pt: 'Vulcão', nl: 'Vulkaan', no: 'Vulkanen', da: 'Vulkanen', fi: 'Tulivuori' },
     intro: {
       en: 'Survive 90 moves in Bomb Mode!',
       sv: 'Överlev 90 drag i Bombläge!',
