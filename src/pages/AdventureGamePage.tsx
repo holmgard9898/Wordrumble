@@ -57,6 +57,10 @@ const AdventureGamePage = () => {
   const [watchingAd, setWatchingAd] = useState(false);
   const [ready, setReady] = useState(false);
   const boardRef = useRef<GameBoardHandle | null>(null);
+  const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
+  const [rocketArming, setRocketArming] = useState(false);
+
+  useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
