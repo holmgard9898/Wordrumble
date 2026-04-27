@@ -138,8 +138,8 @@ export const adventureLevels: AdventureLevel[] = [
     maxMoves: 80,
   },
   {
-    id: 'adv-4', number: 4, icon: '💣',
-    name: { en: 'Bomb Wreck', sv: 'Bombvrak', de: 'Bombenwrack', es: 'Naufragio Bomba', fr: 'Épave Bombe', it: 'Relitto Bomba', pt: 'Naufrágio Bomba', nl: 'Bommenwrak', no: 'Bombevrak', da: 'Bombevrag', fi: 'Pommihylky' },
+    id: 'adv-4', number: 4, icon: '🚢',
+    name: { en: 'Shipwreck', sv: 'Skeppsvrak', de: 'Schiffswrack', es: 'Naufragio', fr: 'Épave', it: 'Relitto', pt: 'Naufrágio', nl: 'Scheepswrak', no: 'Skipsvrak', da: 'Skibsvrag', fi: 'Hylky' },
     intro: {
       en: 'Bombs everywhere! Score 120 points before they explode!',
       sv: 'Bomber överallt! Nå 120 poäng innan de exploderar!',
