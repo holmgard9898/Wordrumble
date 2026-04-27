@@ -153,7 +153,11 @@ const AdventureGamePage = () => {
       done = game.usedWords.some(w => w.word.length >= minLen);
     }
     else if (level.goal.type === 'survive-moves') done = game.movesUsed >= level.goal.moves;
-    else if (level.goal.type === 'hidden-word') done = hiddenFoundCount >= hiddenWord.length;
+    else if (level.goal.type === 'hidden-word') {
+      const allRevealed = hiddenFoundCount >= hiddenWord.length;
+      const formedHidden = game.usedWords.some(w => w.word.toLowerCase() === hiddenWord.toLowerCase());
+      done = allRevealed && formedHidden;
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
