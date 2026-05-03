@@ -520,6 +520,16 @@ export function useGameState(
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
 
+    // Word popup: show the formed word at every match
+    setBonusPopups((prev) => [...prev, {
+      id: `bonus-${bonusEventId++}`,
+      amount: word.score,
+      color: wordColor,
+      row: centerPos.row,
+      col: centerPos.col,
+      label: word.word.toUpperCase(),
+    }]);
+
     // Multiplier popup for 8+ letter words (all modes that use calcWordScore)
     if (mode !== 'bomb') {
       let multiplier = 0;
