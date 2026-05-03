@@ -39,6 +39,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/adventure" element={<AdventureMap />} />
+            <Route path="/adventure/map/2" element={<AdventureMap mapNumber={2} />} />
             <Route path="/adventure/:levelId" element={<AdventureGamePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
