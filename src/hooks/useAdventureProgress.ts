@@ -25,9 +25,6 @@ export function useAdventureProgress() {
   const isCompleted = useCallback((id: string) => state.completed.includes(id), [state.completed]);
 
   const isUnlocked = useCallback((id: string): boolean => {
-    // DEV: all levels unlocked while we develop adventure mode
-    return true;
-    // eslint-disable-next-line no-unreachable
     const idx = adventureLevels.findIndex(l => l.id === id);
     if (idx <= 0) return true;
     const prev = adventureLevels[idx - 1];
