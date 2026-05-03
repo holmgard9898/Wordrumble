@@ -13,6 +13,8 @@ export type AdventureGoal =
 export interface AdventureLevel {
   id: string;
   number: number;
+  /** Which adventure map this level belongs to (1 = beach→sky, 2 = space). Defaults to 1. */
+  map?: number;
   name: Record<GameLanguage, string>;
   intro: Record<GameLanguage, string>;
   background: GameBackground;
