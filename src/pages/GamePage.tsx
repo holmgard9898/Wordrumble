@@ -167,7 +167,7 @@ const GamePage = () => {
   return (
     <div className={`h-[100dvh] flex flex-col items-center ${bg.className}`} style={bg.style}>
       {/* ── Top bar: quick toggles left, menu right ── */}
-      <div className="w-full flex items-center justify-between px-3 pt-2 pb-0 md:py-3 md:px-4 max-w-4xl shrink-0 lg:hidden">
+      <div className="w-full flex items-center justify-between px-3 pt-2 pb-0 md:py-3 md:px-4 max-w-4xl shrink-0">
         <div className="flex items-center gap-2">
           <button
             onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
