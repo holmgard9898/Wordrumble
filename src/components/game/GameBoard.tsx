@@ -67,7 +67,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
 
   return (
     <div
-      className="relative rounded-lg md:rounded-2xl w-full md:w-auto"
+      className="relative rounded-lg md:rounded-2xl w-full"
       style={{
         background: 'rgba(0,0,0,0.25)',
         padding: isRubik ? '2px' : 'clamp(2px, 0.5vw, 12px)',
