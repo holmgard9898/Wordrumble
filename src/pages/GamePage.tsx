@@ -192,7 +192,7 @@ const GamePage = () => {
       </div>
 
       {/* ── Unified layout (mobile-style on all sizes) ── */}
-      <div className="flex flex-col flex-1 w-full items-center min-h-0 px-1 max-w-xl">
+      <div className="flex flex-col flex-1 w-full items-center min-h-0 px-1 max-w-md md:max-w-lg lg:max-w-2xl">
         {/* Title + mode badge */}
         <div className="w-full flex flex-col items-center pt-1 pb-2">
           <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>

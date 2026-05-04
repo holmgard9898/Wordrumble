@@ -38,7 +38,7 @@ export function GameInfo({
   const badge = MODE_BADGE[mode];
 
   return (
-    <div className="flex flex-col gap-1.5 md:gap-3 w-full max-w-none md:max-w-xs px-0 md:px-0">
+    <div className="flex flex-col gap-1.5 md:gap-3 w-full px-0 md:px-0">
       {/* Mode badge */}
       {!hideBadge && badge && (
         <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-2.5 self-center" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
