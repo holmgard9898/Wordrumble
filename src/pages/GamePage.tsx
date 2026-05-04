@@ -209,7 +209,7 @@ const GamePage = () => {
         </div>
 
         {/* Game board */}
-        <div className="flex items-center justify-center w-full">
+        <div className="flex items-center justify-center w-full flex-1 min-h-0">
           <GameBoard
             ref={boardRef}
             grid={game.grid}
