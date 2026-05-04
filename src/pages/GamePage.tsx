@@ -191,44 +191,8 @@ const GamePage = () => {
         </button>
       </div>
 
-      {/* Desktop header */}
-      <div className="hidden lg:flex w-full items-center justify-between px-4 py-3 max-w-4xl shrink-0">
-        <h1 className="text-3xl font-bold text-white tracking-tight opacity-80">Word Rumble</h1>
-        <button onClick={() => setShowMenu(true)} className="p-1 rounded-lg hover:bg-white/10 transition-colors">
-          <Menu className="w-6 h-6 text-white" />
-        </button>
-      </div>
-
-      {/* Desktop layout */}
-      <div className="hidden lg:flex gap-6 items-start w-full max-w-4xl flex-1 px-4">
-        <div className="w-[450px] shrink-0">
-          <GameBoard
-            ref={boardRef}
-            grid={game.grid}
-            selectedBubble={game.selectedBubble}
-            poppingCells={game.poppingCells}
-            onBubbleClick={handleBubbleClick}
-            onSwipe={game.handleSwipe}
-            bonusPopups={game.bonusPopups}
-            onBonusPopupDone={game.removeBonusPopup}
-          />
-        </div>
-        <GameInfo
-          movesLeft={game.movesLeft}
-          score={game.score}
-          lastFoundWord={game.lastFoundWord}
-          onResetGame={handleReset}
-          onShowWords={() => setShowWords(true)}
-          usedWordsCount={game.usedWords.length}
-          mode={gameMode}
-          bestWordScore={game.bestWordScore}
-          bestWord={game.bestWord}
-          freeMovesRemaining={game.freeMovesRemaining}
-        />
-      </div>
-
-      {/* ── Mobile layout ── */}
-      <div className="flex lg:hidden flex-col flex-1 w-full items-center min-h-0 px-1">
+      {/* ── Unified layout (mobile-style on all sizes) ── */}
+      <div className="flex flex-col flex-1 w-full items-center min-h-0 px-1 max-w-xl">
         {/* Title + mode badge */}
         <div className="w-full flex flex-col items-center pt-1 pb-2">
           <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
