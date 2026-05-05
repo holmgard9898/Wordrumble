@@ -10,6 +10,8 @@ import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useSfx } from '@/hooks/useSfx';
 import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 const AuthPage = () => {
   useMenuMusic();
@@ -66,8 +68,8 @@ const AuthPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-pink-400 to-yellow-400 mb-2">Word Rumble</h1>
-      <p className="text-white/50 mb-8">{isLogin ? t.loginToChallenge : t.createAccount}</p>
+      <div className="mb-3"><BubbleTitle text="Word Rumble" size="md" /></div>
+      <p className="text-white/60 mb-8">{isLogin ? t.loginToChallenge : t.createAccount}</p>
 
       <div className="w-full max-w-xs flex flex-col gap-4">
         <Button onClick={handleGoogleAuth} size="lg" className="h-14 text-lg bg-white text-gray-800 hover:bg-gray-100 gap-3">
@@ -118,9 +120,7 @@ const AuthPage = () => {
         </button>
       </div>
 
-      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-      </Button>
+      <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-8" />
     </div>
   );
 };

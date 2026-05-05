@@ -1,9 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Shield } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 const PrivacyPage = () => {
   useMenuMusic();
@@ -13,10 +15,7 @@ const PrivacyPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 py-8 ${bg.className}`} style={bg.style}>
-      <div className="flex items-center gap-3 mb-6">
-        <Shield className="w-8 h-8 text-purple-400" />
-        <h1 className="text-3xl font-bold text-white">Privacy Policy</h1>
-      </div>
+      <div className="mb-6"><BubbleTitle text="Privacy" size="md" /></div>
 
       <div className="w-full max-w-2xl rounded-2xl p-6 space-y-5 text-white/90 text-sm leading-relaxed" style={{ background: 'rgba(0,0,0,0.4)' }}>
         <p>
@@ -59,9 +58,7 @@ const PrivacyPage = () => {
         </section>
       </div>
 
-      <Button onClick={() => { playClick(); navigate(-1); }} variant="ghost" className="mt-6 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> Back
-      </Button>
+      <BackButton onClick={() => { playClick(); navigate(-1); }} icon={<ArrowLeft className="w-4 h-4" />} label="Back" className="mt-6" />
     </div>
   );
 };
