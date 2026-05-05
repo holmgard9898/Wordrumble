@@ -21,6 +21,7 @@ export interface TileShopItem extends ShopItem {
 }
 
 export const bgShopItems: BgShopItem[] = [
+  { id: 'bg-storybook', bgId: 'storybook', name: 'Storybook', unlockMethod: 'free', unlockDescription: 'Unlocked from the start!' },
   { id: 'bg-default', bgId: 'default', name: 'Cosmic Night', unlockMethod: 'free', unlockDescription: 'Unlocked from the start!' },
   { id: 'bg-clouds', bgId: 'clouds', name: 'Blue Sky', unlockMethod: 'coins', cost: 10, unlockDescription: 'Buy for 10 coins.' },
   { id: 'bg-wood', bgId: 'wood', name: 'Walnut', unlockMethod: 'ad', unlockDescription: 'Watch an ad to unlock.' },

@@ -5,6 +5,7 @@ const UNLOCKS_KEY = 'wr-unlocks';
 
 const DEFAULT_UNLOCKS = new Set([
   'bg-default',
+  'bg-storybook',
   'tile-bubble',
   'tile-shapes',
 ]);
