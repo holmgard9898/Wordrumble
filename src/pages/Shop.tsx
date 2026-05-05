@@ -21,9 +21,11 @@ import underwaterBg from '@/assets/bg-underwater.jpg';
 import shipwreckBg from '@/assets/bg-shipwreck.jpg';
 import caveBg from '@/assets/bg-cave.jpg';
 import cityBg from '@/assets/bg-city.jpg';
+import storybookBg from '@/assets/bg-storybook.jpg';
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
+  storybook: <img src={storybookBg} alt="Storybook" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   clouds: <img src={cloudsBg} alt="Blue sky" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   wood: <img src={woodBg} alt="Walnut wood" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   space: <img src={spaceBg} alt="Space" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
