@@ -10,6 +10,8 @@ import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useSfx } from '@/hooks/useSfx';
 import { useTranslation } from '@/hooks/useTranslation';
 import { toast } from 'sonner';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 const AuthPage = () => {
   useMenuMusic();
