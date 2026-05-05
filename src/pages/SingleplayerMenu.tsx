@@ -9,6 +9,8 @@ import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useGameProgress } from '@/hooks/useGameProgress';
 import { useTranslation } from '@/hooks/useTranslation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 interface ModeData {
   path: string;
@@ -62,8 +64,8 @@ const SingleplayerMenu = () => {
       {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
       <div className="relative z-10 flex flex-col items-center w-full">
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 80, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
-          <h1 className="text-4xl font-bold text-white mb-2 drop-shadow-lg">{t.singleplayer}</h1>
-          <p className="text-white/60 mb-8 drop-shadow">{t.chooseMode}</p>
+          <div className="mb-2"><BubbleTitle text={t.singleplayer} size="md" /></div>
+          <p className="text-white/70 mb-6 mt-2 drop-shadow text-center">{t.chooseMode}</p>
         </div>
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
@@ -115,9 +117,7 @@ const SingleplayerMenu = () => {
         </div>
 
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 60, opacity: expanded ? 0 : 1 }}>
-          <Button onClick={() => go('/', 'classic')} variant="ghost" className="mt-4 gap-2 text-white/80 hover:text-white hover:bg-white/20 bg-white/10 border border-white/20 drop-shadow">
-            <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-          </Button>
+          <BackButton onClick={() => go('/', 'classic')} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-4" />
         </div>
       </div>
 
