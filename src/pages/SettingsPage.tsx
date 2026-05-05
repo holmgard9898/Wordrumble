@@ -17,6 +17,8 @@ import { toast } from 'sonner';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 const SettingsPage = () => {
   useMenuMusic();
@@ -64,7 +66,7 @@ const SettingsPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <h1 className="text-4xl font-bold text-white mb-8">{t.settingsTitle}</h1>
+      <div className="mb-8"><BubbleTitle text={t.settingsTitle} size="md" /></div>
 
       <div className="w-full max-w-sm space-y-6">
         {/* Account */}
@@ -187,9 +189,7 @@ const SettingsPage = () => {
         <Shield className="w-4 h-4" /> Privacy Policy
       </button>
 
-      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-4 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-      </Button>
+      <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-4" />
     </div>
   );
 };
