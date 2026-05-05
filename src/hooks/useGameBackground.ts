@@ -8,8 +8,10 @@ import underwaterBg from '@/assets/bg-underwater.jpg';
 import shipwreckBg from '@/assets/bg-shipwreck.jpg';
 import caveBg from '@/assets/bg-cave.jpg';
 import cityBg from '@/assets/bg-city.jpg';
+import storybookBg from '@/assets/bg-storybook.jpg';
 
 const BG_IMAGES: Partial<Record<GameBackground, string>> = {
+  storybook: storybookBg,
   clouds: cloudsBg,
   wood: woodBg,
   space: spaceBg,

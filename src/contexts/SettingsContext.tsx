@@ -40,7 +40,7 @@ const defaultSettings: Settings = {
   musicEnabled: true,
   sfxEnabled: true,
   language: 'en',
-  background: 'default',
+  background: 'storybook',
   tileStyle: 'bubble',
 };
 
