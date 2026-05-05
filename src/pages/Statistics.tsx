@@ -12,6 +12,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useUnlocks } from '@/hooks/useUnlocks';
 import { supabase } from '@/integrations/supabase/client';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 interface OnlineStats {
   wins: number; losses: number; draws: number; totalMatches: number;
@@ -114,7 +116,7 @@ const Statistics = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <h1 className="text-4xl font-bold text-white mb-6">{t.statistics}</h1>
+      <div className="mb-6"><BubbleTitle text={t.statistics} size="md" /></div>
 
       <div className="w-full max-w-sm">
         <Tabs defaultValue="highscore" className="w-full">
@@ -206,9 +208,7 @@ const Statistics = () => {
         </Tabs>
       </div>
 
-      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-      </Button>
+      <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-8" />
     </div>
   );
 };

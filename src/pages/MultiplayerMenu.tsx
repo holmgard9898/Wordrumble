@@ -12,6 +12,8 @@ import { FriendDrawer } from '@/components/multiplayer/FriendDrawer';
 import { ModePickerSheet, type MatchMode } from '@/components/multiplayer/ModePickerSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 
 const MultiplayerMenu = () => {
   useMenuMusic();
@@ -88,8 +90,8 @@ const MultiplayerMenu = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 pt-8 pb-20 ${bg.className}`} style={bg.style}>
-      <h1 className="text-3xl font-bold text-white mb-1">{t.challenge}</h1>
-      <p className="text-white/50 text-sm mb-6">{t.chooseOpponent}</p>
+      <div className="mb-1"><BubbleTitle text={t.challenge} size="md" /></div>
+      <p className="text-white/60 text-sm mb-6 mt-2">{t.chooseOpponent}</p>
 
       {searching ? (
         <div className="w-full max-w-md text-center py-8">
@@ -119,9 +121,7 @@ const MultiplayerMenu = () => {
             </button>
           </div>
           <MatchList />
-          <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-            <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-          </Button>
+          <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-8" />
         </>
       )}
 

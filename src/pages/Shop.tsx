@@ -12,6 +12,8 @@ import { useTranslation } from '@/hooks/useTranslation';
 import { bgShopItems, tileShopItems, miscShopItems, type UnlockMethod } from '@/data/shopData';
 import { BUBBLE_COLOR_STYLES, type BubbleColor } from '@/data/gameConstants';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { BubbleTitle } from '@/components/BubbleTitle';
+import { BackButton } from '@/components/MenuButton';
 import cloudsBg from '@/assets/bg-clouds.jpg';
 import woodBg from '@/assets/bg-wood.jpg';
 import spaceBg from '@/assets/bg-space.jpg';
@@ -127,7 +129,7 @@ const Shop = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <h1 className="text-4xl font-bold text-white mb-2">{t.shop}</h1>
+      <div className="mb-2"><BubbleTitle text={t.shop} size="md" /></div>
       <div className="flex items-center gap-2 mb-8"><Coins className="w-5 h-5 text-yellow-400" /><span className="text-yellow-400 font-bold">{coins} coins</span></div>
 
       <div className="w-full max-w-md space-y-6">
@@ -168,9 +170,7 @@ const Shop = () => {
         </div>
       </div>
 
-      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="mt-8 gap-2 text-white/60 hover:text-white hover:bg-white/10">
-        <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
-      </Button>
+      <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-8" />
 
       <Dialog open={!!infoItem} onOpenChange={(open) => !open && setInfoItem(null)}>
         <DialogContent className="max-w-xs rounded-2xl border-white/10" style={{ background: 'rgba(15,23,42,0.95)', backdropFilter: 'blur(20px)' }}>
