@@ -99,21 +99,21 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] backdrop-blur-md w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
                     {locked && <LockOverlay />}
                     <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
-                      <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
+                      <span className="text-xl font-bold text-white" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.35)' }}>{m.name}</span>
                     </div>
-                    <p className={`text-white/70 text-sm font-medium drop-shadow-sm pr-8 ${locked ? 'opacity-50' : ''}`}>{m.desc}</p>
+                    <p className={`text-white/95 text-sm font-medium pr-8 ${locked ? 'opacity-50' : ''}`} style={{ textShadow: '0 1px 0 rgba(0,0,0,0.30)' }}>{m.desc}</p>
                     {!locked && (
-                      <div onClick={(e) => { e.stopPropagation(); playClick(); setExpandedMode(m.path); }} className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/15 hover:bg-white/30 transition-colors cursor-pointer z-30">
-                        <HelpCircle className="w-4 h-4 text-white/80" />
+                      <div onClick={(e) => { e.stopPropagation(); playClick(); setExpandedMode(m.path); }} className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center bg-white/25 hover:bg-white/40 transition-colors cursor-pointer z-30 ring-1 ring-white/40">
+                        <HelpCircle className="w-4 h-4 text-white" />
                       </div>
                     )}
                   </button>
                 ) : (
-                  <div className="rounded-2xl p-5 backdrop-blur-md w-full animate-in fade-in zoom-in-95 duration-300" style={{ background: isClouds ? m.bg.replace('0.35', '0.55') : m.bg, border: `1px solid ${m.border}` }}>
+                  <div className="rounded-2xl p-5 w-full animate-in fade-in zoom-in-95 duration-300" style={styleFor(m.tone)}>
                     <div className="flex items-center gap-3 mb-4">
                       {m.icon}
                       <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
