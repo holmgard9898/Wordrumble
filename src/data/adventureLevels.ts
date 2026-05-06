@@ -272,7 +272,7 @@ export const adventureLevels: AdventureLevel[] = [
     goal: { type: 'reach-score', target: 250 },
     mapPosition: { x: 78, y: 14 },
     connectsTo: [],
-    maxMoves: 80,
+    maxMoves: 160,
     freeRockets: 2,
   },
 
