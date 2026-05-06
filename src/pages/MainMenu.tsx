@@ -18,12 +18,12 @@ const MainMenu = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      {/* Bubble title — single line, hugs text */}
+      {/* Bubble title — two rows like the mockup, gooey blob hugs the letters */}
       <div className="relative mb-10">
         <span aria-hidden className="absolute -top-3 left-2 text-yellow-300 text-2xl drop-shadow">✦</span>
         <span aria-hidden className="absolute -top-1 right-4 text-yellow-300 text-xl drop-shadow">✧</span>
         <span aria-hidden className="absolute bottom-0 -right-2 text-yellow-300 text-lg drop-shadow">✦</span>
-        <BubbleTitle text="Word Rumble" size="lg" />
+        <BubbleTitle lines={['Word', 'Rumble']} size="lg" />
       </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
