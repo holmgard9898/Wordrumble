@@ -39,6 +39,7 @@ const SingleplayerMenu = () => {
   const { settings } = useSettings();
   const { t, ta } = useTranslation();
   const isClouds = settings.background === 'clouds';
+  const isCosmic = settings.background === 'default';
   const [expandedMode, setExpandedMode] = useState<string | null>(null);
   const [lockedDialog, setLockedDialog] = useState<string | null>(null);
   const { isModeUnlocked, getUnlockHint } = useGameProgress();
@@ -48,12 +49,33 @@ const SingleplayerMenu = () => {
     playClick(); navigate(path);
   };
 
-  const modes: ModeData[] = [
-    { path: '/game/classic', mode: 'classic', icon: <Timer className="w-6 h-6 text-blue-400" />, name: t.modeClassic, desc: t.descClassic, bg: 'rgba(59,130,246,0.35)', border: 'rgba(59,130,246,0.5)', infoKey: 'infoClassic' },
-    { path: '/game/surge', mode: 'surge', icon: <Zap className="w-6 h-6 text-yellow-400" />, name: t.modeSurge, desc: t.descSurge, bg: 'rgba(234,179,8,0.35)', border: 'rgba(234,179,8,0.5)', infoKey: 'infoSurge' },
-    { path: '/game/fiveplus', mode: 'fiveplus', icon: <Hash className="w-6 h-6 text-cyan-400" />, name: t.modeFiveplus, desc: t.descFiveplus, bg: 'rgba(34,211,238,0.35)', border: 'rgba(34,211,238,0.5)', infoKey: 'infoFiveplus' },
-    { path: '/game/oneword', mode: 'oneword', icon: <Target className="w-6 h-6 text-emerald-400" />, name: t.modeOneword, desc: t.descOneword, bg: 'rgba(16,185,129,0.35)', border: 'rgba(16,185,129,0.5)', infoKey: 'infoOneword' },
-    { path: '/game/bomb', mode: 'bomb', icon: <Bomb className="w-6 h-6 text-red-400" />, name: t.modeBomb, desc: t.descBomb, bg: 'rgba(239,68,68,0.35)', border: 'rgba(239,68,68,0.5)', infoKey: 'infoBomb' },
+  // Solid candy palette per mode (top → base → bottom + border)
+  const TONE = {
+    blue:   { top: '#5BA8FF', base: '#2F7FE6', bottom: '#1E5BB8', border: '#164785' },
+    amber:  { top: '#F8C24A', base: '#E8A322', bottom: '#B57A10', border: '#8A5C0A' },
+    cyan:   { top: '#4FD3E0', base: '#1FAFC0', bottom: '#137985', border: '#0D5A63' },
+    green:  { top: '#5FCB6B', base: '#34A745', bottom: '#247A30', border: '#1A5A23' },
+    red:    { top: '#F46B6B', base: '#DB3B3B', bottom: '#A52424', border: '#7A1A1A' },
+  } as const;
+  const styleFor = (k: keyof typeof TONE) => {
+    const t = TONE[k];
+    const bg = isCosmic
+      ? `linear-gradient(180deg, ${t.top}cc 0%, ${t.base}cc 55%, ${t.bottom}cc 100%)`
+      : `linear-gradient(180deg, ${t.top} 0%, ${t.base} 55%, ${t.bottom} 100%)`;
+    return {
+      background: bg,
+      border: `2px solid ${t.border}`,
+      boxShadow: `inset 0 -4px 0 ${t.bottom}, inset 0 2px 0 rgba(255,255,255,0.30), 0 4px 0 ${t.border}, 0 8px 14px rgba(0,0,0,0.30)`,
+      backdropFilter: isCosmic ? 'blur(6px)' as const : undefined,
+    };
+  };
+
+  const modes: (ModeData & { tone: keyof typeof TONE })[] = [
+    { path: '/game/classic', mode: 'classic', icon: <Timer className="w-6 h-6 text-white drop-shadow" />, name: t.modeClassic, desc: t.descClassic, bg: '', border: '', infoKey: 'infoClassic', tone: 'blue' },
+    { path: '/game/surge', mode: 'surge', icon: <Zap className="w-6 h-6 text-white drop-shadow" />, name: t.modeSurge, desc: t.descSurge, bg: '', border: '', infoKey: 'infoSurge', tone: 'amber' },
+    { path: '/game/fiveplus', mode: 'fiveplus', icon: <Hash className="w-6 h-6 text-white drop-shadow" />, name: t.modeFiveplus, desc: t.descFiveplus, bg: '', border: '', infoKey: 'infoFiveplus', tone: 'cyan' },
+    { path: '/game/oneword', mode: 'oneword', icon: <Target className="w-6 h-6 text-white drop-shadow" />, name: t.modeOneword, desc: t.descOneword, bg: '', border: '', infoKey: 'infoOneword', tone: 'green' },
+    { path: '/game/bomb', mode: 'bomb', icon: <Bomb className="w-6 h-6 text-white drop-shadow" />, name: t.modeBomb, desc: t.descBomb, bg: '', border: '', infoKey: 'infoBomb', tone: 'red' },
   ];
 
   const expanded = modes.find((m) => m.path === expandedMode);
