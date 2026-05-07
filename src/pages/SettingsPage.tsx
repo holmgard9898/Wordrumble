@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Volume2, Music, Globe, Shield, LogIn, LogOut, User, Camera } from 'lucide-react';
+import { ArrowLeft, Volume2, Music, Globe, Shield, LogIn, LogOut, User, Camera, HelpCircle } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
@@ -182,12 +182,20 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      <button
-        onClick={() => { playClick(); navigate('/privacy'); }}
-        className="mt-6 flex items-center gap-2 text-white/50 hover:text-white/90 text-sm transition-colors"
-      >
-        <Shield className="w-4 h-4" /> Privacy Policy
-      </button>
+      <div className="mt-6 flex flex-col items-center gap-3">
+        <button
+          onClick={() => { playClick(); navigate('/info'); }}
+          className="flex items-center gap-2 text-white/80 hover:text-white text-sm transition-colors px-4 py-2 rounded-full bg-white/10 hover:bg-white/15 border border-white/15"
+        >
+          <HelpCircle className="w-4 h-4" /> {settings.language === 'sv' ? 'Hur man spelar' : 'How to play'}
+        </button>
+        <button
+          onClick={() => { playClick(); navigate('/privacy'); }}
+          className="flex items-center gap-2 text-white/50 hover:text-white/90 text-sm transition-colors"
+        >
+          <Shield className="w-4 h-4" /> Privacy Policy
+        </button>
+      </div>
 
       <BackButton onClick={() => { playClick(); navigate('/'); }} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-4" />
     </div>

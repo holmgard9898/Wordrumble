@@ -4,8 +4,8 @@ import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useTranslation } from '@/hooks/useTranslation';
-import { BubbleTitle } from '@/components/BubbleTitle';
 import { MenuButton } from '@/components/MenuButton';
+import logoUrl from '@/assets/word-rumble-logo.png';
 
 const MainMenu = () => {
   useMenuMusic();
@@ -18,12 +18,13 @@ const MainMenu = () => {
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      {/* Bubble title — two rows like the mockup, gooey blob hugs the letters */}
-      <div className="relative mb-10">
-        <span aria-hidden className="absolute -top-3 left-2 text-yellow-300 text-2xl drop-shadow">✦</span>
-        <span aria-hidden className="absolute -top-1 right-4 text-yellow-300 text-xl drop-shadow">✧</span>
-        <span aria-hidden className="absolute bottom-0 -right-2 text-yellow-300 text-lg drop-shadow">✦</span>
-        <BubbleTitle lines={['Word', 'Rumble']} size="lg" />
+      <div className="mb-8 w-full max-w-[22rem] sm:max-w-md flex justify-center">
+        <img
+          src={logoUrl}
+          alt="Word Rumble"
+          className="w-full h-auto select-none pointer-events-none drop-shadow-[0_8px_22px_rgba(0,0,0,0.45)]"
+          draggable={false}
+        />
       </div>
 
       <div className="flex flex-col gap-3 w-full max-w-xs">
