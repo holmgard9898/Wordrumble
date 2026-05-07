@@ -4,8 +4,9 @@ import type { GameLanguage } from './languages';
 import type { GameMode } from '@/pages/GamePage';
 
 // Visual: mini bubble grid demo
-const MiniGrid: React.FC<{ highlight?: [number, number][]; word?: string; colors?: string[] }> = ({
+const MiniGrid: React.FC<{ highlight?: [number, number][]; highlightColor?: string; word?: string; colors?: string[] }> = ({
   highlight = [],
+  highlightColor = '#22C55E',
   word,
   colors = ['#EF4444', '#3B82F6', '#22C55E', '#F59E0B', '#A855F7'],
 }) => {
@@ -21,8 +22,8 @@ const MiniGrid: React.FC<{ highlight?: [number, number][]; word?: string; colors
       <div className="grid grid-cols-4 gap-1.5">
         {grid.map((row, r) =>
           row.map((ch, c) => {
-            const color = colors[(r + c) % colors.length];
             const hi = isHi(r, c);
+            const color = hi ? highlightColor : colors[(r + c) % colors.length];
             return (
               <div
                 key={`${r}-${c}`}
@@ -99,19 +100,19 @@ export function getTutorialSteps(mode: GameMode, lang: GameLanguage): TutorialSt
   const swap: TutorialStep = {
     title: t('Swap bubbles', 'Byt bubblor'),
     body: t(
-      'Tap two adjacent bubbles to swap them. Build words by lining up letters in a row or column.',
-      'Tryck på två bubblor bredvid varandra för att byta plats. Bilda ord genom att radera bokstäver i en rad eller kolumn.'
+      'Tap two adjacent bubbles to swap them. Plan swaps so bubbles of the SAME color line up to spell a word.',
+      'Tryck på två bubblor bredvid varandra för att byta plats. Planera bytena så att bubblor med SAMMA färg hamnar i rad och bildar ett ord.'
     ),
     visual: <SwapVisual />,
   };
 
   const findWords: TutorialStep = {
-    title: t('Form words', 'Bilda ord'),
+    title: t('Same color forms words', 'Samma färg bildar ord'),
     body: t(
-      'When 3+ letters in a row or column form a valid word, they pop and you score points!',
-      'När 3+ bokstäver i rad eller kolumn bildar ett giltigt ord poppar de och du får poäng!'
+      'Only bubbles of the SAME color count. When 3+ same-colored bubbles in a row or column spell a valid word, they pop and you score points! Mixed colors do not count.',
+      'Endast bubblor av SAMMA färg räknas. När 3+ bubblor med samma färg i en rad eller kolumn stavar ett giltigt ord poppar de och du får poäng! Olika färger räknas inte.'
     ),
-    visual: <MiniGrid highlight={[[0, 0], [0, 1], [0, 2]]} word="CAT" />,
+    visual: <MiniGrid highlight={[[0, 0], [0, 1], [0, 2]]} highlightColor="#22C55E" word="CAT" />,
   };
 
   const lengthBonus: TutorialStep = {
