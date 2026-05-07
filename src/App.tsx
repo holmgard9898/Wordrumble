@@ -17,6 +17,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
 import AdventureMap from "./pages/AdventureMap";
 import AdventureGamePage from "./pages/AdventureGamePage";
+import InfoPage from "./pages/InfoPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/shop" element={<Shop />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/info" element={<InfoPage />} />
             <Route path="/adventure" element={<AdventureMap />} />
             <Route path="/adventure/map/2" element={<AdventureMap mapNumber={2} />} />
             <Route path="/adventure/:levelId" element={<AdventureGamePage />} />
