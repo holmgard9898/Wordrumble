@@ -248,6 +248,11 @@ const GamePage = () => {
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
+      <TutorialModal
+        open={showTutorial}
+        steps={getTutorialSteps(gameMode, settings.language)}
+        onClose={() => { markTutorialSeen(); setShowTutorial(false); }}
+      />
       {game.gameOver && (
         <GameOverOverlay score={finalScore} wordsFound={game.usedWords.length} mode={gameMode} onRestart={handleReset} bestWord={game.bestWord} bestWordScore={game.bestWordScore} coinReward={coinReward} explosionPx={explosionPx} />
       )}
