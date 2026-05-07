@@ -4,8 +4,9 @@ import type { GameLanguage } from './languages';
 import type { GameMode } from '@/pages/GamePage';
 
 // Visual: mini bubble grid demo
-const MiniGrid: React.FC<{ highlight?: [number, number][]; word?: string; colors?: string[] }> = ({
+const MiniGrid: React.FC<{ highlight?: [number, number][]; highlightColor?: string; word?: string; colors?: string[] }> = ({
   highlight = [],
+  highlightColor = '#22C55E',
   word,
   colors = ['#EF4444', '#3B82F6', '#22C55E', '#F59E0B', '#A855F7'],
 }) => {
@@ -21,8 +22,8 @@ const MiniGrid: React.FC<{ highlight?: [number, number][]; word?: string; colors
       <div className="grid grid-cols-4 gap-1.5">
         {grid.map((row, r) =>
           row.map((ch, c) => {
-            const color = colors[(r + c) % colors.length];
             const hi = isHi(r, c);
+            const color = hi ? highlightColor : colors[(r + c) % colors.length];
             return (
               <div
                 key={`${r}-${c}`}
