@@ -66,7 +66,7 @@ export const TutorialModal: React.FC<Props> = ({ open, steps, onClose }) => {
               onClick={() => setI((n) => Math.min(steps.length - 1, n + 1))}
               className="flex items-center gap-1 px-4 py-2.5 rounded-full bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold shadow-lg shadow-blue-500/30"
             >
-              <span>›</span> <ChevronRight className="w-4 h-4" />
+              <ChevronRight className="w-5 h-5" />
             </button>
           )}
         </div>
