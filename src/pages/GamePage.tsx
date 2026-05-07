@@ -19,6 +19,9 @@ import { GameOverOverlay } from '@/components/game/GameOverOverlay';
 import { calculateCoinReward } from '@/utils/coinRewards';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { Menu, Volume2, VolumeX, Music, Zap, Bomb, Hash, Target } from 'lucide-react';
+import { TutorialModal } from '@/components/TutorialModal';
+import { getTutorialSteps } from '@/data/tutorials';
+import { useTutorialSeen } from '@/hooks/useTutorialSeen';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
 
@@ -61,6 +64,9 @@ const GamePage = () => {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [explosionPx, setExplosionPx] = useState<{ x: number; y: number } | null>(null);
   const boardRef = useRef<GameBoardHandle | null>(null);
+  const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialSeen(`mode-${gameMode}`);
+  const [showTutorial, setShowTutorial] = useState(!tutorialSeen);
+  useEffect(() => { setShowTutorial(!tutorialSeen); }, [tutorialSeen, gameMode]);
 
   useBackgroundMusic(!game.gameOver && !showMenu);
 
