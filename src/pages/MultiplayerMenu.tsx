@@ -106,16 +106,16 @@ const MultiplayerMenu = () => {
         <>
           <div className="w-full max-w-md space-y-3 mb-6">
             <p className="text-white/50 text-xs font-semibold uppercase tracking-wider">{t.challenge}</p>
-            <button onClick={handleRandomClick} className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
+            <button onClick={handleRandomClick} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
               <Shuffle className="w-6 h-6 text-purple-400" />
               <div className="text-left"><div className="text-white font-bold text-base">{t.randomOpponent}</div><div className="text-white/40 text-xs">{t.meetRandomPlayer}</div></div>
             </button>
-            <button onClick={() => { playClick(); setFriendDrawerOpen(true); }} className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
+            <button onClick={() => { playClick(); setFriendDrawerOpen(true); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
               <Users className="w-6 h-6 text-purple-400" />
               <div className="text-left flex-1"><div className="text-white font-bold text-base">{t.friend}</div><div className="text-white/40 text-xs">{t.challengeFriend}</div></div>
               {pendingRequestCount > 0 && <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse"><Bell className="w-3 h-3" /> {pendingRequestCount}</span>}
             </button>
-            <button onClick={() => { playClick(); toast.info(t.comingSoon + '!'); }} className="w-full rounded-xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] opacity-60" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
+            <button onClick={() => { playClick(); toast.info(t.comingSoon + '!'); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] opacity-60" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
               <Bot className="w-6 h-6 text-purple-400" />
               <div className="text-left"><div className="text-white font-bold text-base">{t.computer}</div><div className="text-white/40 text-xs">{t.playVsAI}</div></div>
             </button>

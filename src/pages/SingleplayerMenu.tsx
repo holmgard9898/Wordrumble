@@ -82,7 +82,7 @@ const SingleplayerMenu = () => {
   const lockedMode = modes.find((m) => m.mode === lockedDialog);
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
+    <div className={`min-h-screen flex flex-col items-center justify-start pt-6 pb-10 px-4 ${bg.className}`} style={bg.style}>
       {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
       <div className="relative z-10 flex flex-col items-center w-full">
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 80, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
@@ -99,7 +99,7 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-2xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
                     {locked && <LockOverlay />}
                     <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
@@ -113,7 +113,7 @@ const SingleplayerMenu = () => {
                     )}
                   </button>
                 ) : (
-                  <div className="rounded-2xl p-5 w-full animate-in fade-in zoom-in-95 duration-300" style={styleFor(m.tone)}>
+                  <div className="rounded-3xl p-5 w-full animate-in fade-in zoom-in-95 duration-300" style={styleFor(m.tone)}>
                     <div className="flex items-center gap-3 mb-4">
                       {m.icon}
                       <span className="text-xl font-bold text-white drop-shadow">{m.name}</span>
@@ -144,7 +144,7 @@ const SingleplayerMenu = () => {
       </div>
 
       <Dialog open={!!lockedDialog} onOpenChange={(open) => !open && setLockedDialog(null)}>
-        <DialogContent className="bg-gray-900/95 border-gray-700 backdrop-blur-xl max-w-xs rounded-2xl">
+        <DialogContent className="bg-gray-900/95 border-gray-700 backdrop-blur-xl max-w-xs rounded-3xl">
           <DialogHeader>
             <DialogTitle className="text-white flex items-center gap-2">
               <Lock className="w-5 h-5 text-gray-400" />
