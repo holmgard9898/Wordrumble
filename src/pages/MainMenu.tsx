@@ -17,8 +17,8 @@ const MainMenu = () => {
   const go = (path: string) => { playClick(); navigate(path); };
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
-      <div className="mb-8 w-full max-w-[22rem] sm:max-w-md flex justify-center">
+    <div className={`min-h-screen flex flex-col items-center justify-start pt-6 pb-6 px-4 ${bg.className}`} style={bg.style}>
+      <div className="mb-3 w-full max-w-[18rem] sm:max-w-sm flex justify-center">
         <img
           src={logoUrl}
           alt="Word Rumble"
@@ -27,7 +27,7 @@ const MainMenu = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-3 w-full max-w-xs">
+      <div className="flex flex-col gap-4 w-full max-w-xs">
         <MenuButton onClick={() => go('/play')} icon={<Gamepad2 className="w-5 h-5" />} label={t.play} gradient="blue" />
         <MenuButton onClick={() => go('/challenge')} icon={<Swords className="w-5 h-5" />} label={t.challenge} gradient="red" />
         <MenuButton onClick={() => go('/adventure')} icon={<Map className="w-5 h-5" />} label={t.adventureTitle} gradient="amber" />
