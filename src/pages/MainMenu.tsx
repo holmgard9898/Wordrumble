@@ -30,7 +30,7 @@ const MainMenu = () => {
         />
       </div>
 
-      <div className="flex flex-col gap-4 w-full max-w-xs mb-[2vh]">
+      <div className="flex flex-col gap-4 w-full max-w-xs">
         <MenuButton onClick={() => go('/play')} icon={<Gamepad2 className="w-5 h-5" />} label={t.play} gradient="blue" />
         <MenuButton onClick={() => go('/challenge')} icon={<Swords className="w-5 h-5" />} label={t.challenge} gradient="red" />
         <MenuButton onClick={() => go('/adventure')} icon={<Map className="w-5 h-5" />} label={t.adventureTitle} gradient="amber" />
