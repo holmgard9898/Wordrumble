@@ -17,8 +17,11 @@ const MainMenu = () => {
   const go = (path: string) => { playClick(); navigate(path); };
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-start pt-6 pb-6 px-4 ${bg.className}`} style={bg.style}>
-      <div className="w-full max-w-[20rem] sm:max-w-sm flex justify-center -mb-6">
+    <div
+      className={`min-h-screen flex flex-col items-center justify-end pt-6 pb-6 px-4 ${bg.className}`}
+      style={{ ...bg.style, backgroundPosition: 'center bottom' }}
+    >
+      <div className="w-full max-w-[20rem] sm:max-w-sm flex justify-center -mb-4 mt-auto">
         <img
           src={logoUrl}
           alt="Word Rumble"
