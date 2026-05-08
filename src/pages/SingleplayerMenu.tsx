@@ -82,12 +82,12 @@ const SingleplayerMenu = () => {
   const lockedMode = modes.find((m) => m.mode === lockedDialog);
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-start pt-6 pb-10 px-4 ${bg.className}`} style={bg.style}>
+    <div className={`min-h-[100dvh] flex flex-col items-center justify-start pt-3 pb-6 px-4 ${bg.className}`} style={bg.style}>
       {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
       <div className="relative z-10 flex flex-col items-center w-full">
-        <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 80, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
-          <div className="mb-2"><BubbleTitle text={t.singleplayer} size="md" /></div>
-          <p className="text-white/70 mb-6 mt-2 drop-shadow text-center">{t.chooseMode}</p>
+        <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 160, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
+          <div className="mb-1"><BubbleTitle text={t.singleplayer} size="md" /></div>
+          <p className="text-white/90 mb-3 mt-1 drop-shadow text-center font-medium">{t.chooseMode}</p>
         </div>
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
