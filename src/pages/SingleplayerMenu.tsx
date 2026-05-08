@@ -82,7 +82,7 @@ const SingleplayerMenu = () => {
   const lockedMode = modes.find((m) => m.mode === lockedDialog);
 
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
+    <div className={`min-h-screen flex flex-col items-center justify-start pt-6 pb-10 px-4 ${bg.className}`} style={bg.style}>
       {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
       <div className="relative z-10 flex flex-col items-center w-full">
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 80, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
