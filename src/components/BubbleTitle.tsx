@@ -36,69 +36,7 @@ export const BubbleTitle: React.FC<BubbleTitleProps> = ({ text, lines, size = 'l
         @media (min-width: 768px) { .bt-${filterId} { font-size: ${fontSizeRem.md}rem; } }
       `}</style>
 
-      {/* SVG goo filter (renders nothing visible) */}
-      <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden>
-        <defs>
-          <filter id={`goo-${filterId}`}>
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feColorMatrix
-              in="blur"
-              mode="matrix"
-              values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -11"
-              result="goo"
-            />
-            <feComposite in="SourceGraphic" in2="goo" operator="atop" />
-          </filter>
-        </defs>
-      </svg>
-
-      <div className="relative inline-block px-6 py-4">
-        {/* Goo bubble layer — one rounded "blob" per row, blurred together */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ filter: `url(#goo-${filterId})` }}
-          aria-hidden
-        >
-          <div className="relative h-full w-full flex flex-col items-center justify-center gap-1">
-            {rows.map((row, i) => (
-              <div
-                key={i}
-                className={`bt-${filterId}`}
-                style={{
-                  // sized to roughly match the text row it sits behind
-                  height: '1.05em',
-                  width: `${row.length * 0.78 + 1.2}em`,
-                  borderRadius: '9999px',
-                  background:
-                    'linear-gradient(180deg, rgba(220,235,255,0.85) 0%, rgba(255,255,255,0.65) 50%, rgba(200,225,255,0.75) 100%)',
-                  boxShadow:
-                    'inset 0 6px 0 rgba(255,255,255,0.7), inset 0 -6px 12px rgba(120,160,210,0.35)',
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Crisp white rim layer (drawn over blur, no filter) */}
-        <div className="absolute inset-0 pointer-events-none" aria-hidden>
-          <div className="relative h-full w-full flex flex-col items-center justify-center gap-1">
-            {rows.map((row, i) => (
-              <div
-                key={i}
-                className={`bt-${filterId}`}
-                style={{
-                  height: '1.05em',
-                  width: `${row.length * 0.78 + 1.2}em`,
-                  borderRadius: '9999px',
-                  border: '3px solid rgba(255,255,255,0.85)',
-                  boxShadow: '0 8px 22px rgba(0,0,0,0.28)',
-                }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Text rows */}
+      <div className="relative inline-block px-4 py-2">
         <div className="relative flex flex-col items-center gap-0">
           {rows.map((row, ri) => {
             const palette = ROW_PALETTES[ri] ?? ROW_PALETTES[0];
