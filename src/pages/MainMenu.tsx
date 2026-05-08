@@ -18,10 +18,10 @@ const MainMenu = () => {
 
   return (
     <div
-      className={`h-[100dvh] overflow-hidden flex flex-col items-center justify-end pb-6 px-4 ${bg.className}`}
-      style={{ ...bg.style, backgroundPosition: 'center 85%', backgroundSize: 'cover' }}
+      className={`h-[100dvh] overflow-hidden flex flex-col items-center justify-end pt-4 pb-6 px-4 ${bg.className}`}
+      style={{ ...bg.style, backgroundPosition: 'center 80%', backgroundSize: 'cover' }}
     >
-      <div className="w-full max-w-[18rem] sm:max-w-sm flex justify-center -mb-2 mt-auto">
+      <div className="w-full max-w-[15rem] sm:max-w-[18rem] flex justify-center -mb-2">
         <img
           src={logoUrl}
           alt="Word Rumble"
