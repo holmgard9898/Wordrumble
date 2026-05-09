@@ -79,8 +79,8 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
   const [done, setDone] = useState(false);
   const completedRef = useRef(false);
   
-  // Touch/Swipe Ref
-  const touchStartRef = useRef<{ x: number; y: number; r: number; c: number } | null>(null);
+  // Pointer Ref som ersätter touchStartRef
+  const pointerStartRef = useRef<{ x: number; y: number; r: number; c: number } | null>(null);
 
   useEffect(() => {
     setGrid(buildInitialGrid(word));
@@ -120,35 +120,38 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
     setInteracted(true);
   }, []);
 
-  const handleTouchStart = (r: number, c: number, e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, r, c };
+  // NYA POINTER FUNKTIONER FÖR ATT FIXA DATOR-SUPPORT
+  const handlePointerDown = (r: number, c: number, e: React.PointerEvent) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, r, c };
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!touchStartRef.current) return;
-    const touch = e.changedTouches[0];
-    const dx = touch.clientX - touchStartRef.current.x;
-    const dy = touch.clientY - touchStartRef.current.y;
-    const { r, c } = touchStartRef.current;
-    touchStartRef.current = null;
+  const handlePointerUp = (e: React.PointerEvent) => {
+    if (!pointerStartRef.current) return;
+    const dx = e.clientX - pointerStartRef.current.x;
+    const dy = e.clientY - pointerStartRef.current.y;
+    const { r, c } = pointerStartRef.current;
+    pointerStartRef.current = null;
 
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
     const threshold = 20;
 
+    // KLICK-LOGIK (Räddar klick på desktop)
     if (absDx < threshold && absDy < threshold) {
-      // Hantera som klick om rörelsen är liten
-      if (!selected) setSelected({ r, c });
-      else if (selected.r === r && selected.c === c) setSelected(null);
-      else if (isAdjacent(selected, { r, c })) {
+      if (!selected) {
+        setSelected({ r, c });
+      } else if (selected.r === r && selected.c === c) {
+        setSelected(null);
+      } else if (isAdjacent(selected, { r, c })) {
         executeSwap(selected.r, selected.c, r, c);
         setSelected(null);
-      } else setSelected({ r, c });
+      } else {
+        setSelected({ r, c });
+      }
       return;
     }
 
-    // Hantera som svajp
+    // DRAG-LOGIK (Simulerar swipe med mus/finger)
     if (absDx > absDy) {
       executeSwap(r, c, r, c + (dx > 0 ? 1 : -1));
     } else {
@@ -210,15 +213,16 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
               return (
                 <button
                   key={`${r}-${c}-${cell.id}`}
-                  onTouchStart={(e) => handleTouchStart(r, c, e)}
-                  onTouchEnd={handleTouchEnd}
-                  onClick={() => !('ontouchstart' in window) && executeSwap(r, c, r, c)} // Fallback för desktop utan touch
+                  // Uppdaterat till Pointer händelser
+                  onPointerDown={(e) => handlePointerDown(r, c, e)}
+                  onPointerUp={handlePointerUp}
                   className={`relative rounded-full flex items-center justify-center font-bold text-white text-base select-none transition-all touch-none ${isSel ? 'ring-2 ring-yellow-300 scale-110 z-10' : ''} ${targetGlow}`}
                   style={{
                     background: `radial-gradient(circle at 30% 30%, ${cell.color}ee, ${cell.color}99)`,
                     boxShadow: isSel
                       ? `0 0 14px rgba(253,224,71,0.8), inset 0 -2px 4px rgba(0,0,0,0.2)`
                       : 'inset 0 -2px 4px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.3)',
+                    touchAction: 'none' // Hindrar scroll
                   }}
                 >
                   <span style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}>{cell.letter}</span>
