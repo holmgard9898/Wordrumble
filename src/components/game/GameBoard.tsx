@@ -71,15 +71,21 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
     }
   }, [onSwipe, onBubbleClick]);
 
-  return (
+ return (
     <div
-      className="relative rounded-lg md:rounded-2xl w-full"
+      className="relative rounded-2xl w-full bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl transition-all"
       style={{
-        background: 'rgba(0,0,0,0.25)',
-        padding: isRubik ? '2px' : 'clamp(2px, 0.5vw, 12px)',
-        touchAction: 'none' // Förhindrar att sidan scrollar på mobil när man drar
+        padding: isRubik ? '2px' : 'clamp(4px, 1.5vw, 12px)',
+        touchAction: 'none'
       }}
     >
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(${grid[0]?.length ?? 8}, 1fr)`,
+          gap: isRubik ? '0px' : 'clamp(1px, 0.4vw, 4px)',
+        }}
+      >
       <div
         className="grid"
         style={{
