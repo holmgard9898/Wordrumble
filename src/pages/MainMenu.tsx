@@ -21,7 +21,8 @@ const MainMenu = () => {
       className={`h-[100dvh] overflow-hidden flex flex-col items-center justify-end pt-[6vh] pb-[14vh] px-4 ${bg.className}`}
       style={{ ...bg.style, backgroundPosition: 'center 55%', backgroundSize: 'cover' }}
     >
-      <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mt-[22vh] mb-[3vh]">
+      {/* Här har jag ändrat mt-[22vh] till mt-[30vh] för att sänka loggan */}
+      <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mt-[30vh] mb-[3vh]">
         <img
           src={logoUrl}
           alt="Word Rumble"
