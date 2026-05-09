@@ -2,6 +2,22 @@ import React from 'react';
 import type { TutorialStep } from '@/components/TutorialModal';
 import type { GameLanguage } from './languages';
 import type { GameMode } from '@/pages/GamePage';
+import { InteractiveSwapDemo } from '@/components/tutorial/InteractiveSwapDemo';
+
+// Short, simple words used in the interactive swipe tutorial — one per language.
+const DEMO_WORDS: Record<GameLanguage, string> = {
+  en: 'CAT',
+  sv: 'KATT',
+  de: 'HUND',
+  es: 'GATO',
+  fr: 'CHAT',
+  it: 'GATO',
+  pt: 'GATO',
+  nl: 'KAT',
+  no: 'KATT',
+  da: 'KAT',
+  fi: 'KISA',
+};
 
 // Visual: mini bubble grid demo
 const MiniGrid: React.FC<{ highlight?: [number, number][]; highlightColor?: string; word?: string; colors?: string[] }> = ({
