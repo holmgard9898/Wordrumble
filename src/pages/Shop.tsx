@@ -121,11 +121,15 @@ const Shop = () => {
     </button>
   );
 
-  const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: 'left' | 'right'; disabled: boolean; onClick: () => void }) => (
-    <button onClick={() => { playClick(); onArrowClick(); }} disabled={disabled} className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white disabled:opacity-20 transition-opacity" style={{ background: 'rgba(255,255,255,0.1)' }}>
-      {direction === 'left' ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-    </button>
-  );
+const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: 'left' | 'right'; disabled: boolean; onClick: () => void }) => (
+  <button 
+    onClick={() => { playClick(); onArrowClick(); }} 
+    disabled={disabled} 
+    className="shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-white shadow-lg disabled:opacity-20 transition-all bg-slate-900/80 backdrop-blur-md border border-white/20 active:scale-90"
+  >
+    {direction === 'left' ? <ChevronLeft className="w-6 h-6" /> : <ChevronRight className="w-6 h-6" />}
+  </button>
+);
 
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
