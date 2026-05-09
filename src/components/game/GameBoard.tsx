@@ -24,7 +24,8 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
   { grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone },
   ref,
 ) {
-  const touchStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
+  // Använder pointerStart för att hantera både mus och touch
+  const pointerStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
   const cellRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const { settings } = useSettings();
   const isRubik = settings.tileStyle === 'rubik';
@@ -36,32 +37,37 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
     },
   }));
 
-  const handleTouchStart = useCallback((row: number, col: number, e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, row, col };
+  // Fångar upp när musknapp eller finger trycks ner
+  const handlePointerDown = useCallback((row: number, col: number, e: React.PointerEvent) => {
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, row, col };
   }, []);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || !onSwipe) return;
-    const touch = e.changedTouches[0];
-    const dx = touch.clientX - touchStartRef.current.x;
-    const dy = touch.clientY - touchStartRef.current.y;
-    const { row, col } = touchStartRef.current;
-    touchStartRef.current = null;
+  // Fångar upp när musknapp eller finger släpps
+  const handlePointerUp = useCallback((e: React.PointerEvent) => {
+    if (!pointerStartRef.current) return;
+    
+    const dx = e.clientX - pointerStartRef.current.x;
+    const dy = e.clientY - pointerStartRef.current.y;
+    const { row, col } = pointerStartRef.current;
+    pointerStartRef.current = null;
 
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
-    const threshold = 20;
+    const threshold = 25; // Avstånd i pixlar för att det ska räknas som drag/swipe
 
+    // Om rörelsen är liten = Tolka som klick (Fixar tutorial på dator)
     if (absDx < threshold && absDy < threshold) {
       onBubbleClick(row, col);
       return;
     }
 
-    if (absDx > absDy) {
-      onSwipe(row, col, dx > 0 ? 'right' : 'left');
-    } else {
-      onSwipe(row, col, dy > 0 ? 'down' : 'up');
+    // Om rörelsen är stor = Tolka som swipe/drag
+    if (onSwipe) {
+      if (absDx > absDy) {
+        onSwipe(row, col, dx > 0 ? 'right' : 'left');
+      } else {
+        onSwipe(row, col, dy > 0 ? 'down' : 'up');
+      }
     }
   }, [onSwipe, onBubbleClick]);
 
@@ -71,6 +77,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
       style={{
         background: 'rgba(0,0,0,0.25)',
         padding: isRubik ? '2px' : 'clamp(2px, 0.5vw, 12px)',
+        touchAction: 'none' // Förhindrar att sidan scrollar på mobil när man drar
       }}
     >
       <div
@@ -92,14 +99,16 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
                   if (el) cellRefs.current.set(k, el);
                   else cellRefs.current.delete(k);
                 }}
+                // Här lägger vi in de nya pointer-eventsen
+                onPointerDown={(e) => handlePointerDown(r, c, e)}
+                onPointerUp={handlePointerUp}
+                style={{ touchAction: 'none' }}
               >
                 <Bubble
                   bubble={bubble}
                   isSelected={isSelected}
                   isPopping={isPopping}
-                  onClick={() => onBubbleClick(r, c)}
-                  onTouchStart={(e) => handleTouchStart(r, c, e)}
-                  onTouchEnd={handleTouchEnd}
+                  // onClick, onTouchStart/End behövs inte längre då onPointerUp sköter allt
                 />
               </div>
             );
