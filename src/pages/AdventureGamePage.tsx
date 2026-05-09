@@ -69,10 +69,12 @@ const AdventureGamePage = () => {
   const savedGame = useSavedGame(`adv-${levelId}`);
 
   // Reset game when level/language changes; restore saved progress if any.
+  // Tutorial/intro is always shown when entering a level (every time).
   useEffect(() => {
     if (loading) return;
     setReady(false);
     setShowSuccess(false);
+    setShowIntro(true);
     const saved = savedGame.load();
     if (saved && saved.movesLeft > 0 && saved.usedWords) {
       game.restoreSavedGame({
@@ -83,7 +85,6 @@ const AdventureGamePage = () => {
         movesUsed: saved.movesUsed,
         freeMovesRemaining: saved.freeMovesRemaining,
       });
-      setShowIntro(false);
     } else {
       game.resetGame();
     }
