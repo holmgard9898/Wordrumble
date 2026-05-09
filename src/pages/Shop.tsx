@@ -130,7 +130,7 @@ const Shop = () => {
   return (
     <div className={`min-h-screen flex flex-col items-center justify-center p-4 ${bg.className}`} style={bg.style}>
       <div className="mb-2"><BubbleTitle text={t.shop} size="md" /></div>
-      <div className="flex items-center gap-2 mb-8"><Coins className="w-5 h-5 text-yellow-400" /><span className="text-yellow-400 font-bold">{coins} coins</span></div>
+      <div className="flex items-center gap-2 mb-8"><Coins className="w-5 h-5 text-yellow-400" /><span className="text-yellow-400 font-bold">{Math.round(coins * 100) / 100} coins</span></div>
 
       <div className="w-full max-w-md space-y-6">
         <div>
