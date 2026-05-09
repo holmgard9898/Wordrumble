@@ -162,7 +162,7 @@ const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: '
               <button key={item.id} onClick={() => {
                 if (item.type === 'action') handleWatchAd();
                 else if (item.type === 'navigate' && item.navigateTo) { playClick(); navigate(item.navigateTo); }
-              }} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97]" style={{ border: '3px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)' }}>
+              }} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97] bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl" style={{ border: '3px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)' }}>
                 <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1 p-3">
                   <span className="text-3xl">{item.icon}</span>
                   <span className="text-white text-sm font-semibold">{item.id === 'watch-ad' ? t.shopWatchAd : item.id === 'adventure-mode' ? t.shopAdventure : item.name}</span>
