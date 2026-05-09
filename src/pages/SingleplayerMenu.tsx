@@ -90,7 +90,7 @@ const SingleplayerMenu = () => {
           <p className="text-white/90 mb-2 mt-0 drop-shadow text-center font-medium">{t.chooseMode}</p>
         </div>
 
-        <div className="flex flex-col gap-2 w-full max-w-xs">
+        <div className="flex flex-col gap-1 w-full max-w-xs">
           {modes.map((m) => {
             const isExpanded = expandedMode === m.path;
             const isHidden = expanded && !isExpanded;
