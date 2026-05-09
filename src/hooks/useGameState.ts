@@ -337,17 +337,42 @@ export function useGameState(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
 
-  // Refill bubble for cascades — biased toward target letters in adventure mode
+// Refill bubble for cascades — dynamically ensures secret words are possible
   const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
-    const tl = targetLettersRef.current;
-    if (tl.length > 0 && Math.random() < 0.45) {
-      const letter = tl[Math.floor(Math.random() * tl.length)];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      return makeSeedBubble(letter, color, values);
-    }
-    return createRandomBubble(colors, pool, values);
-  }, [pool, values]);
+    const tl = targetLettersRef.current; // Det hemliga ordet (t.ex. "SKEPP")
+    
+    if (tl.length > 0) {
+      // 1. Kolla vilka bokstäver som faktiskt finns på brädet just nu
+      const currentLettersOnBoard = grid.flat().map(b => b.letter.toUpperCase());
+      
+      // 2. Hitta vilka bokstäver från det hemliga ordet som saknas
+      const missingLetters = tl.split('').filter(char => {
+        const index = currentLettersOnBoard.indexOf(char);
+        if (index !== -1) {
+          currentLettersOnBoard.splice(index, 1); // Ta bort så vi räknar dubbletter rätt (t.ex. två P)
+          return false;
+        }
+        return true;
+      });
 
+      // 3. Om bokstäver saknas, öka chansen rejält (80%) att vi skapar en av de som fattas
+      if (missingLetters.length > 0 && Math.random() < 0.80) {
+        const letter = missingLetters[Math.floor(Math.random() * missingLetters.length)];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        return makeSeedBubble(letter, color, values);
+      }
+      
+      // 4. Som fallback, använd Lovables gamla 45% chans för slumpmässig bokstav från ordet
+      if (Math.random() < 0.45) {
+        const letter = tl[Math.floor(Math.random() * tl.length)];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        return makeSeedBubble(letter, color, values);
+      }
+    }
+    
+    // Annars helt slumpmässig som vanligt
+    return createRandomBubble(colors, pool, values);
+  }, [pool, values, grid]); // Viktigt: la till 'grid' här så den känner av brädets innehåll
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
