@@ -124,7 +124,7 @@ const Statistics = () => {
             <TabsTrigger value="highscore" className="flex-1 gap-2 data-[state=active]:bg-white/90 text-white">
               <Trophy className="w-4 h-4" /> {t.highscore}
             </TabsTrigger>
-            <TabsTrigger value="online" className="flex-1 gap-2 data-[state=active]:bg-white/20 text-white">
+            <TabsTrigger value="online" className="flex-1 gap-2 data-[state=active]:bg-white/90 text-white">
               <Swords className="w-4 h-4" /> {t.online}
             </TabsTrigger>
           </TabsList>
