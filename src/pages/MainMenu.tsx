@@ -14,14 +14,17 @@ const MainMenu = () => {
   const bg = useGameBackground();
   const { t } = useTranslation();
 
-  const go = (path: string) => { playClick(); navigate(path); };
+  const go = (path: string) => { 
+    playClick(); 
+    navigate(path); 
+  };
 
-return (
+  return (
     <div
       className={`h-[100dvh] overflow-hidden flex flex-col items-center justify-start pt-[14vh] px-4 ${bg.className}`}
       style={{ ...bg.style, backgroundPosition: 'center 55%', backgroundSize: 'cover' }}
     >
-      {/* LOGGA - Justerad med mt-[14vh] och mb för att landa vid ditt streck */}
+      {/* LOGGA - Centrerad och sänkt för att matcha din ritning */}
       <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mb-[4vh]">
         <img
           src={logoUrl}
@@ -31,18 +34,52 @@ return (
         />
       </div>
 
-      {/* KNAPPAR - Hamnar nu proportionerligt under loggan */}
+      {/* KNAPPAR - Hamnar nu snyggt under loggan oavsett skärm */}
       <div className="flex flex-col gap-4 w-full max-w-xs mt-2">
-        <MenuButton onClick={() => go('/play')} icon={<Gamepad2 className="w-5 h-5" />} label={t.play} gradient="blue" />
-        <MenuButton onClick={() => go('/challenge')} icon={<Swords className="w-5 h-5" />} label={t.challenge} gradient="red" />
-        <MenuButton onClick={() => go('/adventure')} icon={<Map className="w-5 h-5" />} label={t.adventureTitle} gradient="amber" />
-        <MenuButton onClick={() => go('/shop')} icon={<ShoppingBag className="w-5 h-5" />} label={t.shop} gradient="green" />
+        <MenuButton 
+          onClick={() => go('/play')} 
+          icon={<Gamepad2 className="w-5 h-5" />} 
+          label={t.play} 
+          gradient="blue" 
+        />
+        <MenuButton 
+          onClick={() => go('/challenge')} 
+          icon={<Swords className="w-5 h-5" />} 
+          label={t.challenge} 
+          gradient="red" 
+        />
+        <MenuButton 
+          onClick={() => go('/adventure')} 
+          icon={<Map className="w-5 h-5" />} 
+          label={t.adventureTitle} 
+          gradient="amber" 
+        />
+        <MenuButton 
+          onClick={() => go('/shop')} 
+          icon={<ShoppingBag className="w-5 h-5" />} 
+          label={t.shop} 
+          gradient="green" 
+        />
+        
         <div className="grid grid-cols-2 gap-3 mt-1">
-          <MenuButton onClick={() => go('/statistics')} icon={<BarChart3 className="w-4 h-4" />} label={t.statistics} gradient="purple" size="md" />
-          <MenuButton onClick={() => go('/settings')} icon={<Settings className="w-4 h-4" />} label={t.settingsTitle} gradient="purple" size="md" />
+          <MenuButton 
+            onClick={() => go('/statistics')} 
+            icon={<BarChart3 className="w-4 h-4" />} 
+            label={t.statistics} 
+            gradient="purple" 
+            size="md" 
+          />
+          <MenuButton 
+            onClick={() => go('/settings')} 
+            icon={<Settings className="w-4 h-4" />} 
+            label={t.settingsTitle} 
+            gradient="purple" 
+            size="md" 
+          />
         </div>
       </div>
     </div>
   );
-  
+};
+
 export default MainMenu;
