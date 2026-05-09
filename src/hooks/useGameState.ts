@@ -46,12 +46,10 @@ function buildSeededGrid(
 
   const tryBuild = (): BubbleData[][] | null => {
     const grid: (BubbleData | null)[][] = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-    // Plant each word in a chosen color, scattered randomly on free cells
     const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
     for (let wi = 0; wi < targetWords.length; wi++) {
       const word = targetWords[wi].toUpperCase();
       const color = shuffledColors[wi % shuffledColors.length];
-      // Collect free cells, shuffle, take word.length
       const free: Position[] = [];
       for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!grid[r][c]) free.push({ row: r, col: c });
       if (free.length < word.length) return null;
@@ -61,7 +59,6 @@ function buildSeededGrid(
         grid[p.row][p.col] = makeSeedBubble(word[i], color, values);
       }
     }
-    // Fill remaining
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (!grid[r][c]) grid[r][c] = weightedRefill();
@@ -70,14 +67,9 @@ function buildSeededGrid(
     return grid as BubbleData[][];
   };
 
-  // Try a few times; then run ensureGridHasNoWords with weighted refill on non-seed cells.
-  // To preserve seeded letters, mark them: we treat any pre-existing valid word as a problem, but
-  // ensureGridHasNoWords replaces matched runs entirely. To keep it simple we just re-build a few times.
   for (let attempt = 0; attempt < 25; attempt++) {
     const g = tryBuild();
     if (!g) continue;
-    // Use ensureGridHasNoWords with weightedRefill — this may overwrite seeded letters in rare cases,
-    // but planted letters of one word share a color and are scattered, so collisions are unlikely.
     const cleaned = ensureGridHasNoWords(g, {
       isValidWord,
       minWordLength: minWordLen,
@@ -86,7 +78,6 @@ function buildSeededGrid(
     });
     return cleaned;
   }
-  // Fallback
   return createWordlessGrid({ isValidWord, minWordLength: minWordLen, colors, pool, values });
 }
 
@@ -137,51 +128,8 @@ function createCleanGrid(isValidWord: (w: string) => boolean, mode: GameMode, po
   });
 }
 
-function gridHasWords(grid: BubbleData[][], isValidWord: (w: string) => boolean, minLen: number): boolean {
-  for (let r = 0; r < ROWS; r++) {
-    let c = 0;
-    while (c < COLS) {
-      const color = grid[r][c].color;
-      let end = c;
-      while (end < COLS && grid[r][end].color === color) end++;
-      const run = end - c;
-      if (run >= minLen) {
-        for (let len = minLen; len <= Math.min(run, MAX_WORD_LENGTH); len++) {
-          for (let s = c; s + len <= end; s++) {
-            let word = '';
-            for (let i = s; i < s + len; i++) word += grid[r][i].letter;
-            if (isValidWord(word.toLowerCase())) return true;
-          }
-        }
-      }
-      c = end;
-    }
-  }
-  for (let c = 0; c < COLS; c++) {
-    let r = 0;
-    while (r < ROWS) {
-      const color = grid[r][c].color;
-      let end = r;
-      while (end < ROWS && grid[end][c].color === color) end++;
-      const run = end - r;
-      if (run >= minLen) {
-        for (let len = minLen; len <= Math.min(run, MAX_WORD_LENGTH); len++) {
-          for (let s = r; s + len <= end; s++) {
-            let word = '';
-            for (let i = s; i < s + len; i++) word += grid[i][c].letter;
-            if (isValidWord(word.toLowerCase())) return true;
-          }
-        }
-      }
-      r = end;
-    }
-  }
-  return false;
-}
-
 function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMode): number {
   const len = positions.length;
-  // Apply per-letter powerup multipliers (x2 / x3) to letter values
   const letterPoints = positions.reduce((s, p) => {
     const b = grid[p.row][p.col];
     let v = b.value;
@@ -200,12 +148,10 @@ function calcWordScore(positions: Position[], grid: BubbleData[][], mode: GameMo
     if (len === 9) return (letterPoints + 12) * 3;
     if (len >= 10) return (letterPoints + 12) * 4;
   }
-
   return letterPoints;
 }
 
 const CORNERS = new Set(['0-0', `0-${COLS - 1}`, `${ROWS - 1}-0`, `${ROWS - 1}-${COLS - 1}`]);
-
 function isCorner(r: number, c: number) {
   return CORNERS.has(`${r}-${c}`);
 }
@@ -214,12 +160,7 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
   const vowelPositions: Position[] = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (
-        vowelSet.has(grid[r][c].letter) &&
-        !grid[r][c].bomb &&
-        !grid[r][c].powerup &&
-        !isCorner(r, c)
-      ) {
+      if (vowelSet.has(grid[r][c].letter) && !grid[r][c].bomb && !grid[r][c].powerup && !isCorner(r, c)) {
         vowelPositions.push({ row: r, col: c });
       }
     }
@@ -229,10 +170,9 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
-  // Generate timers — strict minimum 10, max 20.
   const timers: number[] = [];
   for (let i = 0; i < toAdd; i++) {
-    timers.push(10 + Math.floor(Math.random() * 11)); // 10..20
+    timers.push(10 + Math.floor(Math.random() * 11));
   }
   if (toAdd >= 3) {
     const minIdx = timers.reduce((m, v, i, a) => (v < a[m] ? i : m), 0);
@@ -240,7 +180,7 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
   }
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    const t = Math.max(10, timers[i]); // hard floor 10
+    const t = Math.max(10, timers[i]);
     grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: t };
   }
 }
@@ -270,11 +210,7 @@ function addPowerupToGrid(grid: BubbleData[][], type: 'x2' | 'x3' | 'free5'): vo
   const candidates: Position[] = [];
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
-      if (
-        !grid[r][c].bomb &&
-        !grid[r][c].powerup &&
-        !isCorner(r, c)
-      ) {
+      if (!grid[r][c].bomb && !grid[r][c].powerup && !isCorner(r, c)) {
         candidates.push({ row: r, col: c });
       }
     }
@@ -286,9 +222,7 @@ function addPowerupToGrid(grid: BubbleData[][], type: 'x2' | 'x3' | 'free5'): vo
 
 function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; exploded: boolean; explodedAt: Position | null } {
   const newGrid = grid.map(row => row.map(b => {
-    if (b.bomb !== undefined) {
-      return { ...b, bomb: b.bomb - 1 };
-    }
+    if (b.bomb !== undefined) return { ...b, bomb: b.bomb - 1 };
     return b;
   }));
   for (let r = 0; r < ROWS; r++) {
@@ -307,7 +241,6 @@ export function useGameState(
   language: GameLanguage = 'en',
   adventureSeed?: AdventureSeed,
 ) {
-  // Localized FREE label (used for free5 powerup popup)
   const FREE_LABELS: Record<string, string> = {
     en: 'FREE', sv: 'FRI', de: 'FREI', es: 'GRATIS', fr: 'LIBRE', it: 'LIBERO',
     pt: 'GRÁTIS', nl: 'VRIJ', no: 'FRI', da: 'FRI', fi: 'VAPAA',
@@ -318,7 +251,6 @@ export function useGameState(
   const values = langConfig.letterValues;
   const vowelSet = langConfig.vowels;
 
-  // Stable target letters for adventure refill bias
   const targetLettersRef = useRef<string>('');
   targetLettersRef.current = (adventureSeed?.targetWords ?? []).join('').toUpperCase();
 
@@ -334,28 +266,25 @@ export function useGameState(
       );
     }
     return createCleanGrid(isValidWord, mode, pool, values);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
 
-// Refill bubble for cascades — biased toward target letters in adventure mode
+  // FIXED: Removed 'grid' dependency to prevent ReferenceError
   const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
     const tl = targetLettersRef.current;
-    if (tl.length > 0 && Math.random() < 0.45) {
+    if (tl.length > 0 && Math.random() < 0.70) {
       const letter = tl[Math.floor(Math.random() * tl.length)];
       const color = colors[Math.floor(Math.random() * colors.length)];
       return makeSeedBubble(letter, color, values);
     }
     return createRandomBubble(colors, pool, values);
   }, [pool, values]);
-    
-    // Annars helt slumpmässig som vanligt
-    return createRandomBubble(colors, pool, values);
-  }, [pool, values, grid]); // Viktigt: la till 'grid' här så den känner av brädets innehåll
+
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     return g;
   });
+
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
   const [movesLeft, setMovesLeft] = useState(adventureSeed?.maxMoves ?? getMaxMoves(mode));
   const [score, setScore] = useState(0);
@@ -371,10 +300,7 @@ export function useGameState(
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
-
   const blockedWordsRef = useRef<Set<string>>(new Set());
-
-  // Use a numeric tick id so duplicate effect fires can't double-decrement.
   const pendingBombTick = useRef(0);
   const lastProcessedBombTick = useRef(0);
   const freeMovesRef = useRef(0);
@@ -392,26 +318,25 @@ export function useGameState(
     const found: FoundWord[] = [];
     const usedWordSet = new Set(usedWordsRef.current.map((w) => w.word.toLowerCase()));
     blockedWordsRef.current.forEach(w => usedWordSet.add(w));
+    
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
         const color = currentGrid[r][c].color;
         let end = c;
         while (end < COLS && currentGrid[r][end].color === color) end++;
-        const runLength = end - c;
-        if (runLength >= minWordLen) {
-          for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
+        if (end - c >= minWordLen) {
+          for (let len = Math.min(end - c, MAX_WORD_LENGTH); len >= minWordLen; len--) {
             for (let start = c; start + len <= end; start++) {
-              const positions: Position[] = [];
               let word = '';
+              const positions: Position[] = [];
               for (let i = start; i < start + len; i++) {
-                positions.push({ row: r, col: i });
                 word += currentGrid[r][i].letter;
+                positions.push({ row: r, col: i });
               }
-              const wordLower = word.toLowerCase();
-              if (!usedWordSet.has(wordLower) && isValidWord(wordLower)) {
-                const wordScore = calcWordScore(positions, currentGrid, mode);
-                found.push({ word: word.toUpperCase(), positions, score: wordScore });
+              const wl = word.toLowerCase();
+              if (!usedWordSet.has(wl) && isValidWord(wl)) {
+                found.push({ word: word.toUpperCase(), positions, score: calcWordScore(positions, currentGrid, mode) });
               }
             }
           }
@@ -426,20 +351,18 @@ export function useGameState(
         const color = currentGrid[r][c].color;
         let end = r;
         while (end < ROWS && currentGrid[end][c].color === color) end++;
-        const runLength = end - r;
-        if (runLength >= minWordLen) {
-          for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
+        if (end - r >= minWordLen) {
+          for (let len = Math.min(end - r, MAX_WORD_LENGTH); len >= minWordLen; len--) {
             for (let start = r; start + len <= end; start++) {
-              const positions: Position[] = [];
               let word = '';
+              const positions: Position[] = [];
               for (let i = start; i < start + len; i++) {
-                positions.push({ row: i, col: c });
                 word += currentGrid[i][c].letter;
+                positions.push({ row: i, col: c });
               }
-              const wordLower = word.toLowerCase();
-              if (!usedWordSet.has(wordLower) && isValidWord(wordLower)) {
-                const wordScore = calcWordScore(positions, currentGrid, mode);
-                found.push({ word: word.toUpperCase(), positions, score: wordScore });
+              const wl = word.toLowerCase();
+              if (!usedWordSet.has(wl) && isValidWord(wl)) {
+                found.push({ word: word.toUpperCase(), positions, score: calcWordScore(positions, currentGrid, mode) });
               }
             }
           }
@@ -449,44 +372,30 @@ export function useGameState(
     }
 
     if (found.length === 0) return [];
-    found.sort((a, b) => {
-      if (b.positions.length !== a.positions.length) return b.positions.length - a.positions.length;
-      return b.score - a.score;
-    });
+    found.sort((a, b) => b.positions.length !== a.positions.length ? b.positions.length - a.positions.length : b.score - a.score);
     return [found[0]];
   }, [isValidWord, minWordLen, mode]);
 
-  // Powerup spawn helper (mutates grid in place) — bomb mode only
   const maybeSpawnExtras = useCallback((grid: BubbleData[][]) => {
-    // x2 / x3 letter multipliers — same chance as bombs (~30%), max 3 total
-    const multCount = countPowerups(grid, ['x2', 'x3']);
-    if (multCount < 3 && Math.random() < 0.3) {
-      const type: 'x2' | 'x3' = Math.random() < 0.6 ? 'x2' : 'x3';
-      addPowerupToGrid(grid, type);
+    if (countPowerups(grid, ['x2', 'x3']) < 3 && Math.random() < 0.3) {
+      addPowerupToGrid(grid, Math.random() < 0.6 ? 'x2' : 'x3');
     }
-    // 5 free moves — 1/50 chance, max 2 simultaneous
-    const freeCount = countPowerups(grid, ['free5']);
-    if (freeCount < 2 && Math.random() < 1 / 50) {
+    if (countPowerups(grid, ['free5']) < 2 && Math.random() < 1 / 50) {
       addPowerupToGrid(grid, 'free5');
     }
   }, []);
 
-  // After cascade completes in bomb mode, decrement bomb timers (guarded against double-fire)
   useEffect(() => {
-    if (mode !== 'bomb') return;
-    if (isProcessing || gameOver) return;
-    if (pendingBombTick.current === lastProcessedBombTick.current) return;
+    if (mode !== 'bomb' || isProcessing || gameOver || pendingBombTick.current === lastProcessedBombTick.current) return;
     lastProcessedBombTick.current = pendingBombTick.current;
 
     setGrid(prev => {
-      // If free moves are active, skip decrement but consume one free move
       if (freeMovesRef.current > 0) {
         setFreeMovesRemaining(n => Math.max(0, n - 1));
         const newGrid = prev.map(row => row.map(b => ({ ...b })));
         maybeSpawnExtras(newGrid);
         return newGrid;
       }
-
       const { newGrid, exploded, explodedAt: pos } = decrementBombs(prev);
       if (exploded) {
         if (pos) setExplodedAt(pos);
@@ -494,12 +403,8 @@ export function useGameState(
         return newGrid;
       }
       const bc = countBombs(newGrid);
-      if (bc === 0) {
-        const toSpawn = 1 + Math.floor(Math.random() * 3);
-        addBombsToGrid(newGrid, toSpawn, vowelSet);
-      } else if (bc < 3 && Math.random() < 0.3) {
-        addBombsToGrid(newGrid, 1, vowelSet);
-      }
+      if (bc === 0) addBombsToGrid(newGrid, 1 + Math.floor(Math.random() * 3), vowelSet);
+      else if (bc < 3 && Math.random() < 0.3) addBombsToGrid(newGrid, 1, vowelSet);
       maybeSpawnExtras(newGrid);
       return newGrid;
     });
@@ -510,144 +415,53 @@ export function useGameState(
       setIsProcessing(false);
       return;
     }
-
     const word = foundWords[0];
     const popKeys = new Set(word.positions.map((p) => `${p.row}-${p.col}`));
     setPoppingCells(popKeys);
     setLastFoundWord(word.word);
-
-    const wordLen = word.positions.length;
     const centerPos = word.positions[Math.floor(word.positions.length / 2)];
     const wordColor = currentGrid[word.positions[0].row][word.positions[0].col].color;
 
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
-
-    // Word popup: show the formed word at every match
     setBonusPopups((prev) => [...prev, {
-      id: `bonus-${bonusEventId++}`,
-      amount: word.score,
-      color: wordColor,
-      row: centerPos.row,
-      col: centerPos.col,
-      label: word.word.toUpperCase(),
+      id: `bonus-${bonusEventId++}`, amount: word.score, color: wordColor,
+      row: centerPos.row, col: centerPos.col, label: word.word.toUpperCase(),
     }]);
 
-    // Multiplier popup for 8+ letter words (all modes that use calcWordScore)
-    if (mode !== 'bomb') {
-      let multiplier = 0;
-      let label = '';
-      if (wordLen >= 10) { multiplier = 4; label = 'X4'; }
-      else if (wordLen === 9) { multiplier = 3; label = 'X3'; }
-      else if (wordLen === 8) { multiplier = 2; label = 'X2'; }
-
-      if (multiplier > 0) {
-        setBonusPopups((prev) => [...prev, {
-          id: `bonus-${bonusEventId++}`,
-          amount: multiplier,
-          color: wordColor,
-          row: centerPos.row,
-          col: centerPos.col,
-          label,
-        }]);
-      }
-    }
-
-    // Oneword mode: popup when new best word score
-    if (mode === 'oneword') {
-      const currentBest = usedWordsRef.current.reduce((best, w) => Math.max(best, w.score), 0);
-      if (word.score > currentBest) {
-        setBonusPopups((prev) => [...prev, {
-          id: `bonus-${bonusEventId++}`,
-          amount: word.score,
-          color: wordColor,
-          row: centerPos.row,
-          col: centerPos.col,
-        }]);
-      }
-    }
-
-    // Word Surge bonus moves
-    if (mode === 'surge') {
-      let totalBonus = 0;
-
-      if (wordLen >= 10) {
-        totalBonus += 50;
-      } else if (wordLen >= 7) {
-        totalBonus += 25;
-      } else if (wordLen >= 5) {
-        totalBonus += 10;
-      }
-      if (word.score >= 15) {
-        totalBonus += 25;
-      } else if (word.score >= 10) {
-        totalBonus += 10;
-      }
-
-      if (totalBonus > 0) {
-        setMovesLeft((prev) => prev + totalBonus);
-        setBonusPopups((prev) => [...prev, {
-          id: `bonus-${bonusEventId++}`,
-          amount: totalBonus,
-          color: wordColor,
-          row: centerPos.row,
-          col: centerPos.col,
-        }]);
-      }
-    }
-
-    // Bomb mode: detect free5 powerup popped within the word
-    if (mode === 'bomb') {
-      const free5Hit = word.positions.some(p => currentGrid[p.row][p.col].powerup === 'free5');
-      if (free5Hit) {
-        setFreeMovesRemaining(n => n + 5);
-        setBonusPopups((prev) => [...prev, {
-          id: `bonus-${bonusEventId++}`,
-          amount: 5,
-          color: wordColor,
-          row: centerPos.row,
-          col: centerPos.col,
-          label: `+5 ${freeLabel}`,
-        }]);
-      }
+    if (mode === 'bomb' && word.positions.some(p => currentGrid[p.row][p.col].powerup === 'free5')) {
+      setFreeMovesRemaining(n => n + 5);
+      setBonusPopups((prev) => [...prev, {
+        id: `bonus-${bonusEventId++}`, amount: 5, color: wordColor,
+        row: centerPos.row, col: centerPos.col, label: `+5 ${freeLabel}`,
+      }]);
     }
 
     const colors = getColorsForMode(mode);
-
     setTimeout(() => {
       setPoppingCells(new Set());
       setLastFoundWord(null);
-
       const newGrid = currentGrid.map((row) => [...row]);
       const colsAffected = new Set(word.positions.map((p) => p.col));
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
-        const remaining: BubbleData[] = [];
-        for (let r = 0; r < ROWS; r++) {
-          if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
-        }
-        const newBubbles: BubbleData[] = [];
+        const remaining = [];
+        for (let r = 0; r < ROWS; r++) if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
+        const newBubbles = [];
         for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
         const fullColumn = [...newBubbles, ...remaining];
         for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
       }
 
-      // In bomb mode, ensure bombs after cascade (handled in useEffect after processing ends)
-      // For non-bomb modes with bomb-unrelated logic, keep as is
-
       setGrid(newGrid);
-
       setTimeout(() => {
         const nextWords = findWords(newGrid);
-        if (nextWords.length > 0) {
-          popAndCascade(newGrid, nextWords);
-        } else {
-          setIsProcessing(false);
-        }
+        if (nextWords.length > 0) popAndCascade(newGrid, nextWords);
+        else setIsProcessing(false);
       }, 300);
     }, 500);
-  }, [findWords, mode, pool, values, refillBubble]);
+  }, [findWords, mode, refillBubble, freeLabel]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
@@ -662,43 +476,35 @@ export function useGameState(
     const temp = newGrid[fromRow][fromCol];
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
     newGrid[toRow][toCol] = temp;
-
     setMovesUsed((prev) => prev + 1);
 
     if (mode === 'bomb') {
-      // In bomb mode: swap → check words → after cascade, decrement bombs
       setGrid(newGrid);
       setSelectedBubble(null);
-
-      const foundWords = findWords(newGrid);
-      if (foundWords.length > 0) {
+      const fw = findWords(newGrid);
+      if (fw.length > 0) {
         pendingBombTick.current += 1;
         setIsProcessing(true);
-        popAndCascade(newGrid, foundWords);
+        popAndCascade(newGrid, fw);
       } else {
-        // No words found — decrement bombs now (unless free moves active)
         if (freeMovesRef.current > 0) {
           setFreeMovesRemaining(n => Math.max(0, n - 1));
           maybeSpawnExtras(newGrid);
           setGrid(newGrid);
           return;
         }
-        const { newGrid: bombGrid, exploded, explodedAt: pos } = decrementBombs(newGrid);
+        const { newGrid: bGrid, exploded, explodedAt: pos } = decrementBombs(newGrid);
         if (exploded) {
-          setGrid(bombGrid);
+          setGrid(bGrid);
           if (pos) setExplodedAt(pos);
           setGameOver(true);
           return;
         }
-        const bc = countBombs(bombGrid);
-        if (bc === 0) {
-          const toSpawn = 1 + Math.floor(Math.random() * 3);
-          addBombsToGrid(bombGrid, toSpawn, vowelSet);
-        } else if (bc < 3 && Math.random() < 0.3) {
-          addBombsToGrid(bombGrid, 1, vowelSet);
-        }
-        maybeSpawnExtras(bombGrid);
-        setGrid(bombGrid);
+        const bc = countBombs(bGrid);
+        if (bc === 0) addBombsToGrid(bGrid, 1 + Math.floor(Math.random() * 3), vowelSet);
+        else if (bc < 3 && Math.random() < 0.3) addBombsToGrid(bGrid, 1, vowelSet);
+        maybeSpawnExtras(bGrid);
+        setGrid(bGrid);
       }
       return;
     }
@@ -711,22 +517,15 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet]);
+  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
-
-    if (!selectedBubble) {
-      setSelectedBubble({ row, col });
-    } else {
-      const pos = { row, col };
-      if (selectedBubble.row === row && selectedBubble.col === col) {
-        setSelectedBubble(null);
-      } else if (isAdjacent(selectedBubble, pos)) {
-        performSwap(selectedBubble.row, selectedBubble.col, row, col);
-      } else {
-        setSelectedBubble(pos);
-      }
+    if (!selectedBubble) setSelectedBubble({ row, col });
+    else {
+      if (selectedBubble.row === row && selectedBubble.col === col) setSelectedBubble(null);
+      else if (isAdjacent(selectedBubble, { row, col })) performSwap(selectedBubble.row, selectedBubble.col, row, col);
+      else setSelectedBubble({ row, col });
     }
   }, [gameOver, isProcessing, selectedBubble, performSwap]);
 
@@ -734,17 +533,13 @@ export function useGameState(
     if (gameOver || isProcessing) return;
     const toRow = fromRow + (direction === 'down' ? 1 : direction === 'up' ? -1 : 0);
     const toCol = fromCol + (direction === 'right' ? 1 : direction === 'left' ? -1 : 0);
-    if (toRow < 0 || toRow >= ROWS || toCol < 0 || toCol >= COLS) return;
-    performSwap(fromRow, fromCol, toRow, toCol);
+    if (toRow >= 0 && toRow < ROWS && toCol >= 0 && toCol < COLS) performSwap(fromRow, fromCol, toRow, toCol);
   }, [gameOver, isProcessing, performSwap]);
 
-  /** Adventure rocket powerup: pop entire column, score letter values as if a word. */
   const fireRocket = useCallback((col: number) => {
-    if (gameOver || isProcessing) return 0;
-    if (col < 0 || col >= COLS) return 0;
-
-    const positions: Position[] = [];
-    let letterPoints = 0;
+    if (gameOver || isProcessing || col < 0 || col >= COLS) return 0;
+    const positions = [];
+    let pts = 0;
     let label = '';
     for (let r = 0; r < ROWS; r++) {
       const b = grid[r][col];
@@ -752,25 +547,21 @@ export function useGameState(
       let v = b.value;
       if (b.powerup === 'x2') v *= 2;
       else if (b.powerup === 'x3') v *= 3;
-      letterPoints += v;
+      pts += v;
       label += b.letter;
     }
-
-    const popKeys = new Set(positions.map(p => `${p.row}-${p.col}`));
     setIsProcessing(true);
-    setPoppingCells(popKeys);
+    setPoppingCells(new Set(positions.map(p => `${p.row}-${p.col}`)));
     setLastFoundWord(`🚀 ${label}`);
-    setScore(prev => prev + letterPoints);
-    setUsedWords(prev => [...prev, { word: `🚀${label}`, score: letterPoints }]);
+    setScore(prev => prev + pts);
+    setUsedWords(prev => [...prev, { word: `🚀${label}`, score: pts }]);
 
-    const colors = getColorsForMode(mode);
     setTimeout(() => {
       setPoppingCells(new Set());
       setLastFoundWord(null);
       const newGrid = grid.map(row => [...row]);
-      const newCol: BubbleData[] = [];
-      for (let r = 0; r < ROWS; r++) newCol.push(refillBubble(colors));
-      for (let r = 0; r < ROWS; r++) newGrid[r][col] = newCol[r];
+      const colors = getColorsForMode(mode);
+      for (let r = 0; r < ROWS; r++) newGrid[r][col] = refillBubble(colors);
       setGrid(newGrid);
       setTimeout(() => {
         const next = findWords(newGrid);
@@ -778,8 +569,7 @@ export function useGameState(
         else setIsProcessing(false);
       }, 250);
     }, 500);
-
-    return letterPoints;
+    return pts;
   }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade]);
 
   const resetGame = useCallback(() => {
@@ -802,92 +592,45 @@ export function useGameState(
     setExplodedAt(null);
   }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves]);
 
-  /** Grant additional moves (e.g. ad reward) and clear game over if applicable. */
   const addMoves = useCallback((amount: number) => {
-    if (amount <= 0) return;
-    setMovesLeft((prev) => prev + amount);
-    setGameOver(false);
+    if (amount > 0) {
+      setMovesLeft((prev) => prev + amount);
+      setGameOver(false);
+    }
   }, []);
 
-  /** Restore a previously-saved in-progress game (preserves score, usedWords, etc.) */
-  const restoreSavedGame = useCallback((saved: {
-    grid: BubbleData[][];
-    movesLeft: number;
-    score: number;
-    usedWords: { word: string; score: number }[];
-    movesUsed: number;
-    freeMovesRemaining: number;
-  }) => {
-    setGrid(saved.grid.map(row => row.map(b => ({ ...b }))));
-    setSelectedBubble(null);
+  const restoreSavedGame = useCallback((saved: any) => {
+    setGrid(saved.grid.map((row: any) => row.map((b: any) => ({ ...b }))));
     setMovesLeft(saved.movesLeft);
     setScore(saved.score);
     setUsedWords(saved.usedWords);
-    setGameOver(false);
-    setPoppingCells(new Set());
-    setLastFoundWord(null);
-    setIsProcessing(false);
     setMovesUsed(saved.movesUsed);
-    setBonusPopups([]);
-    pendingBombTick.current = 0;
-    lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(saved.freeMovesRemaining);
-    setExplodedAt(null);
+    setGameOver(false);
+    setIsProcessing(false);
   }, []);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
-    setSelectedBubble(null);
     setMovesLeft(maxMoves);
     setScore(0);
     setUsedWords([]);
     setGameOver(false);
-    setPoppingCells(new Set());
-    setLastFoundWord(null);
-    setIsProcessing(false);
     setMovesUsed(0);
-    setBonusPopups([]);
-    pendingBombTick.current = 0;
-    lastProcessedBombTick.current = 0;
-    setFreeMovesRemaining(0);
-    setExplodedAt(null);
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
-
-  // Track best word for oneword mode
-  const bestWordEntry = usedWords.length > 0
-    ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
-    : null;
-  const bestWordScore = bestWordEntry?.score ?? 0;
-  const bestWord = bestWordEntry?.word ?? null;
 
   const removeBonusPopup = useCallback((id: string) => {
     setBonusPopups((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
+  const bestWordEntry = usedWords.length > 0 ? usedWords.reduce((best, w) => w.score > best.score ? w : best) : null;
+
   return {
-    grid,
-    selectedBubble,
-    movesLeft,
-    score,
-    usedWords,
-    gameOver,
-    poppingCells,
-    lastFoundWord,
-    isProcessing,
-    handleBubbleClick,
-    handleSwipe,
-    resetGame,
-    startFromState,
-    restoreSavedGame,
-    bestWordScore,
-    bestWord,
-    movesUsed,
-    bonusPopups,
-    removeBonusPopup,
-    freeMovesRemaining,
-    explodedAt,
-    addMoves,
-    fireRocket,
+    grid, selectedBubble, movesLeft, score, usedWords, gameOver, poppingCells,
+    lastFoundWord, isProcessing, handleBubbleClick, handleSwipe, resetGame,
+    startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
+    bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
+    freeMovesRemaining, explodedAt, addMoves, fireRocket,
   };
 }
