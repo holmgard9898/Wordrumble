@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
@@ -7,6 +7,13 @@ export interface TutorialStep {
   title: string;
   body: string;
   visual?: React.ReactNode;
+  /** If true, "Next" is disabled until `interactiveDone` is true. */
+  interactive?: boolean;
+  /**
+   * Render-prop variant: receives a `done()` callback so the visual can mark
+   * the step as complete from inside.
+   */
+  renderVisual?: (ctx: { done: () => void }) => React.ReactNode;
 }
 
 interface Props {
@@ -16,15 +23,28 @@ interface Props {
 }
 
 export const TutorialModal: React.FC<Props> = ({ open, steps, onClose }) => {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [i, setI] = useState(0);
+  const [doneSteps, setDoneSteps] = useState<Record<number, boolean>>({});
   const last = i === steps.length - 1;
   const first = i === 0;
   const step = steps[i];
 
-  const close = () => { setI(0); onClose(); };
+  const close = useCallback(() => {
+    setI(0);
+    setDoneSteps({});
+    onClose();
+  }, [onClose]);
+
+  const markDone = useCallback((idx: number) => {
+    setDoneSteps((d) => ({ ...d, [idx]: true }));
+  }, []);
 
   if (!step) return null;
+
+  const stepDone = !!doneSteps[i];
+  const interactiveLocked = step.interactive && !stepDone;
+  const skipLabel = lang === 'sv' ? 'Hoppa över' : 'Skip';
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && close()}>
@@ -35,10 +55,16 @@ export const TutorialModal: React.FC<Props> = ({ open, steps, onClose }) => {
 
         <div className="px-6 pt-6 pb-4">
           <h3 className="text-white text-xl font-bold text-center mb-3">{step.title}</h3>
-          {step.visual && (
-            <div className="my-4 flex items-center justify-center min-h-[110px]">{step.visual}</div>
+          {(step.visual || step.renderVisual) && (
+            <div className="my-4 flex items-center justify-center min-h-[110px]">
+              {step.renderVisual
+                ? step.renderVisual({ done: () => markDone(i) })
+                : step.visual}
+            </div>
           )}
-          <p className="text-white/80 text-sm leading-relaxed text-center whitespace-pre-line">{step.body}</p>
+          {step.body && (
+            <p className="text-white/80 text-sm leading-relaxed text-center whitespace-pre-line">{step.body}</p>
+          )}
         </div>
 
         {/* Dots */}
@@ -57,7 +83,15 @@ export const TutorialModal: React.FC<Props> = ({ open, steps, onClose }) => {
           >
             <ChevronLeft className="w-4 h-4" /> {t.back}
           </button>
-          {last ? (
+
+          {interactiveLocked ? (
+            <button
+              onClick={() => markDone(i)}
+              className="text-white/50 hover:text-white/80 text-xs underline px-3 py-2"
+            >
+              {skipLabel}
+            </button>
+          ) : last ? (
             <button onClick={close} className="flex-1 px-4 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold shadow-lg shadow-emerald-500/30">
               {t.play}
             </button>

@@ -2,6 +2,22 @@ import React from 'react';
 import type { TutorialStep } from '@/components/TutorialModal';
 import type { GameLanguage } from './languages';
 import type { GameMode } from '@/pages/GamePage';
+import { InteractiveSwapDemo } from '@/components/tutorial/InteractiveSwapDemo';
+
+// Short, simple words used in the interactive swipe tutorial — one per language.
+const DEMO_WORDS: Record<GameLanguage, string> = {
+  en: 'CAT',
+  sv: 'KATT',
+  de: 'HUND',
+  es: 'GATO',
+  fr: 'CHAT',
+  it: 'GATO',
+  pt: 'GATO',
+  nl: 'KAT',
+  no: 'KATT',
+  da: 'KAT',
+  fi: 'KISA',
+};
 
 // Visual: mini bubble grid demo
 const MiniGrid: React.FC<{ highlight?: [number, number][]; highlightColor?: string; word?: string; colors?: string[] }> = ({
@@ -106,13 +122,15 @@ export function getTutorialSteps(mode: GameMode, lang: GameLanguage): TutorialSt
     visual: <SwapVisual />,
   };
 
+  const demoWord = DEMO_WORDS[lang] ?? DEMO_WORDS.en;
   const findWords: TutorialStep = {
     title: t('Same color forms words', 'Samma färg bildar ord'),
     body: t(
-      'Only bubbles of the SAME color count. When 3+ same-colored bubbles in a row or column spell a valid word, they pop and you score points! Mixed colors do not count.',
-      'Endast bubblor av SAMMA färg räknas. När 3+ bubblor med samma färg i en rad eller kolumn stavar ett giltigt ord poppar de och du får poäng! Olika färger räknas inte.'
+      `Bubbles of the SAME color in a row spell a word. Try it: swipe to spell ${demoWord}!`,
+      `Bubblor med SAMMA färg i rad bildar ett ord. Prova själv: swipa för att stava ${demoWord}!`,
     ),
-    visual: <MiniGrid highlight={[[0, 0], [0, 1], [0, 2]]} highlightColor="#22C55E" word="CAT" />,
+    interactive: true,
+    renderVisual: ({ done }) => <InteractiveSwapDemo word={demoWord} onComplete={done} />,
   };
 
   const lengthBonus: TutorialStep = {
