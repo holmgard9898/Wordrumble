@@ -25,6 +25,10 @@ function makeSeedBubble(letter: string, color: BubbleColor, values: Record<strin
   };
 }
 
+/**
+ * UPDATED: buildSeededGrid
+ * Garantierar att målorden placeras ut med SAMMA färg för varje ord.
+ */
 function buildSeededGrid(
   targetWords: string[],
   isValidWord: (w: string) => boolean,
@@ -33,50 +37,62 @@ function buildSeededGrid(
   pool: string,
   values: Record<string, number>,
 ): BubbleData[][] {
-  // Build target letter pool (weighted) for refill bias
-  const targetLetters = targetWords.join('').toUpperCase().replace(/[^A-ZÅÄÖÉÈÊËÀÂÎÏÔÛÙÜÇÑ]/g, '');
-  const weightedRefill = () => {
-    if (targetLetters.length > 0 && Math.random() < 0.6) {
-      const letter = targetLetters[Math.floor(Math.random() * targetLetters.length)];
-      const color = colors[Math.floor(Math.random() * colors.length)];
-      return makeSeedBubble(letter, color, values);
-    }
-    return createRandomBubble(colors, pool, values);
-  };
+  const targetLetters = targetWords.join('').toUpperCase();
 
   const tryBuild = (): BubbleData[][] | null => {
     const grid: (BubbleData | null)[][] = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
-    const shuffledColors = [...colors].sort(() => Math.random() - 0.5);
-    for (let wi = 0; wi < targetWords.length; wi++) {
-      const word = targetWords[wi].toUpperCase();
-      const color = shuffledColors[wi % shuffledColors.length];
+    
+    // Gå igenom varje målord (t.ex. "PALM")
+    targetWords.forEach((word, wordIndex) => {
+      const upperWord = word.toUpperCase();
+      // Vi väljer en fast färg för just detta ord
+      const assignedColor = colors[wordIndex % colors.length];
+      
       const free: Position[] = [];
-      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (!grid[r][c]) free.push({ row: r, col: c });
-      if (free.length < word.length) return null;
-      free.sort(() => Math.random() - 0.5);
-      for (let i = 0; i < word.length; i++) {
-        const p = free[i];
-        grid[p.row][p.col] = makeSeedBubble(word[i], color, values);
+      for (let r = 0; r < ROWS; r++) {
+        for (let c = 0; c < COLS; c++) {
+          if (!grid[r][c]) free.push({ row: r, col: c });
+        }
       }
-    }
+
+      if (free.length < upperWord.length) return;
+
+      // Placera ut bokstäverna slumpmässigt men med den tilldelade färgen
+      free.sort(() => Math.random() - 0.5);
+      for (let i = 0; i < upperWord.length; i++) {
+        const p = free[i];
+        grid[p.row][p.col] = makeSeedBubble(upperWord[i], assignedColor, values);
+      }
+    });
+
+    // Fyll resten av brädet
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
-        if (!grid[r][c]) grid[r][c] = weightedRefill();
+        if (!grid[r][c]) {
+          // 40% chans att resten av startfyllningen också är relevanta bokstäver
+          if (targetLetters.length > 0 && Math.random() < 0.4) {
+            const letter = targetLetters[Math.floor(Math.random() * targetLetters.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            grid[r][c] = makeSeedBubble(letter, color, values);
+          } else {
+            grid[r][c] = createRandomBubble(colors, pool, values);
+          }
+        }
       }
     }
     return grid as BubbleData[][];
   };
 
-  for (let attempt = 0; attempt < 25; attempt++) {
+  for (let attempt = 0; attempt < 20; attempt++) {
     const g = tryBuild();
     if (!g) continue;
-    const cleaned = ensureGridHasNoWords(g, {
+    // Vi rensar bort ofrivilliga ord som råkat skapas vid sidan av
+    return ensureGridHasNoWords(g, {
       isValidWord,
       minWordLength: minWordLen,
-      createBubble: weightedRefill,
-      maxPasses: 50,
+      createBubble: () => createRandomBubble(colors, pool, values),
+      maxPasses: 30,
     });
-    return cleaned;
   }
   return createWordlessGrid({ isValidWord, minWordLength: minWordLen, colors, pool, values });
 }
@@ -268,10 +284,13 @@ export function useGameState(
     return createCleanGrid(isValidWord, mode, pool, values);
   }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
 
-  // FIXED: Removed 'grid' dependency to prevent ReferenceError
+  /**
+   * UPDATED: refillBubble
+   * Ger 80% chans att få en bokstav från målordet när nya bubblor faller ner.
+   */
   const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
     const tl = targetLettersRef.current;
-    if (tl.length > 0 && Math.random() < 0.70) {
+    if (tl.length > 0 && Math.random() < 0.80) {
       const letter = tl[Math.floor(Math.random() * tl.length)];
       const color = colors[Math.floor(Math.random() * colors.length)];
       return makeSeedBubble(letter, color, values);
