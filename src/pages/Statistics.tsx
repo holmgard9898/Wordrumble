@@ -132,7 +132,7 @@ const Statistics = () => {
           <TabsContent value="highscore" className="mt-4">
             <div className="mb-3">
               <Select value={selectedMode} onValueChange={setSelectedMode}>
-                <SelectTrigger className="w-full bg-white/10 border-white/20 text-white"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-full bg-slate-900/60 backdrop-blur-md border border-white/10 text-white"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MODE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                 </SelectContent>
