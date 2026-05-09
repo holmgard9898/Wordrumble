@@ -193,7 +193,7 @@ export const adventureLevels: AdventureLevel[] = [
     ) },
     mapPosition: { x: 38, y: 50 },
     connectsTo: ['adv-6'],
-    maxMoves: 60,
+    maxMoves: 140,
   },
   {
     id: 'adv-6', number: 6, icon: '🌋',
@@ -249,7 +249,7 @@ export const adventureLevels: AdventureLevel[] = [
     ) },
     mapPosition: { x: 56, y: 32 },
     connectsTo: ['adv-8'],
-    maxMoves: 60,
+    maxMoves: 100,
   },
   {
     id: 'adv-8', number: 8, icon: '🚀',
