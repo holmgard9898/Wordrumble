@@ -65,7 +65,7 @@ const SingleplayerMenu = () => {
     return {
       background: bg,
       border: `2px solid ${t.border}`,
-      boxShadow: `inset 0 -4px 0 ${t.bottom}, inset 0 2px 0 rgba(255,255,255,0.30), 0 4px 0 ${t.border}, 0 8px 14px rgba(0,0,0,0.30)`,
+      boxShadow: `inset 0 -4px 0 ${t.bottom}, inset 0 2px 0 rgba(255,255,255,0.30), 0 4px 0 ${t.border}`,
       backdropFilter: isCosmic ? 'blur(6px)' as const : undefined,
     };
   };
