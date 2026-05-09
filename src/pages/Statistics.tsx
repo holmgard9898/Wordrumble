@@ -169,7 +169,7 @@ const Statistics = () => {
             </div>
 
             {!user ? (
-              <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}><p className="text-white/50">{t.loginForOnline}</p></div>
+              <div className="rounded-2xl p-4 space-y-2 bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-2xl"}}><p className="text-white/50">{t.loginForOnline}</p></div>
             ) : loadingOnline ? (
               <div className="rounded-2xl p-8 text-center" style={{ background: 'rgba(0,0,0,0.3)' }}><p className="text-white/50">{t.loading}</p></div>
             ) : onlineStats.totalMatches === 0 ? (
