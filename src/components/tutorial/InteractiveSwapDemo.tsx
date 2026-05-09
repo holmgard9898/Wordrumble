@@ -36,9 +36,7 @@ function buildInitialGrid(word: string): Cell[][] {
     })),
   );
 
-  // Place all word letters in top row, EXCEPT one which we displace 3 cells down.
   const wordLen = Math.min(W.length, COLS);
-  // Index of the displaced letter — pick the middle one if possible.
   const displacedIdx = Math.min(1, wordLen - 1);
 
   for (let i = 0; i < wordLen; i++) {
@@ -51,7 +49,6 @@ function buildInitialGrid(word: string): Cell[][] {
     };
   }
 
-  // Displaced letter placed 3 rows down at column = displacedIdx.
   const dRow = 3;
   const dCol = displacedIdx;
   grid[dRow][dCol] = {
@@ -61,7 +58,6 @@ function buildInitialGrid(word: string): Cell[][] {
     isWord: true,
   };
 
-  // Make sure (0, displacedIdx) is NOT the same letter — replace if accidental match.
   if (grid[0][dCol].letter === W[displacedIdx]) {
     grid[0][dCol].letter = 'X';
   }
@@ -82,8 +78,10 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
   const [interacted, setInteracted] = useState(false);
   const [done, setDone] = useState(false);
   const completedRef = useRef(false);
+  
+  // Touch/Swipe Ref
+  const touchStartRef = useRef<{ x: number; y: number; r: number; c: number } | null>(null);
 
-  // Reset when word changes
   useEffect(() => {
     setGrid(buildInitialGrid(word));
     setSelected(null);
@@ -94,7 +92,6 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
 
   const wordLen = Math.min(word.length, COLS);
 
-  // Check completion: top row 0..wordLen-1 spells the word with isWord=true cells.
   useEffect(() => {
     if (completedRef.current) return;
     let ok = true;
@@ -109,32 +106,57 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
     }
   }, [grid, word, wordLen, onComplete]);
 
-  const handleClick = useCallback((r: number, c: number) => {
+  const executeSwap = useCallback((r1: number, c1: number, r2: number, c2: number) => {
+    if (r2 < 0 || r2 >= ROWS || c2 < 0 || c2 >= COLS) return;
+    
+    setGrid((g) => {
+      const ng = g.map((row) => row.slice());
+      const a = ng[r1][c1];
+      const b = ng[r2][c2];
+      ng[r1][c1] = b;
+      ng[r2][c2] = a;
+      return ng;
+    });
     setInteracted(true);
-    if (!selected) {
-      setSelected({ r, c });
-      return;
-    }
-    if (selected.r === r && selected.c === c) {
-      setSelected(null);
-      return;
-    }
-    if (isAdjacent(selected, { r, c })) {
-      setGrid((g) => {
-        const ng = g.map((row) => row.slice());
-        const a = ng[selected.r][selected.c];
-        const b = ng[r][c];
-        ng[selected.r][selected.c] = b;
-        ng[r][c] = a;
-        return ng;
-      });
-      setSelected(null);
-    } else {
-      setSelected({ r, c });
-    }
-  }, [selected]);
+  }, []);
 
-  // Find the displaced letter's current position to drive the hand animation.
+  const handleTouchStart = (r: number, c: number, e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, r, c };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStartRef.current) return;
+    const touch = e.changedTouches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+    const { r, c } = touchStartRef.current;
+    touchStartRef.current = null;
+
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    const threshold = 20;
+
+    if (absDx < threshold && absDy < threshold) {
+      // Hantera som klick om rörelsen är liten
+      if (!selected) setSelected({ r, c });
+      else if (selected.r === r && selected.c === c) setSelected(null);
+      else if (isAdjacent(selected, { r, c })) {
+        executeSwap(selected.r, selected.c, r, c);
+        setSelected(null);
+      } else setSelected({ r, c });
+      return;
+    }
+
+    // Hantera som svajp
+    if (absDx > absDy) {
+      executeSwap(r, c, r, c + (dx > 0 ? 1 : -1));
+    } else {
+      executeSwap(r, c, r + (dy > 0 ? 1 : -1), c);
+    }
+    setSelected(null);
+  };
+
   const displacedIdx = Math.min(1, wordLen - 1);
   const displacedPos = useMemo(() => {
     for (let r = 0; r < ROWS; r++) {
@@ -188,7 +210,9 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
               return (
                 <button
                   key={`${r}-${c}-${cell.id}`}
-                  onClick={() => handleClick(r, c)}
+                  onTouchStart={(e) => handleTouchStart(r, c, e)}
+                  onTouchEnd={handleTouchEnd}
+                  onClick={() => !('ontouchstart' in window) && executeSwap(r, c, r, c)} // Fallback för desktop utan touch
                   className={`relative rounded-full flex items-center justify-center font-bold text-white text-base select-none transition-all touch-none ${isSel ? 'ring-2 ring-yellow-300 scale-110 z-10' : ''} ${targetGlow}`}
                   style={{
                     background: `radial-gradient(circle at 30% 30%, ${cell.color}ee, ${cell.color}99)`,
@@ -203,7 +227,6 @@ export const InteractiveSwapDemo: React.FC<Props> = ({ word, onComplete }) => {
             }),
           )}
 
-          {/* Animated hint hand */}
           {handFrom && handTo && !done && (
             <AnimatedHand from={handFrom} to={handTo} paused={interacted} />
           )}
