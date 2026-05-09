@@ -139,7 +139,7 @@ const SingleplayerMenu = () => {
         </div>
 
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 60, opacity: expanded ? 0 : 1 }}>
-          <BackButton onClick={() => go('/', 'classic')} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-4" />
+          <BackButton onClick={() => go('/', 'classic')} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-1" />
         </div>
       </div>
 
