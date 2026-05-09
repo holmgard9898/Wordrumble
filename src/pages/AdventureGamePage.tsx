@@ -357,16 +357,18 @@ const AdventureGamePage = () => {
 
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} onBackToMap={() => { setShowMenu(false); navigate('/adventure'); }} />
 
-      {/* Intro modal */}
-      <Dialog open={showIntro} onOpenChange={setShowIntro}>
-        <DialogContent className="max-w-xs rounded-2xl border-white/10" style={{ background: 'rgba(15,23,42,0.95)' }}>
-          <DialogHeader>
-            <DialogTitle className="text-white text-center text-2xl">{level.icon} {level.name[settings.language]}</DialogTitle>
-            <DialogDescription className="text-white/80 text-center pt-2">{level.intro[settings.language]}</DialogDescription>
-          </DialogHeader>
-          <Button onClick={() => setShowIntro(false)} className="w-full mt-2 bg-blue-600 hover:bg-blue-500 text-white">{t.adventureStart}</Button>
-        </DialogContent>
-      </Dialog>
+      {/* Tutorial / intro modal — shown every time in adventure */}
+      <TutorialModal
+        open={showIntro}
+        steps={[
+          {
+            title: `${level.icon} ${level.name[settings.language]}`,
+            body: `${level.intro[settings.language]}\n\n🎯 ${goalText}`,
+          },
+          ...getTutorialSteps(levelMode, settings.language),
+        ]}
+        onClose={() => setShowIntro(false)}
+      />
 
       {/* Success modal */}
       <Dialog open={showSuccess} onOpenChange={() => {}}>
