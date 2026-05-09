@@ -97,7 +97,7 @@ const SingleplayerMenu = () => {
             const locked = !isModeUnlocked(m.mode);
 
             return (
-              <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
+              <div key={m.path} className="transition-all duration-300 overflow-hidden pb-3 px-2" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
                   <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
                     {locked && <LockOverlay />}
