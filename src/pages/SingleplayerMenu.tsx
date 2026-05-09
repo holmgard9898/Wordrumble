@@ -87,7 +87,7 @@ const SingleplayerMenu = () => {
       <div className="relative z-10 flex flex-col items-center w-full">
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 160, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
           <div className="mb-1"><BubbleTitle text={t.singleplayer} size="md" /></div>
-          <p className="text-white/90 mb-3 mt-1 drop-shadow text-center font-medium">{t.chooseMode}</p>
+          <p className="text-white/90 mb-2 mt-0 drop-shadow text-center font-medium">{t.chooseMode}</p>
         </div>
 
         <div className="flex flex-col gap-2 w-full max-w-xs">
