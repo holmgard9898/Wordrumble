@@ -120,7 +120,7 @@ const Statistics = () => {
 
       <div className="w-full max-w-sm">
         <Tabs defaultValue="highscore" className="w-full">
-          <TabsList className="w-full bg-white/10">
+          <TabsList className="w-full bg-slate-900/60 backdrop-blur-md border border-white/10">
             <TabsTrigger value="highscore" className="flex-1 gap-2 data-[state=active]:bg-white/20 text-white">
               <Trophy className="w-4 h-4" /> {t.highscore}
             </TabsTrigger>
