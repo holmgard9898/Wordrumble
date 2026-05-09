@@ -20,6 +20,8 @@ import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
+import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
+import { getTutorialSteps } from '@/data/tutorials';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
