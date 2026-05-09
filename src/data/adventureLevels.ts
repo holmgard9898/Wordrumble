@@ -137,7 +137,7 @@ export const adventureLevels: AdventureLevel[] = [
     },
     mapPosition: { x: 46, y: 73 },
     connectsTo: ['adv-4'],
-    maxMoves: 80,
+    maxMoves: 120,
   },
   {
     id: 'adv-4', number: 4, icon: '🚢',
