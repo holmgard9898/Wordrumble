@@ -22,7 +22,7 @@ const MainMenu = () => {
       style={{ ...bg.style, backgroundPosition: 'center 55%', backgroundSize: 'cover' }}
     >
       {/* Här har jag ändrat mt-[22vh] till mt-[30vh] för att sänka loggan */}
-      <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mt-[40vh] mb-[-10vh]">
+      <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mt-[40vh] mb-[-4vh]">
         <img
           src={logoUrl}
           alt="Word Rumble"
