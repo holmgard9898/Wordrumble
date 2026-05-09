@@ -99,9 +99,9 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
                     {locked && <LockOverlay />}
-                    <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
+                    <div className={`flex items-center gap-2 mb-1 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
                       <span className="text-xl font-bold text-white" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.35)' }}>{m.name}</span>
                     </div>
