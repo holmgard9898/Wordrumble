@@ -85,7 +85,7 @@ const SingleplayerMenu = () => {
     <div className={`min-h-[100dvh] flex flex-col items-center justify-start pt-3 pb-6 px-4 ${bg.className}`} style={bg.style}>
       {isClouds && <div className="fixed inset-0 bg-black/30 pointer-events-none" />}
       <div className="relative z-10 flex flex-col items-center w-full">
-        <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 160, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
+        <div className="transition-all duration-300 " style={{ maxHeight: expanded ? 0 : 160, opacity: expanded ? 0 : 1, marginBottom: expanded ? 0 : undefined }}>
           <div className="mb-1"><BubbleTitle text={t.singleplayer} size="md" /></div>
           <p className="text-white/90 mb-2 mt-0 drop-shadow text-center font-medium">{t.chooseMode}</p>
         </div>
@@ -99,9 +99,9 @@ const SingleplayerMenu = () => {
             return (
               <div key={m.path} className="transition-all duration-300 overflow-hidden" style={{ maxHeight: isHidden ? 0 : 600, opacity: isHidden ? 0 : 1, marginBottom: isHidden ? -16 : undefined, transform: isHidden ? 'scale(0.95)' : 'scale(1)' }}>
                 {!isExpanded ? (
-                  <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-2 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
+                  <button onClick={() => go(m.path, m.mode)} className={`rounded-3xl p-3 text-left transition-all hover:scale-[1.02] active:scale-[0.98] w-full relative overflow-hidden ${locked ? 'grayscale-[40%]' : ''}`} style={styleFor(m.tone)}>
                     {locked && <LockOverlay />}
-                    <div className={`flex items-center gap-2 mb-1 ${locked ? 'opacity-60' : ''}`}>
+                    <div className={`flex items-center gap-3 mb-2 ${locked ? 'opacity-60' : ''}`}>
                       {m.icon}
                       <span className="text-xl font-bold text-white" style={{ textShadow: '0 2px 0 rgba(0,0,0,0.35)' }}>{m.name}</span>
                     </div>
@@ -139,7 +139,7 @@ const SingleplayerMenu = () => {
         </div>
 
         <div className="transition-all duration-300 overflow-hidden" style={{ maxHeight: expanded ? 0 : 60, opacity: expanded ? 0 : 1 }}>
-          <BackButton onClick={() => go('/', 'classic')} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-1" />
+          <BackButton onClick={() => go('/', 'classic')} icon={<ArrowLeft className="w-4 h-4" />} label={t.mainMenu} className="mt-3" />
         </div>
       </div>
 
