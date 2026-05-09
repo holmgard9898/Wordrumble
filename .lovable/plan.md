@@ -1,64 +1,84 @@
-# Match the Mockup — Title + Buttons Overhaul
+## Mål
 
-Goal: get the menu visually as close to the Gemini mockup as possible. Two-row title with a blob-shaped bubble that hugs the letters, glossy candy buttons with no white ring, and solid (non-transparent) buttons by default.
+1. Visa tutorial-popup vid **varje** äventyrsnivå (även om den spelats förut).
+2. Göra tutorial-rutorna **interaktiva**: spelaren swipar själv en bokstav i en minirutnät för att stava ett ord.
+3. Ordet i den interaktiva rutan **anpassas efter språk** (t.ex. CAT / KATT).
+4. Lägg till en **animerad tecknad vit handske** som visuellt visar swipe-rörelsen (med ett vitt spår bakom), som vägledning. Spelaren utför själv den faktiska handlingen.
+5. Förberedelse för nästa steg: bygga ut Map 2 (ersätta placeholder-nivåerna). Görs i ett separat steg.
 
-## 1. Title — "Word Rumble" (two rows + gooey blob)
+---
 
-Rewrite `src/components/BubbleTitle.tsx`:
+## Steg 1 – Alltid visa tutorial i Adventure
 
-- **Layout**: Accept `lines: string[]` (e.g. `['Word', 'Rumble']`) so the title renders on two rows like the mockup, with "Rumble" slightly larger / offset.
-- **Bubble shape that follows letters**: Use an SVG goo filter wrapped around the text. Behind the text, render one rounded rect per row (slightly oversized) inside an SVG `<filter>` using `feGaussianBlur` + `feColorMatrix` (classic gooey effect). The two blurred rectangles merge into a single organic blob that hugs the letter shapes — exactly the mockup look.
-- **Bubble fill**: very light translucent white/blue gradient (`rgba(200,225,255,0.55)` → `rgba(255,255,255,0.35)`) with a soft inner highlight stripe at the top and a thin white outline (`stroke="#ffffff" stroke-width="3"`) drawn after the blur via a second SVG layer so the rim stays crisp.
-- **Letter style** (closer to mockup "glossy candy" letters):
-  - Font: switch from `Luckiest Guy` to **`Bagel Fat One`** (closer match — chunkier, rounder). Add Google Fonts link in `index.html`.
-  - Per-letter palette per row: row 1 = blue/green/red/yellow ("Word"), row 2 = red/orange/yellow/green/blue/purple ("Rumble") — sampled from mockup.
-  - Effects: `WebkitTextStroke: 4px #ffffff`, `paintOrder: stroke fill`, plus an inset glossy highlight using a second `<span>` layer with `background-clip: text` and a top-to-middle white→transparent gradient. Drop shadow `0 4px 0 rgba(30,40,90,0.35), 0 8px 14px rgba(0,0,0,0.3)`.
-  - Slight per-letter rotation (±3°) and varied `translateY` for hand-drawn feel.
-- Keep the small ✦ sparkle decorations.
+I `AdventureGamePage.tsx`:
+- Ta bort dagens `showIntro`-flow (texten i `level.intro`) som första modal — ersätt med en ny `<AdventureTutorialModal />` som öppnas alltid när nivån laddas.
+- Modalen visar:
+  1. Korta intro-text (från `level.intro[lang]`) + målet (från goalText).
+  2. Lägesspecifika tutorial-steg från `getTutorialSteps(level.mode ?? 'classic', lang)` (samma som klassiskt läge).
+  3. Sista sidan = "Spela!" knapp som stänger.
+- Gated på `ready` (efter att spelet är initierat) precis som idag.
+- **Ingen** koppling till `useTutorialSeen` här — visas alltid.
 
-Update `MainMenu.tsx` to pass `lines={['Word','Rumble']}`.
+## Steg 2 – Interaktiva tutorial-steg
 
-## 2. Buttons — `MenuButton.tsx`
+Skapa ny komponent `src/components/tutorial/InteractiveSwapDemo.tsx`:
+- Litet 4x4-rutnät av "bubblor" (samma stil som spelets `Bubble`).
+- Tar in ett mål-ord (`targetWord`, t.ex. "CAT"/"KATT") och placerar bokstäverna i rutnätet på ett sätt så att en bokstav är **3 positioner** ifrån sin slutposition (för att visa fri svajping till skillnad mot Candy Crush).
+- Spelaren swipar bokstaven steg för steg. När bokstaven är på rätt plats och hela ordet bildats → "klart"-state och tutorialen kan gå vidare ("Nästa"-knapp aktiveras).
+- Färger: alla bokstäver i ordet får **samma färg** (t.ex. grön) för att visa "samma färg = ord". Övriga bubblor får andra färger för kontrast.
+- Vid mount: animerad "hint"-hand pekar på den felplacerade bokstaven och ritar en streckad vit linje längs vägen den ska swipas. Loopar tills spelaren rört vid bubblan.
 
-Rewrite to match the mockup's "solid jelly pill" look:
+Skapa `src/components/tutorial/AnimatedHand.tsx`:
+- En liten SVG/PNG-hand (vit handske, tecknad stil — lägg under `src/assets/hand-pointer.svg`, jag genererar den med `imagegen`).
+- Animation: hand glider från startpos → slutpos längs vald axel; bakom följer en mjukt fade:ad vit svans (CSS box-shadow eller en SVG `<path>` som ritas med `stroke-dashoffset`).
+- Loopar med 1s paus mellan varje svep.
+- Pausar/försvinner när spelaren börjar interagera.
 
-- **Remove** `ring-2 ring-white/70 ring-inset` (this is the "too much white" the user dislikes).
-- **Solid base color** (no transparency on the button surface), e.g. blue = `#3B82F6`. Add a subtle vertical gradient `linear-gradient(180deg, lighten 8% → base → darken 10%)` for depth.
-- **Top gloss**: keep the inner top highlight, but thinner (`top-1 h-[40%]`, `rgba(255,255,255,0.45) → transparent`).
-- **Bottom edge**: add an inset bottom shadow `inset 0 -4px 0 rgba(0,0,0,0.18)` to give the "candy lip" look.
-- **Outer shadow**: soft drop shadow `0 6px 0 rgba(0,0,0,0.18), 0 10px 18px rgba(0,0,0,0.25)`.
-- **Border**: 2px outer border in a slightly darker shade of the button color (not white) — gives the colored contour the mockup has.
-- Shape stays `rounded-full`, sizes unchanged.
-- Text: white, `font-extrabold`, drop-shadow `0 2px 0 rgba(0,0,0,0.25)`.
+## Steg 3 – Språkanpassade demo-ord
 
-Result: solid candy pill with a colored rim and zero white ring.
+Lägg till en map i `src/data/tutorials.tsx`:
+```ts
+const DEMO_WORDS: Record<GameLanguage, string> = {
+  en: 'CAT', sv: 'KATT', de: 'KATZ', es: 'GATO', fr: 'CHAT',
+  it: 'GATTO', pt: 'GATO', nl: 'KAT', no: 'KATT', da: 'KAT', fi: 'KISSA',
+};
+```
+- `getTutorialSteps` byter ut det nuvarande "Same color forms words"-steget mot ett interaktivt steg som använder `DEMO_WORDS[lang]`.
+- Den befintliga statiska `MiniGrid`-visualiseringen tas bort där den ersätts. Behåll den för andra steg som bara förklarar (t.ex. "5+ letters only" för fiveplus).
 
-## 3. Back button — `BackButton` in `MenuButton.tsx`
+## Steg 4 – TutorialModal stöd för interaktiva steg
 
-Currently translucent + white ring. Change to:
+I `src/components/TutorialModal.tsx`:
+- Lägg till valfritt `interactive?: boolean` och `onComplete?: () => void` på `TutorialStep`.
+- Om `interactive` är true: dölj "Nästa"-pilen tills `onComplete` triggats (rendrera ändå "Hoppa över" som liten länk för accessibility).
+- "Visual" får ta över hela kortets innehåll (utan body-text) när det är interaktivt, för plats.
 
-- Solid fill (default purple `#7C3AED` or theme-matched), same jelly treatment as `MenuButton` (gradient, top gloss, dark bottom inset, colored darker border).
-- Optional `tone` prop (`'purple' | 'red' | …`) so different pages can color it.
-- Keep arrow icon. Bigger contour so it's clearly visible on any background.
+## Steg 5 – Adventure: använd tutorial efter rätt mode
 
-## 4. Theme-aware transparency
+`AdventureGamePage` skickar `level.mode ?? 'classic'` till `getTutorialSteps`. Bombnivåer får alltså bombstegen, surge får surgestegen, etc. Hidden-word/find-words-nivåer faller tillbaka på classic-stegen + en extra slide som förklarar målet (kommer från `level.intro` + `goalText`).
 
-The user wants solid by default, but translucent OK when "Cosmic Night" theme is active.
+## Steg 6 – Nästa loop (inte i denna omgång)
 
-- Read `settings.background` from `SettingsContext` inside `MenuButton`/`BackButton`.
-- If `background === 'cosmic'` (or whichever id corresponds to Cosmic Night), apply a `bg-opacity` reduction + backdrop-blur variant. Otherwise stay fully solid.
-- This keeps Storybook (default), Treasure Map, etc. fully readable.
+- Designa ut Map 2-nivåerna (`adv-2-1` … `adv-2-N`) med riktiga mål, ord, lägen, bakgrunder och progression Earth → Moon → Earth.
+- Lägga till intro-texter på alla språk.
 
-## 5. Files touched
+---
 
-- `index.html` — add Bagel Fat One font.
-- `src/components/BubbleTitle.tsx` — full rewrite (SVG gooey + 2 rows).
-- `src/components/MenuButton.tsx` — restyle `MenuButton` and `BackButton`, theme-aware transparency.
-- `src/pages/MainMenu.tsx` — pass two-line title.
-- No other pages need changes (they all already use `BubbleTitle` + `MenuButton`/`BackButton`).
+## Tekniska detaljer
 
-## Honest expectations
+**Filer som skapas**
+- `src/components/tutorial/InteractiveSwapDemo.tsx`
+- `src/components/tutorial/AnimatedHand.tsx`
+- `src/assets/hand-pointer.svg` (genererad bild – tecknad vit handske)
 
-- Two-row title with gooey blob + Bagel Fat One letters will look very close to the mockup (~90%).
-- Buttons will match the mockup's solid candy style essentially 1:1.
-- Pixel-perfect blob curvature depends on SVG filter tuning — may need one quick follow-up iteration after you see it live.
+**Filer som ändras**
+- `src/components/TutorialModal.tsx` – stöd för interaktiva steg
+- `src/data/tutorials.tsx` – DEMO_WORDS, byter ut "find words"-steget mot interaktivt
+- `src/pages/AdventureGamePage.tsx` – ersätt `showIntro` med tutorial-modal som visas varje gång; ingen `useTutorialSeen`
+- `src/pages/GamePage.tsx` – inga funktionella ändringar, men interaktivt steg fungerar automatiskt
+
+**Beteendekontrakt**
+- I klassiskt läge: tutorialen visas fortfarande bara första gången (via `useTutorialSeen`).
+- I adventure: visas alltid.
+- Spelaren kan inte gå vidare i ett interaktivt steg utan att slutföra (kan dock stänga hela modalen via X eller "Hoppa över").
+
