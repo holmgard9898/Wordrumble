@@ -15,6 +15,8 @@ export interface AdventureSeed {
   maxMoves?: number;
   /** Words that must remain formable in some color throughout the game. */
   keepFormableWords?: string[];
+  /** Reverse gravity: existing bubbles move up; new bubbles spawn at the bottom. */
+  antigravity?: boolean;
 }
 
 let seedBubbleCounter = 0;
