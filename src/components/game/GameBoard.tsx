@@ -1,9 +1,24 @@
-import { BubbleData, Position } from '@/data/gameConstants';
+import { BubbleData, Position, BUBBLE_COLOR_STYLES, SPORTS_BALLS } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
 import { BonusMovePopup } from './BonusMovePopup';
 import type { BonusPopupData } from './BonusMovePopup';
-import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useLayoutEffect } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useLayoutEffect, useEffect } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
+
+type Particle = {
+  id: string;
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  size: number;
+  delay: number;
+  content: { kind: 'dot'; color: string } | { kind: 'emoji'; char: string } | { kind: 'shape'; color: string; shape: 'square' | 'circle' | 'triangle' | 'diamond' | 'star' };
+};
+
+const SHAPE_OF: Record<string, 'star' | 'square' | 'circle' | 'triangle' | 'diamond'> = {
+  red: 'star', green: 'square', blue: 'circle', yellow: 'triangle', pink: 'diamond',
+};
 
 interface GameBoardProps {
   grid: BubbleData[][];
