@@ -199,6 +199,9 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
       remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    } else if (level.goal.type === 'single-word') {
+      const w = level.goal.word[settings.language];
+      remaining = used.has(w.toLowerCase()) ? [] : [w];
     }
     game.setKeepFormableWords(remaining);
   }, [level, settings.language, game.usedWords, game.setKeepFormableWords]);
