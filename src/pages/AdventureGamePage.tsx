@@ -384,16 +384,24 @@ const AdventureGamePage = () => {
           <div className="text-white/70 text-xs uppercase tracking-wider">{t.adventureGoal}</div>
           <div className="text-white text-sm font-medium">{goalText}</div>
           {level.goal.type === 'find-words' && (
-            <div className="flex flex-wrap gap-1.5 justify-center mt-1.5">
-              {targetWords.map(w => {
-                const found = foundTargets.includes(w);
-                return (
-                  <span key={w} className={`px-2 py-0.5 rounded text-xs font-bold ${found ? 'line-through text-emerald-300' : 'text-white'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)' }}>
-                    {w.toUpperCase()}
-                  </span>
-                );
-              })}
-            </div>
+            <>
+              <div className="flex flex-wrap gap-1.5 justify-center mt-1.5">
+                {targetWords.map(w => {
+                  const found = foundTargets.includes(w);
+                  return (
+                    <span key={w} className={`px-2 py-0.5 rounded text-xs font-bold ${found ? 'line-through text-emerald-300' : 'text-white'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)' }}>
+                      {w.toUpperCase()}
+                    </span>
+                  );
+                })}
+              </div>
+              {level.goal.minScore != null && (
+                <div className="mt-2 px-1">
+                  <Progress value={Math.min(100, Math.round((game.score / level.goal.minScore) * 100))} className="h-2 bg-white/10" />
+                  <div className="text-[11px] text-white/70 mt-1">{game.score} / {level.goal.minScore}</div>
+                </div>
+              )}
+            </>
           )}
           {level.goal.type === 'hidden-word' && (
             <>
