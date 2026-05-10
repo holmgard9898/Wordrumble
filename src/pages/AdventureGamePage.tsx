@@ -39,9 +39,10 @@ const AdventureGamePage = () => {
   const levelMode = level?.mode ?? 'classic';
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
+    const antigravity = level.antigravity === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
@@ -51,9 +52,13 @@ const AdventureGamePage = () => {
         targetWords: thematic,
         maxMoves: level.maxMoves,
         keepFormableWords: [hidden, ...thematic],
+        antigravity,
       };
     }
-    return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
+    if (level.maxMoves || antigravity) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity };
+    }
+    return undefined;
   }, [level, settings.language]);
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
@@ -184,6 +189,9 @@ const AdventureGamePage = () => {
       const formedHidden = game.usedWords.some(w => w.word.toLowerCase() === hiddenWord.toLowerCase());
       done = formedHidden;
     }
+    else if (level.goal.type === 'best-word-score') {
+      done = (game.bestWordScore ?? 0) >= level.goal.target;
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
@@ -238,6 +246,10 @@ const AdventureGamePage = () => {
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
     if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
+    if (level.goal.type === 'best-word-score') {
+      const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
+      return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
+    }
     return t.goalFindWords;
   })();
 
@@ -245,6 +257,7 @@ const AdventureGamePage = () => {
     if (!level.showProgressBar) return null;
     if (level.goal.type === 'reach-score') return Math.min(100, Math.round((game.score / level.goal.target) * 100));
     if (level.goal.type === 'survive-moves') return Math.min(100, Math.round((game.movesUsed / level.goal.moves) * 100));
+    if (level.goal.type === 'best-word-score') return Math.min(100, Math.round(((game.bestWordScore ?? 0) / level.goal.target) * 100));
     return null;
   })();
 
@@ -324,6 +337,7 @@ const AdventureGamePage = () => {
               <div className="text-[11px] text-white/70 mt-1">
                 {level.goal.type === 'reach-score' && `${game.score} / ${level.goal.target}`}
                 {level.goal.type === 'survive-moves' && `${game.movesUsed} / ${level.goal.moves}`}
+                {level.goal.type === 'best-word-score' && `${game.bestWordScore ?? 0} / ${level.goal.target}`}
               </div>
             </div>
           )}
