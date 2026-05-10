@@ -109,6 +109,61 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
             );
           })
         )}
+        {(() => {
+          // Find satellite bounds (2x2). Grid-area is 1-indexed.
+          let topRow = grid.length, botRow = -1, leftCol = grid[0]?.length ?? 0, rightCol = -1;
+          for (let r = 0; r < grid.length; r++) {
+            for (let c = 0; c < (grid[r]?.length ?? 0); c++) {
+              if (grid[r][c].satellite) {
+                if (r < topRow) topRow = r;
+                if (r > botRow) botRow = r;
+                if (c < leftCol) leftCol = c;
+                if (c > rightCol) rightCol = c;
+              }
+            }
+          }
+          if (botRow < 0) return null;
+          const rowSpan = botRow - topRow + 1;
+          const colSpan = rightCol - leftCol + 1;
+          const ready = laserCharge?.ready;
+          const arming = laserCharge?.arming;
+          return (
+            <div
+              style={{
+                gridRow: `${topRow + 1} / span ${rowSpan}`,
+                gridColumn: `${leftCol + 1} / span ${colSpan}`,
+                pointerEvents: 'none',
+                position: 'relative',
+              }}
+            >
+              <div
+                className={`absolute inset-0.5 rounded-xl flex items-center justify-center ${ready ? 'animate-pulse' : ''}`}
+                style={{
+                  background: 'radial-gradient(circle at 30% 30%, hsl(220, 18%, 55%), hsl(220, 22%, 28%) 60%, hsl(220, 28%, 12%))',
+                  border: `2px solid ${ready ? 'hsl(140,90%,55%)' : arming ? 'hsl(30,100%,55%)' : 'hsl(220,30%,18%)'}`,
+                  boxShadow: ready
+                    ? '0 0 18px hsl(140,90%,55%), inset 0 0 12px rgba(0,0,0,0.5)'
+                    : 'inset 0 -4px 8px rgba(0,0,0,0.55), 0 4px 10px rgba(0,0,0,0.5)',
+                }}
+              >
+                <span className="text-3xl md:text-4xl lg:text-5xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]">🛰️</span>
+                {laserCharge && (
+                  <span
+                    className="absolute bottom-1 right-1 text-[10px] md:text-xs font-extrabold px-1.5 py-0.5 rounded"
+                    style={{
+                      background: ready ? 'hsl(140,90%,40%)' : 'hsl(220,30%,18%)',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.25)',
+                      textShadow: '0 1px 1px rgba(0,0,0,0.5)',
+                    }}
+                  >
+                    {ready ? '⚡ READY' : `${laserCharge.current}/${laserCharge.max}`}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
