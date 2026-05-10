@@ -52,6 +52,9 @@ export interface BubbleData {
   asteroid?: boolean;
   /** Adventure-only: marks a cell as part of the immovable satellite (2x2). No bubble lives here. */
   satellite?: boolean;
+  /** Adventure-only: immovable UFO. Cannot form words. Each move it swaps the bubble directly below it.
+   *  When bubbles below it pop, new bubbles spawn from below the UFO instead of falling from the top. */
+  ufo?: boolean;
 }
 
 export interface Position {
