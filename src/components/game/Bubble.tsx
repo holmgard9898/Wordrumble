@@ -301,6 +301,7 @@ export function Bubble(props: BubbleProps) {
   if (bubble.satellite) return <SatelliteInner {...props} />;
   if (bubble.ufo) return <UfoInner {...props} />;
   if (bubble.asteroid) return <AsteroidInner {...props} />;
+  if (bubble.rock) return <RockInner {...props} />;
   if (style === 'soapbubble') return <SoapBubbleInner {...props} />;
   if (style === 'sports') return <SportsBallInner {...props} />;
 
