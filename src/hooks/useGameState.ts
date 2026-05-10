@@ -627,6 +627,7 @@ export function useGameState(
     }
 
     const colors = getColorsForMode(mode);
+    const antigravity = adventureSeed?.antigravity === true;
 
     setTimeout(() => {
       setPoppingCells(new Set());
@@ -641,10 +642,18 @@ export function useGameState(
         for (let r = 0; r < ROWS; r++) if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
         const newBubbles: BubbleData[] = [];
         for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
-        const fullColumn = [...newBubbles, ...remaining];
-        for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
-        // Track newly-spawned cells (top `newBubbles.length` rows of this column).
-        for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
+        if (antigravity) {
+          // Existing bubbles fall UP (stay at top); new bubbles spawn at BOTTOM.
+          const fullColumn = [...remaining, ...newBubbles];
+          for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+          for (let i = 0; i < newBubbles.length; i++) {
+            newCellPositions.push({ row: ROWS - 1 - i, col: c });
+          }
+        } else {
+          const fullColumn = [...newBubbles, ...remaining];
+          for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+          for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
+        }
       }
 
       // Adventure: ensure required words remain formable.
@@ -657,7 +666,7 @@ export function useGameState(
         else setIsProcessing(false);
       }, 300);
     }, 500);
-  }, [findWords, mode, refillBubble, freeLabel, repairAfterRefill]);
+  }, [findWords, mode, refillBubble, freeLabel, repairAfterRefill, adventureSeed?.antigravity]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
