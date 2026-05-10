@@ -91,7 +91,7 @@ export function useGameEffects(opts: {
     const len = lastWordEvent.length;
 
     // ─── Confetti for 8+ ───
-    if (len >= 8 && containerEl) {
+    if (len >= 8) {
       const positions = lastWordEvent.positions;
       const center = positions[Math.floor(positions.length / 2)];
       const rect = getCellRect(center.row, center.col);
