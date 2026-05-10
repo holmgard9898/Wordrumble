@@ -236,7 +236,6 @@ const AdventureGamePage = () => {
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (rocketArming) {
-      // Fire rocket on this column
       if (rocketsLeft > 0 && game.fireRocket) {
         game.fireRocket(col);
         setRocketsLeft(n => n - 1);
@@ -244,8 +243,38 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (laserArming) {
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite && !cell.asteroid) {
+        setLaserTarget({ row, col, letter: cell.letter });
+        setLaserNewLetter(cell.letter);
+      }
+      return;
+    }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft]);
+  }, [game, rocketArming, rocketsLeft, laserArming]);
+
+  // Build alphabet for the language (sorted, unique)
+  const alphabet = useMemo(() => {
+    const cfg = getLanguageConfig(settings.language);
+    const set = new Set(cfg.letterPool.split('').map(c => c.toUpperCase()));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, settings.language));
+  }, [settings.language]);
+
+  const fireLaser = useCallback(() => {
+    if (!laserTarget || !laserNewLetter) return;
+    game.swapBubbleLetter?.(laserTarget.row, laserTarget.col, laserNewLetter);
+    setLaserTarget(null);
+    setLaserNewLetter('');
+    setLaserArming(false);
+    setLaserCharge(0);
+  }, [laserTarget, laserNewLetter, game]);
+
+  const cancelLaserDialog = useCallback(() => {
+    setLaserTarget(null);
+    setLaserNewLetter('');
+    // Stay armed: player can pick another bubble. They can also click the cancel button on the toolbar to fully cancel.
+  }, []);
 
   if (!level) {
     return (
