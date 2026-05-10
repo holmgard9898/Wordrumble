@@ -731,9 +731,15 @@ const AdventureGamePage = () => {
         <DialogContent className="max-w-xs rounded-2xl border-emerald-500/30" style={{ background: 'linear-gradient(135deg, rgba(20,80,40,0.95), rgba(10,40,20,0.95))' }}>
           <DialogHeader>
             <DialogTitle className="text-white text-center text-2xl flex items-center justify-center gap-2">
-              <Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureCongrats}
+              {level.finalCelebration
+                ? <span>🎈 {settings.language === 'sv' ? 'Vi tog luftballong hem!' : 'We took a hot-air balloon home!'}</span>
+                : <><Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureCongrats}</>}
             </DialogTitle>
-            <DialogDescription className="text-white/80 text-center pt-2">{t.adventureLevelComplete} +20 coins</DialogDescription>
+            <DialogDescription className="text-white/80 text-center pt-2">
+              {level.finalCelebration
+                ? (settings.language === 'sv' ? 'Nya äventyr väntar senare. +20 mynt' : 'New adventures await later. +20 coins')
+                : `${t.adventureLevelComplete} +20 coins`}
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 mt-2">
             {nextLevel && (
