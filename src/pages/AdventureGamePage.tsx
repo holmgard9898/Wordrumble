@@ -348,6 +348,7 @@ const AdventureGamePage = () => {
                 {level.goal.type === 'reach-score' && `${game.score} / ${level.goal.target}`}
                 {level.goal.type === 'survive-moves' && `${game.movesUsed} / ${level.goal.moves}`}
                 {level.goal.type === 'best-word-score' && `${game.bestWordScore ?? 0} / ${level.goal.target}`}
+                {level.goal.type === 'destroy-asteroids' && `${game.asteroidsDestroyed ?? 0} / ${level.goal.count}`}
               </div>
             </div>
           )}
