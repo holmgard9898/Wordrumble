@@ -26,7 +26,7 @@ import cityBg from '@/assets/bg-city.jpg';
 import storybookBg from '@/assets/bg-storybook.jpg';
 import moonBg from '@/assets/bg-moon.jpg';
 import forestBg from '@/assets/bg-forest.jpg';
-import { isForestSecretWord } from '@/data/secretUnlocks';
+
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
