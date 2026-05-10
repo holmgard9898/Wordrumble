@@ -486,8 +486,9 @@ const MultiplayerGamePage = () => {
           mode={gameMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
-        />
-      </div>
+          />
+        </div>
+      </FireModeFrame>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
