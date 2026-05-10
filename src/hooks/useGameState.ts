@@ -1182,6 +1182,41 @@ export function useGameState(
     });
   }, [gameOver, isProcessing, values, checkForWords]);
 
+  /** Adventure 3 powerup: change a target bubble's letter; consume the powerup at source cell. */
+  const applyPowerupSwapLetter = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newLetter: string) => {
+    if (gameOver || isProcessing) return;
+    const upper = newLetter.toUpperCase();
+    if (!upper) return;
+    setGrid(prev => {
+      const src = prev[srcRow]?.[srcCol];
+      const tgt = prev[tgtRow]?.[tgtCol];
+      if (!src || !tgt) return prev;
+      if (!src.powerup || (src.powerup !== 'swapletter' && src.powerup !== 'swapcolor')) return prev;
+      if (tgt.satellite || tgt.asteroid || tgt.ufo || tgt.rock || tgt.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[tgtRow][tgtCol] = { ...tgt, letter: upper, value: values[upper] ?? 1 };
+      ng[srcRow][srcCol] = { ...src, powerup: undefined };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, values, checkForWords]);
+
+  const applyPowerupSwapColor = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newColor: BubbleColor) => {
+    if (gameOver || isProcessing) return;
+    setGrid(prev => {
+      const src = prev[srcRow]?.[srcCol];
+      const tgt = prev[tgtRow]?.[tgtCol];
+      if (!src || !tgt) return prev;
+      if (!src.powerup || (src.powerup !== 'swapletter' && src.powerup !== 'swapcolor')) return prev;
+      if (tgt.satellite || tgt.asteroid || tgt.ufo || tgt.rock || tgt.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[tgtRow][tgtCol] = { ...tgt, color: newColor };
+      ng[srcRow][srcCol] = { ...src, powerup: undefined };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, checkForWords]);
+
   const bestWordEntry = usedWords.length > 0
     ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
     : null;
@@ -1196,6 +1231,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
-    asteroidsDestroyed, swapBubbleLetter,
+    asteroidsDestroyed, swapBubbleLetter, applyPowerupSwapLetter, applyPowerupSwapColor,
   };
 }
