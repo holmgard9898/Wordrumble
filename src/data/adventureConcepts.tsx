@@ -2,10 +2,16 @@ import React from 'react';
 import type { TutorialStep } from '@/components/TutorialModal';
 import type { GameLanguage } from './languages';
 import type { AdventureLevel } from './adventureLevels';
+import { InteractiveSwapDemo } from '@/components/tutorial/InteractiveSwapDemo';
 
 // ─── tiny i18n helper (sv + en authored, others fallback to en) ──────────
 type Bi = { en: string; sv: string };
 const pick = (b: Bi, lang: GameLanguage) => (lang === 'sv' ? b.sv : b.en);
+
+const DEMO_WORDS: Record<GameLanguage, string> = {
+  en: 'CAT', sv: 'KATT', de: 'HUND', es: 'GATO', fr: 'CHAT', it: 'GATO',
+  pt: 'GATO', nl: 'KAT', no: 'KATT', da: 'KAT', fi: 'KISA',
+};
 
 // ─── visuals ─────────────────────────────────────────────────────────────
 const Bubble: React.FC<{ ch: string; color: string; ring?: boolean; dim?: boolean }> = ({ ch, color, ring, dim }) => (
@@ -135,22 +141,34 @@ interface ConceptDef {
 const CONCEPTS: Record<ConceptId, ConceptDef> = {
   'mode-classic': {
     id: 'mode-classic',
-    steps: (lang) => [
-      {
-        title: pick({ en: 'Swap & spell', sv: 'Byt & stava' }, lang),
-        body: pick({
-          en: 'Tap two adjacent bubbles to swap them. Get bubbles of the SAME color in a row to spell a word.',
-          sv: 'Tryck på två bubblor bredvid varandra för att byta plats. Få bubblor med SAMMA färg i rad — då bildar de ett ord.',
-        }, lang),
-      },
-      {
-        title: pick({ en: 'Bonus for long words', sv: 'Bonus för långa ord' }, lang),
-        body: pick({
-          en: '4 letters: +3 · 5: +6 · 6: +9 · 7: +12 · 8+: huge multipliers!',
-          sv: '4 bokstäver: +3 · 5: +6 · 6: +9 · 7: +12 · 8+: enorma multiplikatorer!',
-        }, lang),
-      },
-    ],
+    steps: (lang) => {
+      const word = DEMO_WORDS[lang] ?? DEMO_WORDS.en;
+      return [
+        {
+          title: pick({ en: 'Swap bubbles', sv: 'Byt bubblor' }, lang),
+          body: pick({
+            en: 'Tap two adjacent bubbles to swap them. Get bubbles of the SAME color in a row to spell a word.',
+            sv: 'Tryck på två bubblor bredvid varandra för att byta plats. Få bubblor med SAMMA färg i rad — då bildar de ett ord.',
+          }, lang),
+        },
+        {
+          title: pick({ en: 'Try it yourself', sv: 'Prova själv' }, lang),
+          body: pick({
+            en: `Swipe to spell ${word}!`,
+            sv: `Swipa för att stava ${word}!`,
+          }, lang),
+          interactive: true,
+          renderVisual: ({ done }) => <InteractiveSwapDemo word={word} onComplete={done} />,
+        },
+        {
+          title: pick({ en: 'Bonus for long words', sv: 'Bonus för långa ord' }, lang),
+          body: pick({
+            en: '4 letters: +3 · 5: +6 · 6: +9 · 7: +12 · 8+: huge multipliers!',
+            sv: '4 bokstäver: +3 · 5: +6 · 6: +9 · 7: +12 · 8+: enorma multiplikatorer!',
+          }, lang),
+        },
+      ];
+    },
   },
   'mode-surge': {
     id: 'mode-surge',
