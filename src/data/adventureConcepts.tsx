@@ -2,10 +2,16 @@ import React from 'react';
 import type { TutorialStep } from '@/components/TutorialModal';
 import type { GameLanguage } from './languages';
 import type { AdventureLevel } from './adventureLevels';
+import { InteractiveSwapDemo } from '@/components/tutorial/InteractiveSwapDemo';
 
 // ─── tiny i18n helper (sv + en authored, others fallback to en) ──────────
 type Bi = { en: string; sv: string };
 const pick = (b: Bi, lang: GameLanguage) => (lang === 'sv' ? b.sv : b.en);
+
+const DEMO_WORDS: Record<GameLanguage, string> = {
+  en: 'CAT', sv: 'KATT', de: 'HUND', es: 'GATO', fr: 'CHAT', it: 'GATO',
+  pt: 'GATO', nl: 'KAT', no: 'KATT', da: 'KAT', fi: 'KISA',
+};
 
 // ─── visuals ─────────────────────────────────────────────────────────────
 const Bubble: React.FC<{ ch: string; color: string; ring?: boolean; dim?: boolean }> = ({ ch, color, ring, dim }) => (
