@@ -55,6 +55,9 @@ export interface BubbleData {
   /** Adventure-only: immovable UFO. Cannot form words. Each move it swaps the bubble directly below it.
    *  When bubbles below it pop, new bubbles spawn from below the UFO instead of falling from the top. */
   ufo?: boolean;
+  /** Adventure-only: immovable rock (collapsing cave). Cannot move/form words. Permanent — never destroyed.
+   *  Refill of new bubbles in this column happens BELOW the rock (treated as a column blocker). */
+  rock?: boolean;
 }
 
 export interface Position {
