@@ -42,6 +42,8 @@ export interface AdventureLevel {
   antigravity?: boolean;
   /** Asteroid twist: place immovable asteroids on rows 4 & 6 (alternating cols). */
   asteroids?: boolean;
+  /** Satellite twist: immovable 2x2 satellite in center with a laser powerup. */
+  satellite?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
