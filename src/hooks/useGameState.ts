@@ -865,11 +865,21 @@ export function useGameState(
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
     newGrid[toRow][toCol] = temp;
 
-    setMovesUsed((prev) => prev + 1);
+    const nextMovesUsed = movesUsed + 1;
+    setMovesUsed(nextMovesUsed);
 
     const colors = getColorsForMode(mode);
     const hasUfos = adventureSeed?.ufos === true;
     if (hasUfos) tickUfos(newGrid, colors);
+
+    // Collapsing cave: place next rock batch(es) so total batches placed = max(0, nextMovesUsed - 4).
+    if (adventureSeed?.collapsingCave) {
+      const targetBatches = Math.max(0, Math.min(ROCK_SCHEDULE.length, nextMovesUsed - 4));
+      while (rocksPlacedRef.current < targetBatches) {
+        applyRockBatch(newGrid, ROCK_SCHEDULE[rocksPlacedRef.current]);
+        rocksPlacedRef.current += 1;
+      }
+    }
 
     if (mode === 'bomb') {
       setGrid(newGrid);
