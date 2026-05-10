@@ -559,6 +559,60 @@ const AdventureGamePage = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Laser letter-swap dialog */}
+      <Dialog open={!!laserTarget} onOpenChange={(open) => { if (!open) cancelLaserDialog(); }}>
+        <DialogContent className="max-w-sm rounded-2xl border-emerald-500/30" style={{ background: 'linear-gradient(135deg, rgba(15,30,55,0.97), rgba(8,18,35,0.97))' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white text-center text-xl flex items-center justify-center gap-2">
+              <Zap className="w-5 h-5 text-emerald-400" />
+              {settings.language === 'sv' ? 'Byt ut bokstav' : 'Swap letter'}
+            </DialogTitle>
+            <DialogDescription className="text-white/70 text-center text-xs">
+              {settings.language === 'sv' ? 'Välj ny bokstav. Färgen behålls.' : 'Pick a new letter. Color stays the same.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {laserTarget && (
+            <div className="flex items-center justify-center gap-3 py-3">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white"
+                   style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.3)' }}>
+                {laserTarget.letter}
+              </div>
+              <span className="text-white/80 text-2xl">→</span>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white"
+                   style={{ background: 'hsl(140, 65%, 42%)', border: '2px solid hsl(140,90%,60%)', boxShadow: '0 0 14px hsl(140,90%,55%)' }}>
+                {laserNewLetter || '?'}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-7 gap-1.5 py-1">
+            {alphabet.map(letter => {
+              const selected = laserNewLetter === letter;
+              return (
+                <button
+                  key={letter}
+                  onClick={() => setLaserNewLetter(letter)}
+                  className={`aspect-square rounded-md font-bold text-sm transition-all ${selected ? 'bg-emerald-500 text-white scale-110 shadow-[0_0_10px_hsl(140,90%,50%)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  {letter}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-2 mt-2">
+            <Button onClick={cancelLaserDialog} variant="outline" className="flex-1 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-4 h-4" />
+              {settings.language === 'sv' ? 'Avbryt' : 'Cancel'}
+            </Button>
+            <Button onClick={fireLaser} disabled={!laserNewLetter || laserNewLetter === laserTarget?.letter} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50">
+              OK
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
