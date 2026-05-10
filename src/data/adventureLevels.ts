@@ -57,6 +57,14 @@ export interface AdventureLevel {
   satellite?: boolean;
   /** UFO twist: immovable UFOs on rows 4 & 6 (alternating cols), each swap the bubble below them every move. */
   ufos?: boolean;
+  /** Fully pre-determined start grid per language. Overrides random generation. */
+  presetGrid?: Partial<Record<GameLanguage, PresetCell[][]>>;
+  /** Per-language max moves override (takes priority over `maxMoves`). */
+  maxMovesByLang?: Partial<Record<GameLanguage, number>>;
+  /** Story-style intro cards shown instead of (or in addition to) the mode tutorial. */
+  storyIntro?: StoryCard[];
+  /** When true, hide the generic mode tutorial steps and show only the storyIntro. */
+  hideModeT utorial?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
