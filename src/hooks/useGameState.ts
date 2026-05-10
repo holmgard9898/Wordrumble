@@ -818,10 +818,10 @@ export function useGameState(
   }, [pool, values]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids/satellite/UFOs cannot be moved.
+    // Asteroids/satellite/UFOs/rocks cannot be moved.
     const a = grid[fromRow][fromCol];
     const b = grid[toRow][toCol];
-    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo) {
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock) {
       setSelectedBubble(null);
       return;
     }
