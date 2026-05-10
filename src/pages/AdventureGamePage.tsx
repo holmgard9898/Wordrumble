@@ -211,7 +211,11 @@ const AdventureGamePage = () => {
   useEffect(() => {
     if (!level || showSuccess || !ready) return;
     let done = false;
-    if (level.goal.type === 'find-words') done = foundTargets.length >= targetWords.length && targetWords.length > 0;
+    if (level.goal.type === 'find-words') {
+      const wordsDone = foundTargets.length >= targetWords.length && targetWords.length > 0;
+      const scoreDone = level.goal.minScore == null || game.score >= level.goal.minScore;
+      done = wordsDone && scoreDone;
+    }
     else if (level.goal.type === 'reach-score') done = game.score >= level.goal.target;
     else if (level.goal.type === 'find-long-word') {
       const minLen = level.goal.minLength;
