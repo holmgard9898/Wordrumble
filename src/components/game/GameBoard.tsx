@@ -2,7 +2,7 @@ import { BubbleData, Position } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
 import { BonusMovePopup } from './BonusMovePopup';
 import type { BonusPopupData } from './BonusMovePopup';
-import { useRef, useCallback, useImperativeHandle, forwardRef } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useLayoutEffect } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
 
 interface GameBoardProps {
