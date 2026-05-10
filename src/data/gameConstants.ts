@@ -38,7 +38,7 @@ export const MAX_WORD_LENGTH = 10;
 
 export const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 
-export type PowerupType = 'x2' | 'x3' | 'free5';
+export type PowerupType = 'x2' | 'x3' | 'free5' | 'swapletter' | 'swapcolor';
 
 export interface BubbleData {
   id: string;
@@ -58,6 +58,14 @@ export interface BubbleData {
   /** Adventure-only: immovable rock (collapsing cave). Cannot move/form words. Permanent — never destroyed.
    *  Refill of new bubbles in this column happens BELOW the rock (treated as a column blocker). */
   rock?: boolean;
+  /** Adventure 3 infection: moves remaining until smitta sprids till grannar (start 5). */
+  infected?: number;
+  /** Adventure 3 infection: moves remaining until smittan dödar bokstaven (start 7). */
+  infectedDie?: number;
+  /** Adventure 3 infection: bokstaven är ett spöke. Kan ej röras eller bilda ord. */
+  dead?: boolean;
+  /** Adventure 3 infection: drag sedan brickan dog. Efter 5 → −1 poäng/drag. */
+  deadAge?: number;
 }
 
 export interface Position {
