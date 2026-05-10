@@ -42,6 +42,8 @@ export interface AdventureLevel {
   antigravity?: boolean;
   /** Asteroid twist: place immovable asteroids on rows 4 & 6 (alternating cols). */
   asteroids?: boolean;
+  /** Satellite twist: immovable 2x2 satellite in center with a laser powerup. */
+  satellite?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
@@ -338,17 +340,17 @@ export const adventureLevels: AdventureLevel[] = [
     id: 'adv-2-3', number: 3, icon: '🛰️', map: 2,
     name: { en: 'Satellite', sv: 'Satellit', de: 'Satellit', es: 'Satélite', fr: 'Satellite', it: 'Satellite', pt: 'Satélite', nl: 'Satelliet', no: 'Satellitt', da: 'Satellit', fi: 'Satelliitti' },
     intro: {
-      en: 'Find space words to reveal a hidden word, letter by letter!',
-      sv: 'Hitta rymdorden för att avslöja ett dolt ord, bokstav för bokstav!',
-      de: 'Finde Weltraumwörter, um ein verstecktes Wort zu enthüllen!',
-      es: '¡Encuentra palabras espaciales para revelar la palabra oculta!',
-      fr: 'Trouvez les mots spatiaux pour révéler le mot caché !',
-      it: 'Trova le parole spaziali per rivelare la parola nascosta!',
-      pt: 'Encontre as palavras espaciais para revelar a palavra oculta!',
-      nl: 'Vind ruimtewoorden om het verborgen woord te onthullen!',
-      no: 'Finn romordene for å avsløre det skjulte ordet!',
-      da: 'Find rumordene for at afsløre det skjulte ord!',
-      fi: 'Löydä avaruussanat paljastaaksesi salaisen sanan!',
+      en: 'A satellite hovers in the center — it cannot be moved! Pop bubbles to find space words and reveal a hidden word. Every 5 moves, the satellite charges a LASER: tap any bubble to swap its letter!',
+      sv: 'En satellit svävar i mitten — den kan inte flyttas! Poppa bubblor och hitta rymdord för att avslöja ett dolt ord. Var 5:e drag laddar satelliten en LASER: tryck på valfri bubbla för att byta ut dess bokstav!',
+      de: 'Ein Satellit schwebt in der Mitte — unbeweglich! Finde Weltraumwörter, um ein verstecktes Wort zu enthüllen. Alle 5 Züge lädt der Satellit einen LASER: tippe auf eine Bubble, um ihren Buchstaben zu tauschen!',
+      es: '¡Un satélite flota en el centro — no se puede mover! Encuentra palabras espaciales para revelar la palabra oculta. Cada 5 movimientos, el satélite carga un LÁSER: ¡toca una burbuja para cambiar su letra!',
+      fr: 'Un satellite immobile au centre ! Trouvez des mots spatiaux pour révéler le mot caché. Tous les 5 coups, le satellite charge un LASER : touchez une bulle pour changer sa lettre !',
+      it: 'Un satellite immobile al centro! Trova parole spaziali per rivelare la parola nascosta. Ogni 5 mosse, il satellite carica un LASER: tocca una bolla per cambiarne la lettera!',
+      pt: 'Um satélite imóvel no centro! Encontre palavras espaciais para revelar a palavra oculta. A cada 5 jogadas, o satélite carrega um LASER: toque numa bolha para trocar a sua letra!',
+      nl: 'Een onbeweeglijke satelliet in het midden! Vind ruimtewoorden om het verborgen woord te onthullen. Elke 5 zetten laadt de satelliet een LASER: tik op een bubbel om de letter te ruilen!',
+      no: 'En urørlig satellitt i sentrum! Finn romord for å avsløre det skjulte ordet. Hver 5. trekk lader satellitten en LASER: trykk på en boble for å bytte bokstav!',
+      da: 'En urørlig satellit i midten! Find rumord for at afsløre det skjulte ord. Hver 5. træk lader satellitten en LASER: tryk på en boble for at bytte bogstav!',
+      fi: 'Liikkumaton satelliitti keskellä! Löydä avaruussanoja paljastaaksesi salaisen sanan. Joka 5. siirto satelliitti lataa LASERIN: napauta kuplaa vaihtaaksesi sen kirjaimen!',
     },
     background: 'space',
     goal: {
@@ -368,6 +370,7 @@ export const adventureLevels: AdventureLevel[] = [
         ['tähti', 'kuu', 'aurinko', 'mars', 'komeetta', 'rata', 'raketti', 'sumu', 'valo'],
       ),
     },
+    satellite: true,
     mapPosition: { x: 56, y: 58 },
     connectsTo: ['adv-2-4'],
     maxMoves: 130,

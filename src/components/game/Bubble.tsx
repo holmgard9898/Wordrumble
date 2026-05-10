@@ -224,6 +224,11 @@ function AsteroidInner({ onClick }: BubbleProps) {
   );
 }
 
+function SatelliteInner(_: BubbleProps) {
+  // Transparent placeholder; the actual satellite art is overlaid by GameBoard.
+  return <div className="w-full aspect-square" style={{ pointerEvents: 'none' }} />;
+}
+
 export function Bubble(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
@@ -232,6 +237,7 @@ export function Bubble(props: BubbleProps) {
   const { settings } = useSettings();
   const style = settings.tileStyle;
 
+  if (bubble.satellite) return <SatelliteInner {...props} />;
   if (bubble.asteroid) return <AsteroidInner {...props} />;
   if (style === 'soapbubble') return <SoapBubbleInner {...props} />;
   if (style === 'sports') return <SportsBallInner {...props} />;

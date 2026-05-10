@@ -50,6 +50,8 @@ export interface BubbleData {
   /** Adventure-only obstacle: cannot be moved or formed into words.
    *  Falls when bubbles below it pop. Destroyed when it reaches the bottom row. */
   asteroid?: boolean;
+  /** Adventure-only: marks a cell as part of the immovable satellite (2x2). No bubble lives here. */
+  satellite?: boolean;
 }
 
 export interface Position {

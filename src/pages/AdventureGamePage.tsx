@@ -15,13 +15,14 @@ import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home, Rocket, X } from 'lucide-react';
+import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home, Rocket, X, Zap } from 'lucide-react';
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
 import { getTutorialSteps } from '@/data/tutorials';
+import { getLanguageConfig } from '@/data/languages';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
@@ -41,24 +42,25 @@ const AdventureGamePage = () => {
     if (!level) return undefined;
     const antigravity = level.antigravity === true;
     const asteroids = level.asteroids === true;
+    const satellite = level.satellite === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids, satellite };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
       const hidden = level.goal.hiddenWord[settings.language];
-      // Both the thematic words AND the hidden word must remain formable.
       return {
         targetWords: thematic,
         maxMoves: level.maxMoves,
         keepFormableWords: [hidden, ...thematic],
         antigravity,
         asteroids,
+        satellite,
       };
     }
-    if (level.maxMoves || antigravity || asteroids) {
-      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids };
+    if (level.maxMoves || antigravity || asteroids || satellite) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids, satellite };
     }
     return undefined;
   }, [level, settings.language]);
@@ -76,6 +78,31 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
+
+  // Laser (satellite levels)
+  const LASER_INTERVAL = 5;
+  const [laserCharge, setLaserCharge] = useState(0); // 0..LASER_INTERVAL
+  const [laserArming, setLaserArming] = useState(false);
+  const [laserTarget, setLaserTarget] = useState<{ row: number; col: number; letter: string } | null>(null);
+  const [laserNewLetter, setLaserNewLetter] = useState<string>('');
+  const prevMovesUsedRef = useRef(0);
+  const laserReady = laserCharge >= LASER_INTERVAL;
+
+  // Track moves to charge the laser
+  useEffect(() => {
+    if (!level?.satellite) return;
+    const delta = game.movesUsed - prevMovesUsedRef.current;
+    prevMovesUsedRef.current = game.movesUsed;
+    if (delta > 0 && !laserReady) {
+      setLaserCharge(c => Math.min(LASER_INTERVAL, c + delta));
+    }
+  }, [game.movesUsed, level?.satellite, laserReady]);
+
+  // Reset laser on level change
+  useEffect(() => {
+    setLaserCharge(0); setLaserArming(false); setLaserTarget(null); setLaserNewLetter('');
+    prevMovesUsedRef.current = 0;
+  }, [level?.id]);
 
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
@@ -209,7 +236,6 @@ const AdventureGamePage = () => {
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (rocketArming) {
-      // Fire rocket on this column
       if (rocketsLeft > 0 && game.fireRocket) {
         game.fireRocket(col);
         setRocketsLeft(n => n - 1);
@@ -217,8 +243,38 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (laserArming) {
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite && !cell.asteroid) {
+        setLaserTarget({ row, col, letter: cell.letter });
+        setLaserNewLetter(cell.letter);
+      }
+      return;
+    }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft]);
+  }, [game, rocketArming, rocketsLeft, laserArming]);
+
+  // Build alphabet for the language (sorted, unique)
+  const alphabet = useMemo(() => {
+    const cfg = getLanguageConfig(settings.language);
+    const set = new Set(cfg.letterPool.split('').map(c => c.toUpperCase()));
+    return Array.from(set).sort((a, b) => a.localeCompare(b, settings.language));
+  }, [settings.language]);
+
+  const fireLaser = useCallback(() => {
+    if (!laserTarget || !laserNewLetter) return;
+    game.swapBubbleLetter?.(laserTarget.row, laserTarget.col, laserNewLetter);
+    setLaserTarget(null);
+    setLaserNewLetter('');
+    setLaserArming(false);
+    setLaserCharge(0);
+  }, [laserTarget, laserNewLetter, game]);
+
+  const cancelLaserDialog = useCallback(() => {
+    setLaserTarget(null);
+    setLaserNewLetter('');
+    // Stay armed: player can pick another bubble. They can also click the cancel button on the toolbar to fully cancel.
+  }, []);
 
   if (!level) {
     return (
@@ -376,16 +432,40 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : ''}`}>
+      {/* Laser powerup bar (satellite levels) */}
+      {level.satellite && (
+        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+          <Button
+            onClick={() => { if (laserReady) setLaserArming(v => !v); }}
+            disabled={!laserReady}
+            className={`gap-2 ${laserArming ? 'bg-orange-500 hover:bg-orange-400' : laserReady ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-slate-700'} text-white disabled:opacity-60`}
+          >
+            <Zap className="w-4 h-4" />
+            {laserArming
+              ? (settings.language === 'sv' ? 'Välj bubbla…' : 'Pick a bubble…')
+              : laserReady
+                ? (settings.language === 'sv' ? '🛰️ Laser klar' : '🛰️ Laser ready')
+                : `🛰️ ${laserCharge}/${LASER_INTERVAL}`}
+          </Button>
+          {laserArming && (
+            <Button onClick={() => setLaserArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : ''}`}>
         <GameBoard
           ref={boardRef}
           grid={game.grid}
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
-          onSwipe={rocketArming ? undefined : game.handleSwipe}
+          onSwipe={(rocketArming || laserArming) ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
+          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming } : undefined}
         />
       </div>
 
@@ -475,6 +555,60 @@ const AdventureGamePage = () => {
             </Button>
             <Button onClick={() => navigate('/')} variant="ghost" className="w-full gap-2 text-white/60 hover:text-white hover:bg-white/10">
               <Home className="w-4 h-4" /> {t.mainMenu}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Laser letter-swap dialog */}
+      <Dialog open={!!laserTarget} onOpenChange={(open) => { if (!open) cancelLaserDialog(); }}>
+        <DialogContent className="max-w-sm rounded-2xl border-emerald-500/30" style={{ background: 'linear-gradient(135deg, rgba(15,30,55,0.97), rgba(8,18,35,0.97))' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white text-center text-xl flex items-center justify-center gap-2">
+              <Zap className="w-5 h-5 text-emerald-400" />
+              {settings.language === 'sv' ? 'Byt ut bokstav' : 'Swap letter'}
+            </DialogTitle>
+            <DialogDescription className="text-white/70 text-center text-xs">
+              {settings.language === 'sv' ? 'Välj ny bokstav. Färgen behålls.' : 'Pick a new letter. Color stays the same.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {laserTarget && (
+            <div className="flex items-center justify-center gap-3 py-3">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white"
+                   style={{ background: 'rgba(255,255,255,0.1)', border: '2px solid rgba(255,255,255,0.3)' }}>
+                {laserTarget.letter}
+              </div>
+              <span className="text-white/80 text-2xl">→</span>
+              <div className="w-14 h-14 rounded-full flex items-center justify-center text-2xl font-black text-white"
+                   style={{ background: 'hsl(140, 65%, 42%)', border: '2px solid hsl(140,90%,60%)', boxShadow: '0 0 14px hsl(140,90%,55%)' }}>
+                {laserNewLetter || '?'}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-7 gap-1.5 py-1">
+            {alphabet.map(letter => {
+              const selected = laserNewLetter === letter;
+              return (
+                <button
+                  key={letter}
+                  onClick={() => setLaserNewLetter(letter)}
+                  className={`aspect-square rounded-md font-bold text-sm transition-all ${selected ? 'bg-emerald-500 text-white scale-110 shadow-[0_0_10px_hsl(140,90%,50%)]' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  {letter}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex gap-2 mt-2">
+            <Button onClick={cancelLaserDialog} variant="outline" className="flex-1 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-4 h-4" />
+              {settings.language === 'sv' ? 'Avbryt' : 'Cancel'}
+            </Button>
+            <Button onClick={fireLaser} disabled={!laserNewLetter || laserNewLetter === laserTarget?.letter} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white disabled:opacity-50">
+              OK
             </Button>
           </div>
         </DialogContent>
