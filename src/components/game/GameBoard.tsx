@@ -1,9 +1,24 @@
-import { BubbleData, Position } from '@/data/gameConstants';
+import { BubbleData, Position, BUBBLE_COLOR_STYLES, SPORTS_BALLS } from '@/data/gameConstants';
 import { Bubble } from './Bubble';
 import { BonusMovePopup } from './BonusMovePopup';
 import type { BonusPopupData } from './BonusMovePopup';
-import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useLayoutEffect } from 'react';
+import { useRef, useCallback, useImperativeHandle, forwardRef, useState, useLayoutEffect, useEffect } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
+
+type Particle = {
+  id: string;
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  size: number;
+  delay: number;
+  content: { kind: 'dot'; color: string } | { kind: 'emoji'; char: string } | { kind: 'shape'; color: string; shape: 'square' | 'circle' | 'triangle' | 'diamond' | 'star' };
+};
+
+const SHAPE_OF: Record<string, 'star' | 'square' | 'circle' | 'triangle' | 'diamond'> = {
+  red: 'star', green: 'square', blue: 'circle', yellow: 'triangle', pink: 'diamond',
+};
 
 interface GameBoardProps {
   grid: BubbleData[][];
@@ -110,6 +125,69 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
     // Only re-fire when a NEW shot is dispatched (id changes), not on grid updates.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [laserShot?.id]);
+
+  // ─── Pop particle bursts (themed) ───
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const lastPopKeysRef = useRef<string>('');
+  useEffect(() => {
+    const keys = Array.from(poppingCells).sort().join('|');
+    if (!keys || keys === lastPopKeysRef.current) {
+      lastPopKeysRef.current = keys;
+      return;
+    }
+    lastPopKeysRef.current = keys;
+    const board = boardContainerRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+    const newParticles: Particle[] = [];
+    poppingCells.forEach((key) => {
+      const [rs, cs] = key.split('-');
+      const r = +rs, c = +cs;
+      const el = cellRefs.current.get(key);
+      if (!el) return;
+      const cellRect = el.getBoundingClientRect();
+      const cx = cellRect.left + cellRect.width / 2 - boardRect.left;
+      const cy = cellRect.top + cellRect.height / 2 - boardRect.top;
+      const bubble = grid[r]?.[c];
+      if (!bubble) return;
+      const colorBg = BUBBLE_COLOR_STYLES[bubble.color]?.bg ?? '#fff';
+      const count = settings.tileStyle === 'sports' ? 4 : 8;
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const dist = 22 + Math.random() * 26;
+        let content: Particle['content'];
+        if (settings.tileStyle === 'sports') {
+          content = { kind: 'emoji', char: SPORTS_BALLS[bubble.color]?.emoji ?? '⚪' };
+        } else if (settings.tileStyle === 'shapes') {
+          content = { kind: 'shape', color: colorBg, shape: SHAPE_OF[bubble.color] };
+        } else if (settings.tileStyle === 'rubik') {
+          content = { kind: 'shape', color: colorBg, shape: 'square' };
+        } else if (settings.tileStyle === 'soapbubble') {
+          content = { kind: 'dot', color: 'rgba(255,255,255,0.85)' };
+        } else {
+          content = { kind: 'dot', color: colorBg };
+        }
+        newParticles.push({
+          id: `${key}-${i}-${Date.now()}-${Math.random()}`,
+          x: cx,
+          y: cy,
+          dx: Math.cos(angle) * dist,
+          dy: Math.sin(angle) * dist,
+          size: settings.tileStyle === 'sports' ? 14 : settings.tileStyle === 'shapes' ? 10 : 8,
+          delay: Math.random() * 30,
+          content,
+        });
+      }
+    });
+    if (newParticles.length === 0) return;
+    setParticles((prev) => [...prev, ...newParticles]);
+    const ids = new Set(newParticles.map(p => p.id));
+    const t = window.setTimeout(() => {
+      setParticles((prev) => prev.filter(p => !ids.has(p.id)));
+    }, 700);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poppingCells]);
 
   return (
     <div
@@ -249,6 +327,49 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
       {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
         <BonusMovePopup key={popup.id} popup={popup} onDone={onBonusPopupDone} />
       ))}
+
+      {/* Pop particles overlay */}
+      <div className="pointer-events-none absolute inset-0 overflow-visible z-30">
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="absolute"
+            style={{
+              left: p.x,
+              top: p.y,
+              width: p.size,
+              height: p.size,
+              marginLeft: -p.size / 2,
+              marginTop: -p.size / 2,
+              ['--px' as any]: `${p.dx}px`,
+              ['--py' as any]: `${p.dy}px`,
+              animation: `pop-particle 0.6s ease-out ${p.delay}ms forwards`,
+            }}
+          >
+            {p.content.kind === 'dot' && (
+              <div className="w-full h-full rounded-full" style={{ background: p.content.color, boxShadow: `0 0 6px ${p.content.color}` }} />
+            )}
+            {p.content.kind === 'emoji' && (
+              <div className="w-full h-full flex items-center justify-center text-base leading-none">{p.content.char}</div>
+            )}
+            {p.content.kind === 'shape' && (
+              <div
+                className="w-full h-full"
+                style={{
+                  background: p.content.color,
+                  borderRadius: p.content.shape === 'circle' ? '50%' : p.content.shape === 'square' ? '2px' : 0,
+                  clipPath:
+                    p.content.shape === 'triangle' ? 'polygon(50% 0%, 100% 100%, 0% 100%)' :
+                    p.content.shape === 'diamond' ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' :
+                    p.content.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' :
+                    'none',
+                  boxShadow: `0 0 6px ${p.content.color}`,
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 });

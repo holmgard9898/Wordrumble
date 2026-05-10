@@ -8,10 +8,13 @@ import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
-import { GameBoard } from '@/components/game/GameBoard';
+import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
+import { useGameEffects } from '@/hooks/useGameEffects';
+import { FireModeFrame } from '@/components/game/FireModeFrame';
+import { LightningOverlay } from '@/components/game/LightningOverlay';
 import { VersusHeader } from '@/components/multiplayer/VersusHeader';
 import { Button } from '@/components/ui/button';
 import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2, Volume2, VolumeX, Music } from 'lucide-react';
@@ -82,6 +85,15 @@ const MultiplayerGamePage = () => {
   const colors = gameMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
 
   const game = useGameState(isValidWord, gameMode, settings.language);
+  const boardRef = useRef<GameBoardHandle | null>(null);
+  const boardWrapperRef = useRef<HTMLDivElement | null>(null);
+  const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
+  const { fireMode, lightning } = useGameEffects({
+    lastWordEvent: game.lastWordEvent,
+    movesUsed: game.movesUsed,
+    getCellRect,
+    containerEl: boardWrapperRef.current,
+  });
 
   const [showWords, setShowWords] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -450,14 +462,19 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
-        <GameBoard
-          grid={game.grid}
-          selectedBubble={game.selectedBubble}
-          poppingCells={game.poppingCells}
-          onBubbleClick={handleBubbleClick}
-          onSwipe={game.handleSwipe}
-        />
+      <FireModeFrame active={fireMode}>
+        <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
+          <div ref={boardWrapperRef} className="relative">
+            <GameBoard
+              ref={boardRef}
+              grid={game.grid}
+              selectedBubble={game.selectedBubble}
+              poppingCells={game.poppingCells}
+              onBubbleClick={handleBubbleClick}
+              onSwipe={game.handleSwipe}
+            />
+            <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
+          </div>
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
@@ -469,8 +486,9 @@ const MultiplayerGamePage = () => {
           mode={gameMode}
           bestWordScore={game.bestWordScore}
           bestWord={game.bestWord}
-        />
-      </div>
+          />
+        </div>
+      </FireModeFrame>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
