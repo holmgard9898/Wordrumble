@@ -896,5 +896,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
+    asteroidsDestroyed,
   };
 }
