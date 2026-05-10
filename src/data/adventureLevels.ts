@@ -1,6 +1,7 @@
 import type { GameLanguage } from './languages';
 import type { GameBackground } from '@/contexts/SettingsContext';
 import type { GameMode } from '@/pages/GamePage';
+import type { BubbleColor } from './gameConstants';
 
 export type AdventureGoal =
   | { type: 'find-words'; words: Record<GameLanguage, string[]>; minScore?: number }
@@ -12,7 +13,17 @@ export type AdventureGoal =
   /** Destroy `count` asteroids by letting them fall to the bottom row. */
   | { type: 'destroy-asteroids'; count: number }
   /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
-  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
+  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> }
+  /** Find a single specific word (translated per language). Used for puzzle levels. */
+  | { type: 'single-word'; word: Record<GameLanguage, string> };
+
+/** Compact cell descriptor: { l: letter, c: color }. */
+export interface PresetCell { l: string; c: BubbleColor }
+
+export interface StoryCard {
+  title: Record<GameLanguage, string>;
+  body: Record<GameLanguage, string>;
+}
 
 export interface AdventureLevel {
   id: string;
