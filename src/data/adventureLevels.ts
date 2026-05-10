@@ -58,6 +58,8 @@ export interface AdventureLevel {
   satellite?: boolean;
   /** UFO twist: immovable UFOs on rows 4 & 6 (alternating cols), each swap the bubble below them every move. */
   ufos?: boolean;
+  /** Collapsing cave: from move 5+, top tiles get replaced by immovable rocks each move. */
+  collapsingCave?: boolean;
   /** Fully pre-determined start grid per language. Overrides random generation. */
   presetGrid?: Partial<Record<GameLanguage, PresetCell[][]>>;
   /** Per-language max moves override (takes priority over `maxMoves`). */
@@ -582,24 +584,40 @@ export const adventureLevels: AdventureLevel[] = [
     id: 'adv-3-2', number: 2, icon: '💎', map: 3,
     name: { en: 'Crystal Caverns', sv: 'Kristallgrottan', de: 'Kristallhöhlen', es: 'Cavernas Cristal', fr: 'Cavernes Cristal', it: 'Caverne Cristallo', pt: 'Cavernas Cristal', nl: 'Kristalgrotten', no: 'Krystallhuler', da: 'Krystalhuler', fi: 'Kristalliluolat' },
     intro: {
-      en: 'Glittering crystals light the way. Reach 100 points in 60 moves.',
-      sv: 'Glittrande kristaller lyser upp vägen. Nå 100 poäng på 60 drag.',
-      de: 'Glitzernde Kristalle erleuchten den Weg. Erreiche 100 Punkte in 60 Zügen.',
-      es: 'Cristales brillantes iluminan el camino. ¡Consigue 100 puntos en 60 movimientos!',
-      fr: 'Des cristaux brillants éclairent le chemin. Atteignez 100 points en 60 coups !',
-      it: 'Cristalli scintillanti illuminano la via. Raggiungi 100 punti in 60 mosse!',
-      pt: 'Cristais brilhantes iluminam o caminho. Atinge 100 pontos em 60 jogadas!',
-      nl: 'Glinsterende kristallen verlichten de weg. Bereik 100 punten in 60 zetten!',
-      no: 'Glitrende krystaller lyser opp veien. Nå 100 poeng på 60 trekk!',
-      da: 'Glitrende krystaller oplyser vejen. Nå 100 point på 60 træk!',
-      fi: 'Kimaltavat kristallit valaisevat tien. Saavuta 100 pistettä 60 siirrolla!',
+      en: 'The cave is collapsing! Score 100 in 50 moves before the rocks bury you.',
+      sv: 'Grottan rasar! Nå 100 poäng på 50 drag innan stenen begraver dig.',
+      de: 'Die Höhle stürzt ein! Erreiche 100 Punkte in 50 Zügen, bevor die Felsen dich begraben.',
+      es: '¡La cueva colapsa! Consigue 100 puntos en 50 movimientos antes de quedar enterrado.',
+      fr: 'La grotte s\'effondre ! 100 points en 50 coups avant d\'être enseveli.',
+      it: 'La grotta crolla! 100 punti in 50 mosse prima di essere sepolto.',
+      pt: 'A gruta desaba! 100 pontos em 50 jogadas antes de seres soterrado.',
+      nl: 'De grot stort in! 100 punten in 50 zetten voordat je bedolven wordt.',
+      no: 'Hulen raser! 100 poeng på 50 trekk før steinene begraver deg.',
+      da: 'Hulen styrter sammen! 100 point på 50 træk før stenene begraver dig.',
+      fi: 'Luola romahtaa! 100 pistettä 50 siirrolla ennen kuin kivet hautaavat sinut.',
     },
     background: 'cave',
     goal: { type: 'reach-score', target: 100 },
     showProgressBar: true,
+    collapsingCave: true,
+    storyIntro: [
+      {
+        title: { en: 'We found light!', sv: 'Vi hittade ljus!', de: 'Wir haben Licht gefunden!', es: '¡Encontramos luz!', fr: 'On a trouvé la lumière !', it: 'Abbiamo trovato la luce!', pt: 'Encontrámos luz!', nl: 'We hebben licht gevonden!', no: 'Vi fant lys!', da: 'Vi fandt lys!', fi: 'Löysimme valoa!' },
+        body: { en: 'Now we just need to find a way OUT of the cave...', sv: 'Nu måste vi bara hitta en väg UT ur grottan...', de: 'Jetzt müssen wir nur noch einen Weg AUS der Höhle finden...', es: 'Ahora solo tenemos que encontrar una salida de la cueva...', fr: 'Maintenant il faut trouver une SORTIE...', it: 'Ora dobbiamo solo trovare una via d\'uscita...', pt: 'Agora só temos de encontrar uma saída...', nl: 'Nu moeten we alleen nog een uitweg vinden...', no: 'Nå må vi bare finne en vei UT av hulen...', da: 'Nu skal vi bare finde en vej UD af hulen...', fi: 'Nyt täytyy vain löytää tie ULOS luolasta...' },
+      },
+      {
+        title: { en: 'A cave monster!', sv: 'Ett grottmonster!', de: 'Ein Höhlenmonster!', es: '¡Un monstruo de las cuevas!', fr: 'Un monstre des cavernes !', it: 'Un mostro delle caverne!', pt: 'Um monstro da gruta!', nl: 'Een grotmonster!', no: 'Et hulemonster!', da: 'Et hulemonster!', fi: 'Luolahirviö!' },
+        body: { en: 'It demands 100 points to let us pass!', sv: 'Det kräver 100 poäng för att släppa förbi oss!', de: 'Es verlangt 100 Punkte, um uns durchzulassen!', es: '¡Exige 100 puntos para dejarnos pasar!', fr: 'Il exige 100 points pour nous laisser passer !', it: 'Pretende 100 punti per farci passare!', pt: 'Exige 100 pontos para nos deixar passar!', nl: 'Het eist 100 punten om ons door te laten!', no: 'Det krever 100 poeng for å slippe oss forbi!', da: 'Det kræver 100 point for at lade os passere!', fi: 'Se vaatii 100 pistettä päästääkseen meidät ohi!' },
+      },
+      {
+        title: { en: 'The cave is shaking!', sv: 'Grottan skakar!', de: 'Die Höhle bebt!', es: '¡La cueva tiembla!', fr: 'La grotte tremble !', it: 'La grotta trema!', pt: 'A gruta está a tremer!', nl: 'De grot beeft!', no: 'Hulen rister!', da: 'Hulen ryster!', fi: 'Luola tärisee!' },
+        body: { en: 'Hurry — rocks will start falling and seal the cave!', sv: 'Skynda — stenar börjar falla och försegla grottan!', de: 'Beeil dich — Steine werden fallen und die Höhle versiegeln!', es: '¡Date prisa — caerán rocas y sellarán la cueva!', fr: 'Vite — des rochers vont tomber et sceller la grotte !', it: 'Sbrigati — cadranno rocce e sigilleranno la grotta!', pt: 'Despacha-te — vão cair pedras e selar a gruta!', nl: 'Schiet op — er vallen rotsen en de grot wordt afgesloten!', no: 'Skynd deg — steiner faller og forsegler hulen!', da: 'Skynd dig — sten falder og forsegler hulen!', fi: 'Pidä kiirettä — kivet putoavat ja sulkevat luolan!' },
+      },
+    ],
+    hideModeTutorial: true,
     mapPosition: { x: 8, y: 72 },
     connectsTo: ['adv-3-3'],
-    maxMoves: 60,
+    maxMoves: 50,
   },
   {
     id: 'adv-3-3', number: 3, icon: '🌲', map: 3,

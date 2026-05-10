@@ -23,6 +23,8 @@ export interface AdventureSeed {
   satellite?: boolean;
   /** Place immovable UFOs (rows 4 & 6 alternating) that swap the bubble below them every move. */
   ufos?: boolean;
+  /** Collapsing cave: starting at move 5, top-row tiles get replaced by immovable rocks each move. */
+  collapsingCave?: boolean;
   /** Fully pre-determined start grid (overrides random/seeded generation). */
   presetGrid?: Array<Array<{ l: string; c: BubbleColor }>>;
 }
@@ -63,13 +65,48 @@ function placeUfos(grid: BubbleData[][]): void {
   }
 }
 
-/** Returns per-column sorted row indices that are immovable (satellite or ufo). */
+/** Ordered queue of rock placement batches for the collapsing-cave mechanic.
+ *  Per row: right-corner, left-corner, middle-pair, then outer→inner pairs. */
+function buildRockSchedule(): Position[][] {
+  const out: Position[][] = [];
+  for (let r = 0; r < ROWS; r++) {
+    out.push([{ row: r, col: COLS - 1 }]);
+    out.push([{ row: r, col: 0 }]);
+    const m1 = Math.floor(COLS / 2) - 1;
+    const m2 = Math.floor(COLS / 2);
+    out.push([{ row: r, col: m1 }, { row: r, col: m2 }]);
+    let left = 1, right = COLS - 2;
+    while (left < m1 && right > m2) {
+      out.push([{ row: r, col: right }, { row: r, col: left }]);
+      left++; right--;
+    }
+  }
+  return out;
+}
+const ROCK_SCHEDULE: Position[][] = buildRockSchedule();
+
+let rockIdCounter = 0;
+function applyRockBatch(grid: BubbleData[][], batch: Position[]): void {
+  for (const p of batch) {
+    const cell = grid[p.row]?.[p.col];
+    if (!cell || cell.satellite || cell.asteroid || cell.ufo || cell.rock) continue;
+    grid[p.row][p.col] = {
+      id: `rock-${rockIdCounter++}`,
+      letter: '',
+      value: 0,
+      color: cell.color,
+      rock: true,
+    };
+  }
+}
+
+
 function getColumnBlockers(grid: BubbleData[][]): Map<number, number[]> {
   const map = new Map<number, number[]>();
   for (let c = 0; c < COLS; c++) {
     const rows: number[] = [];
     for (let r = 0; r < ROWS; r++) {
-      if (grid[r][c].satellite || grid[r][c].ufo) rows.push(r);
+      if (grid[r][c].satellite || grid[r][c].ufo || grid[r][c].rock) rows.push(r);
     }
     if (rows.length > 0) map.set(c, rows);
   }
@@ -491,6 +528,7 @@ export function useGameState(
   const pendingBombTick = useRef(0);
   const lastProcessedBombTick = useRef(0);
   const freeMovesRef = useRef(0);
+  const rocksPlacedRef = useRef(0);
   freeMovesRef.current = freeMovesRemaining;
 
   const minWordLen = getMinWordLength(mode);
@@ -508,10 +546,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && !currentGrid[r][end].rock && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -537,10 +575,10 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -816,10 +854,10 @@ export function useGameState(
   }, [pool, values]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids/satellite/UFOs cannot be moved.
+    // Asteroids/satellite/UFOs/rocks cannot be moved.
     const a = grid[fromRow][fromCol];
     const b = grid[toRow][toCol];
-    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo) {
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock) {
       setSelectedBubble(null);
       return;
     }
@@ -828,11 +866,21 @@ export function useGameState(
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
     newGrid[toRow][toCol] = temp;
 
-    setMovesUsed((prev) => prev + 1);
+    const nextMovesUsed = movesUsed + 1;
+    setMovesUsed(nextMovesUsed);
 
     const colors = getColorsForMode(mode);
     const hasUfos = adventureSeed?.ufos === true;
     if (hasUfos) tickUfos(newGrid, colors);
+
+    // Collapsing cave: place next rock batch(es) so total batches placed = max(0, nextMovesUsed - 4).
+    if (adventureSeed?.collapsingCave) {
+      const targetBatches = Math.max(0, Math.min(ROCK_SCHEDULE.length, nextMovesUsed - 4));
+      while (rocksPlacedRef.current < targetBatches) {
+        applyRockBatch(newGrid, ROCK_SCHEDULE[rocksPlacedRef.current]);
+        rocksPlacedRef.current += 1;
+      }
+    }
 
     if (mode === 'bomb') {
       setGrid(newGrid);
@@ -877,7 +925,7 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, tickUfos]);
+  }, [grid, movesUsed, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, adventureSeed?.collapsingCave, tickUfos]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
@@ -962,6 +1010,7 @@ export function useGameState(
     setFreeMovesRemaining(0);
     setExplodedAt(null);
     setAsteroidsDestroyed(0);
+    rocksPlacedRef.current = 0;
   }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids, adventureSeed?.satellite, adventureSeed?.ufos]);
 
   const addMoves = useCallback((amount: number) => {
@@ -982,7 +1031,8 @@ export function useGameState(
     setIsProcessing(false);
     setMovesUsed(saved.movesUsed);
     setFreeMovesRemaining(saved.freeMovesRemaining);
-  }, []);
+    rocksPlacedRef.current = adventureSeed?.collapsingCave ? Math.max(0, saved.movesUsed - 4) : 0;
+  }, [adventureSeed?.collapsingCave]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
