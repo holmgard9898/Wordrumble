@@ -60,6 +60,12 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       return { targetWords: thematic, maxMoves, keepFormableWords: [hidden, ...thematic], ...extras };
     }
+    if (level.goal.type === 'two-hidden-words') {
+      const thematic = level.goal.thematicWords[settings.language];
+      const h1 = level.goal.hiddenWord1[settings.language];
+      const h2 = level.goal.hiddenWord2[settings.language];
+      return { targetWords: thematic, maxMoves, keepFormableWords: [h1, h2, ...thematic], ...extras };
+    }
     if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
       return { targetWords: [w], maxMoves, keepFormableWords: [w], ...extras };
@@ -228,6 +234,15 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
       remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    } else if (level.goal.type === 'two-hidden-words') {
+      const h1 = level.goal.hiddenWord1[settings.language];
+      const h2 = level.goal.hiddenWord2[settings.language];
+      const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
+      remaining = [
+        ...(used.has(h1.toLowerCase()) ? [] : [h1]),
+        ...(used.has(h2.toLowerCase()) ? [] : [h2]),
+        ...thematic,
+      ];
     } else if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
       remaining = used.has(w.toLowerCase()) ? [] : [w];
