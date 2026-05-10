@@ -68,24 +68,29 @@ function hashCode(str: string): number {
 }
 
 /**
- * For each target word, layout the BLUE letters at scripted positions.
- * Pattern: spread the letters out on the bottom 3 rows (alternating columns)
- * so the player must cluster them. The first letter is placed near the top
- * of column 3 ("the trick letter") so a clear-the-column play matters.
+ * Place every target letter in the BLUE color on the bottom two rows,
+ * spaced out so the player must cluster them with careful swaps.
+ *
+ * Layout patterns by word length (col positions on row 9 unless noted):
+ *  3 letters: cols 0, 3, 6   (need ~5 swaps; budget tight ≈ 7)
+ *  4 letters: cols 0, 2, 5, 7  (need ~6 swaps; budget ≈ 10)
+ *  5 letters: cols 0, 2, 4, 6 + (8,3) on row 8  (need ~8 swaps; budget ≈ 12)
+ *  7 letters (LUMIERE-class): cols spread across rows 8-9
  */
 function targetPositions(word: string): { row: number; col: number; letter: string }[] {
+  const len = word.length;
+  const layouts: Record<number, [number, number][]> = {
+    3: [[9, 0], [9, 3], [9, 6]],
+    4: [[9, 0], [9, 2], [9, 5], [9, 7]],
+    5: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 3]],
+    6: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 3], [8, 5]],
+    7: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 1], [8, 3], [8, 5]],
+  };
+  const slots = layouts[len] ?? layouts[5];
   const out: { row: number; col: number; letter: string }[] = [];
-  // First letter goes high up, in column 3
-  out.push({ row: 1, col: 3, letter: word[0] });
-  // Remaining letters spread on the bottom rows
-  // Pattern by length:
-  const rest = word.slice(1).split('');
-  const slots: [number, number][] = [
-    [9, 1], [9, 4], [9, 7], [8, 2], [8, 5], [8, 6],
-  ];
-  for (let i = 0; i < rest.length; i++) {
+  for (let i = 0; i < word.length && i < slots.length; i++) {
     const [r, c] = slots[i];
-    out.push({ row: r, col: c, letter: rest[i] });
+    out.push({ row: r, col: c, letter: word[i] });
   }
   return out;
 }
