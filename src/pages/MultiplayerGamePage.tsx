@@ -462,14 +462,19 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
-        <GameBoard
-          grid={game.grid}
-          selectedBubble={game.selectedBubble}
-          poppingCells={game.poppingCells}
-          onBubbleClick={handleBubbleClick}
-          onSwipe={game.handleSwipe}
-        />
+      <FireModeFrame active={fireMode}>
+        <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
+          <div ref={boardWrapperRef} className="relative">
+            <GameBoard
+              ref={boardRef}
+              grid={game.grid}
+              selectedBubble={game.selectedBubble}
+              poppingCells={game.poppingCells}
+              onBubbleClick={handleBubbleClick}
+              onSwipe={game.handleSwipe}
+            />
+            <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
+          </div>
         <GameInfo
           movesLeft={game.movesLeft}
           score={game.score}
