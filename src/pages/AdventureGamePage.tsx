@@ -11,6 +11,9 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
 import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
+import { useGameEffects } from '@/hooks/useGameEffects';
+import { FireModeFrame } from '@/components/game/FireModeFrame';
+import { LightningOverlay } from '@/components/game/LightningOverlay';
 import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
@@ -89,6 +92,8 @@ const AdventureGamePage = () => {
   const [watchingAd, setWatchingAd] = useState(false);
   const [ready, setReady] = useState(false);
   const boardRef = useRef<GameBoardHandle | null>(null);
+  const boardWrapperRef = useRef<HTMLDivElement | null>(null);
+  const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
   // Adventure 3-3 free powerups (toolbar buttons, like rockets)
