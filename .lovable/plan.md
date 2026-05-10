@@ -1,66 +1,51 @@
-# Adventure 3-1: "The Crash" — Fixed-Board Puzzle Level
+## Mörka Skogen (adv-3-3) — ny powerup + smitta
 
-A short, hand-crafted puzzle level. Same start every time per language, single-word goal, storytelling intro.
+### Del 1: Nivån adv-3-3
+- Behåll samma config som tidigare (klassisk, samma drag och målord som du valt). Lägg till på brädet:
+  - 2× powerup `swapcolor` (ny)
+  - 1× powerup `swapletter` (befintlig)
+  - 1 startsmittad bokstav
 
-## Behavior
+### Del 2: Ny powerup `swapcolor`
+- Lägg till `'swapcolor'` i `PowerupType` (`gameConstants.ts`).
+- `Bubble.tsx`: ny `PowerupBadge` variant — visa t.ex. `🎨` med lila gradient.
+- I `useGameState.ts` / popup-flödet (där `swapletter` triggar val-modal): trigga en motsvarande **välj färg**-popup när en bricka med `swapcolor` ingår i ett ord. Användaren väljer ny färg på en valfri bricka på brädet (samma UX som byt bokstav, fast färgknappar med de 5 bubbel-färgerna).
+- Återanvänd existerande modal-komponent för byt bokstav som mall — skapa `ColorSwapPopup.tsx` om enklare.
 
-- Board is 100% pre-determined per language (letters + colors fixed at start)
-- Goal: find one word — Swedish `LJUS`, translated correctly to each of the 11 languages (`light`, `licht`, `luz`, `lumière`, `luce`, `licht`, `lys`, `lys`, `valo`...)
-- Move limit per language, tuned so the obvious approach is ~2 moves short of solving, but a creative ~3-move trick (pop a 5+ letter word in a key column → a needed letter falls into reach) makes it solvable
-- The target word's letters all share ONE color on the board; other copies of those letters in other colors are decoys
-- Completion: as soon as the target word is found, level ends in success
-- Goal UI shows just `Hitta LJUS` / `Find LIGHT` (no list of multiple words)
+### Del 3: Smitta (infection) — endast adventure 3
+Ny fält på `BubbleData`:
+- `infected?: number` — drag kvar tills smittan sprids (start 5)
+- `dead?: boolean` — bokstaven är spöke
+- `deadCounter?: number` — drag sedan död (efter 5 → −1 poäng/drag)
 
-## Storytelling intro (3 tutorial cards before the level starts)
+Regler:
+1. Vid nivåstart: minst 1 slumpmässig bokstav får `infected = 5`.
+2. Efter varje spelarens drag, för varje smittad bricka: dekrementera räknaren.
+   - Vid 0: alla 4 ortogonala grannar (ej rocks/asteroider/satelliter/spöken) blir smittade (`infected = 5`). Den ursprungliga brickans räknare blir `7` (tid till död).
+   - Faktiskt enklare modell enligt brief: håll **två** räknare per smittad: `spreadIn` (5) och `dieIn` (7). När `spreadIn` når 0 sprids smitta; när `dieIn` når 0 dör brickan.
+3. När en smittad bricka används i ett ord → smittan rensas (bricka poppar som vanligt).
+4. När död: `dead = true`, `deadCounter = 0`, ej klickbar/swappbar/del av ord. Render: opacity ~0.45, behåll bokstaven, lägg 👻-overlay.
+5. Varje drag: `deadCounter++`. När `deadCounter > 5` → totalpoäng −1 per drag tills brickan rensas (visa flytande `−1` popup på den brickan).
+6. Spöken kan rensas genom att en intilliggande swap orsakar att en boost/bomb poppar dem? Brief säger "om den inte kombineras i ett ord" — så spöket måste poppas via ord. Eftersom dead inte kan ingå i ord behövs en mekanik. **Tolkning**: bomb/explosion eller kaskad pop på sammanstötande popping rensar spöket. Enklast: när intilliggande pop sker rensas spöket också. Implementeras genom att utvidga pop-set med adjacenta `dead`-brickor.
 
-1. `AHHHH!!!` (translated: `Aaah!`, `¡Aaah!`, etc.)
-2. `Ser ut som vi kraschat... var är vi?` / `Looks like we crashed... where are we?`
-3. `Jag har en ficklampa... oj, vi är i en grotta. Mina batterier håller på att ta slut — vi måste hitta LJUS.` (translated, with the target word substituted in each language)
+### Del 4: Plumbing
+- `adventureLevels.ts`: adv-3-3 får `infection: true` flagga + powerup-placeringar.
+- `AdventureGamePage.tsx`: skicka `infection` flaggan vidare till `useGameState`.
+- `useGameState.ts`: hook in infection-tick i `performSwap` efter pop-resolution.
+- `Bubble.tsx`: rendera infected (grön glöd/sjuk-tint), dead (genomskinlig + 👻).
+- `BonusMovePopup` redan stödjer custom label → används för `−1` per spöke.
 
-Shown only the first time the player enters `adv-3-1` (using the existing `useTutorialSeen` mechanism with key `adv-3-1`).
+### Tekniska detaljer
+- Byt-färg modalen: identisk layout som byt-bokstav, 5 stora färgknappar (samma `BUBBLE_COLOR_STYLES`).
+- Smittans visuella: `box-shadow: 0 0 8px hsl(110, 80%, 40%)` + liten `🦠` badge bottom-left.
+- Spöke: opacity 0.45, blur(0.5px), `👻` badge top-left, ingen `value` visas, ej `cursor-pointer`.
+- Ord-detektion (`findWords`): exkludera `dead` brickor (samma sätt som `rock`).
+- Kolumn-blockerare: spöken **blockerar inte** refill (de kan rensas), så lämnas utanför `getColumnBlockers`.
 
-## Technical changes
-
-### `src/data/adventureLevels.ts`
-
-- Add new optional fields on `AdventureLevel`:
-  - `presetGrid?: Record<GameLanguage, Array<Array<{ letter: string; color: BubbleColor }>>>` — 10×8 fixed start grid per language
-  - `maxMovesByLang?: Record<GameLanguage, number>` — overrides `maxMoves`
-  - `storyIntro?: Array<Record<GameLanguage, { title: string; body: string }>>` — ordered cards
-- Add new goal variant: `{ type: 'single-word'; word: Record<GameLanguage, string> }` (or reuse `find-words` with length-1 array + a `singleWordLabel` flag — implementation detail)
-- Replace existing `adv-3-1` config with the puzzle level (cave background, icon `🔦`, name something like "Kraschen" / "The Crash")
-
-### `src/data/gameConstants.ts` / `src/hooks/useGameState.ts`
-
-- `createGrid` accepts an optional `preset` param; when provided, builds the grid from the preset instead of randomising
-- `useGameState` plumbs `level.presetGrid?.[lang]` into the initial grid
-- Refill behaviour after pops stays random (only the start state is fixed) — confirm this matches the user's intent (see open question)
-
-### `src/pages/AdventureGamePage.tsx`
-
-- Read `maxMovesByLang?.[lang]` before falling back to `maxMoves`
-- Render the new `single-word` goal: header `Hitta LJUS` (translated), no word list, completion when that exact word is played
-- If `storyIntro` is set, show those cards via `TutorialModal` on first entry (key `adv-3-1`); skip the generic mode tutorial for this level
-
-### Per-language board design (initial Swedish draft)
-
-Swedish target `LJUS`, color = blue. Move limit = 10. Minimum "naive" solution = 12 swaps. Creative solution:
-- A blue `J` sits in row 0 (top) of column 4
-- Player spells a 5-letter blue word in column-adjacent rows using 3 swaps; the column pops, the `J` falls 4 rows down, and `LJUS` becomes formable in the remaining moves
-- I will design and verify each language's board (letters + colors) the same way: confirm by simulation that the minimum-moves solution exists at the stated cap and the naive path is ≥2 over
-
-### Tutorial / translations
-
-- Add the three story strings to `src/data/translations.ts` (or inline in the level config under `storyIntro`)
-- `src/components/TutorialModal.tsx` already supports custom step arrays — no component changes needed
-
-## Out of scope
-
-- No changes to the map graphic, portals, or other Adventure 3 levels
-- Background stays `cave` (already added)
-
-## Open questions before I implement
-
-1. After the player pops bubbles, should the **refill letters** also be deterministic (fully scripted level) or random (only the starting state is fixed)? Random keeps it simple; deterministic guarantees the puzzle but is much more work.
-2. Should I design all 11 language boards now, or ship Swedish + English first and iterate on the others?
-3. If the player runs out of moves without finding the word, normal "out of moves" failure — correct?
+### Filer som ändras
+- `src/data/gameConstants.ts` — `PowerupType`, `BubbleData` (infected/dead/deadCounter)
+- `src/components/game/Bubble.tsx` — render infected/dead, ny powerup-badge
+- `src/components/game/ColorSwapPopup.tsx` — ny
+- `src/hooks/useGameState.ts` — infection-tick, swapcolor flöde, spök poäng-drain
+- `src/data/adventureLevels.ts` — adv-3-3 config
+- `src/pages/AdventureGamePage.tsx` — skicka infection flagga
