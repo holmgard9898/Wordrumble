@@ -438,3 +438,31 @@ function BubbleVisual(props: BubbleProps) {
     </button>
   );
 }
+export function Bubble(props: BubbleProps) {
+  const { bubble } = props;
+  if (bubble.dead) return <GhostInner {...props} />;
+  const inner = <BubbleVisual {...props} />;
+  if (bubble.infected !== undefined && !bubble.satellite && !bubble.asteroid && !bubble.ufo && !bubble.rock) {
+    const urgent = bubble.infected <= 1;
+    return (
+      <div className="relative w-full aspect-square">
+        {inner}
+        <span
+          className={`absolute -top-1 -left-1 text-[11px] md:text-xs z-30 pointer-events-none ${urgent ? 'animate-pulse' : ''}`}
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}
+        >
+          🦠
+        </span>
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            boxShadow: urgent
+              ? '0 0 12px hsla(110,90%,55%,0.95), inset 0 0 8px hsla(110,90%,45%,0.6)'
+              : '0 0 8px hsla(110,90%,50%,0.7), inset 0 0 6px hsla(110,90%,40%,0.4)',
+          }}
+        />
+      </div>
+    );
+  }
+  return inner;
+}
