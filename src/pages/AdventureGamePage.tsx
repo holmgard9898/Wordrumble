@@ -83,8 +83,10 @@ const AdventureGamePage = () => {
   const LASER_INTERVAL = 5;
   const [laserCharge, setLaserCharge] = useState(0); // 0..LASER_INTERVAL
   const [laserArming, setLaserArming] = useState(false);
+  const [laserDud, setLaserDud] = useState(false); // armed but satellite not charged → red laser, no popup
   const [laserTarget, setLaserTarget] = useState<{ row: number; col: number; letter: string } | null>(null);
   const [laserNewLetter, setLaserNewLetter] = useState<string>('');
+  const [laserShot, setLaserShot] = useState<{ row: number; col: number; color: 'green' | 'red'; id: string } | null>(null);
   const prevMovesUsedRef = useRef(0);
   const laserReady = laserCharge >= LASER_INTERVAL;
 
@@ -100,7 +102,7 @@ const AdventureGamePage = () => {
 
   // Reset laser on level change
   useEffect(() => {
-    setLaserCharge(0); setLaserArming(false); setLaserTarget(null); setLaserNewLetter('');
+    setLaserCharge(0); setLaserArming(false); setLaserDud(false); setLaserTarget(null); setLaserNewLetter(''); setLaserShot(null);
     prevMovesUsedRef.current = 0;
   }, [level?.id]);
 
@@ -243,6 +245,15 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (laserDud) {
+      // Satellite not charged → just shoot a red dud laser, no popup, no change.
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite) {
+        setLaserShot({ row, col, color: 'red', id: `red-${Date.now()}` });
+      }
+      setLaserDud(false);
+      return;
+    }
     if (laserArming) {
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite && !cell.asteroid) {
@@ -252,7 +263,19 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud]);
+
+  const handleSatelliteClick = useCallback(() => {
+    if (rocketArming) return;
+    if (laserReady) {
+      setLaserArming(true);
+      setLaserDud(false);
+    } else {
+      // Not charged: arm a "dud" — next bubble click fires red laser only.
+      setLaserDud(true);
+      setLaserArming(false);
+    }
+  }, [laserReady, rocketArming]);
 
   // Build alphabet for the language (sorted, unique)
   const alphabet = useMemo(() => {
@@ -263,11 +286,18 @@ const AdventureGamePage = () => {
 
   const fireLaser = useCallback(() => {
     if (!laserTarget || !laserNewLetter) return;
-    game.swapBubbleLetter?.(laserTarget.row, laserTarget.col, laserNewLetter);
+    const target = laserTarget;
+    const newLetter = laserNewLetter;
+    // Show green laser beam first; the bubble's letter changes mid-beam so player sees the swap.
+    setLaserShot({ row: target.row, col: target.col, color: 'green', id: `green-${Date.now()}` });
     setLaserTarget(null);
     setLaserNewLetter('');
     setLaserArming(false);
+    setLaserDud(false);
     setLaserCharge(0);
+    setTimeout(() => {
+      game.swapBubbleLetter?.(target.row, target.col, newLetter);
+    }, 250);
   }, [laserTarget, laserNewLetter, game]);
 
   const cancelLaserDialog = useCallback(() => {
@@ -465,7 +495,9 @@ const AdventureGamePage = () => {
           onSwipe={(rocketArming || laserArming) ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
-          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming } : undefined}
+          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
+          onSatelliteClick={level.satellite ? handleSatelliteClick : undefined}
+          laserShot={laserShot}
         />
       </div>
 
