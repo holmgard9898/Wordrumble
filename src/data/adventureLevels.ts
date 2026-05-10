@@ -681,6 +681,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 42, y: 48 },
     connectsTo: ['adv-3-5'],
+    infection: true,
     maxMoves: 70,
   },
   {
@@ -719,6 +720,7 @@ export const adventureLevels: AdventureLevel[] = [
     },
     mapPosition: { x: 50, y: 35 },
     connectsTo: ['adv-3-6'],
+    infection: true,
     maxMoves: 130,
   },
   {
@@ -743,6 +745,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 42, y: 18 },
     connectsTo: ['adv-3-7'],
+    infection: true,
     maxMoves: 60,
   },
   {
@@ -767,6 +770,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 72, y: 33 },
     connectsTo: ['adv-3-8'],
+    infection: true,
     maxMoves: 50,
   },
   {
