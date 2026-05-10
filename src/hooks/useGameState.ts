@@ -460,6 +460,7 @@ export function useGameState(
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(g);
     if (adventureSeed?.satellite) placeSatellite(g);
+    if (adventureSeed?.ufos) placeUfos(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
@@ -937,6 +938,7 @@ export function useGameState(
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     if (adventureSeed?.satellite) placeSatellite(newGrid);
+    if (adventureSeed?.ufos) placeUfos(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
