@@ -189,6 +189,9 @@ const AdventureGamePage = () => {
       const formedHidden = game.usedWords.some(w => w.word.toLowerCase() === hiddenWord.toLowerCase());
       done = formedHidden;
     }
+    else if (level.goal.type === 'best-word-score') {
+      done = (game.bestWordScore ?? 0) >= level.goal.target;
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
