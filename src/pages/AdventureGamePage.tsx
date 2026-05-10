@@ -203,7 +203,7 @@ const AdventureGamePage = () => {
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, game.movesUsed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, game.asteroidsDestroyed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
 
