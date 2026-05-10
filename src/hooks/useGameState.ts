@@ -392,7 +392,7 @@ function countPowerups(grid: BubbleData[][], types: ReadonlyArray<'x2' | 'x3' | 
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const p = grid[r][c].powerup;
-      if (p && types.includes(p)) count++;
+      if (p && (types as ReadonlyArray<string>).includes(p)) count++;
     }
   }
   return count;
