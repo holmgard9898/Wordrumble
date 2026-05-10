@@ -3,7 +3,7 @@ import type { GameBackground } from '@/contexts/SettingsContext';
 import type { GameMode } from '@/pages/GamePage';
 
 export type AdventureGoal =
-  | { type: 'find-words'; words: Record<GameLanguage, string[]> }
+  | { type: 'find-words'; words: Record<GameLanguage, string[]>; minScore?: number }
   | { type: 'reach-score'; target: number }
   | { type: 'find-long-word'; minLength: number }
   | { type: 'survive-moves'; moves: number }
@@ -44,6 +44,8 @@ export interface AdventureLevel {
   asteroids?: boolean;
   /** Satellite twist: immovable 2x2 satellite in center with a laser powerup. */
   satellite?: boolean;
+  /** UFO twist: immovable UFOs on rows 4 & 6 (alternating cols), each swap the bubble below them every move. */
+  ufos?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
