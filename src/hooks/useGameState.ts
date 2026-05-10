@@ -599,6 +599,8 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(g);
     if (adventureSeed?.satellite) placeSatellite(g);
     if (adventureSeed?.ufos) placeUfos(g);
+    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(g, adventureSeed.startPowerups);
+    if (adventureSeed?.infection) ensureInfection(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
