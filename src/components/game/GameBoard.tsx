@@ -27,7 +27,7 @@ export interface GameBoardHandle {
 }
 
 export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function GameBoard(
-  { grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone, laserCharge },
+  { grid, selectedBubble, poppingCells, onBubbleClick, onSwipe, bonusPopups, onBonusPopupDone, laserCharge, onSatelliteClick, laserShot },
   ref,
 ) {
   const pointerStartRef = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
