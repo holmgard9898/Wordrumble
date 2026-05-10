@@ -83,8 +83,10 @@ const AdventureGamePage = () => {
   const LASER_INTERVAL = 5;
   const [laserCharge, setLaserCharge] = useState(0); // 0..LASER_INTERVAL
   const [laserArming, setLaserArming] = useState(false);
+  const [laserDud, setLaserDud] = useState(false); // armed but satellite not charged → red laser, no popup
   const [laserTarget, setLaserTarget] = useState<{ row: number; col: number; letter: string } | null>(null);
   const [laserNewLetter, setLaserNewLetter] = useState<string>('');
+  const [laserShot, setLaserShot] = useState<{ row: number; col: number; color: 'green' | 'red'; id: string } | null>(null);
   const prevMovesUsedRef = useRef(0);
   const laserReady = laserCharge >= LASER_INTERVAL;
 
@@ -100,7 +102,7 @@ const AdventureGamePage = () => {
 
   // Reset laser on level change
   useEffect(() => {
-    setLaserCharge(0); setLaserArming(false); setLaserTarget(null); setLaserNewLetter('');
+    setLaserCharge(0); setLaserArming(false); setLaserDud(false); setLaserTarget(null); setLaserNewLetter(''); setLaserShot(null);
     prevMovesUsedRef.current = 0;
   }, [level?.id]);
 
