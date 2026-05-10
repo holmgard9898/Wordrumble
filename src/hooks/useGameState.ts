@@ -17,6 +17,22 @@ export interface AdventureSeed {
   keepFormableWords?: string[];
   /** Reverse gravity: existing bubbles move up; new bubbles spawn at the bottom. */
   antigravity?: boolean;
+  /** Place immovable asteroids on rows 4 & 6 (alternating cols). Destroyed at bottom row. */
+  asteroids?: boolean;
+}
+
+/** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
+function asteroidSeedPositions(): Position[] {
+  const out: Position[] = [];
+  for (let c = 0; c < COLS; c += 2) out.push({ row: 3, col: c });
+  for (let c = 1; c < COLS; c += 2) out.push({ row: 5, col: c });
+  return out;
+}
+
+function placeAsteroids(grid: BubbleData[][]): void {
+  for (const p of asteroidSeedPositions()) {
+    grid[p.row][p.col] = { ...grid[p.row][p.col], asteroid: true, bomb: undefined, powerup: undefined };
+  }
 }
 
 let seedBubbleCounter = 0;
@@ -387,6 +403,7 @@ export function useGameState(
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
+    if (adventureSeed?.asteroids) placeAsteroids(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
@@ -401,6 +418,7 @@ export function useGameState(
   const [movesUsed, setMovesUsed] = useState(0);
   const [bonusPopups, setBonusPopups] = useState<BonusMovesEvent[]>([]);
   const [freeMovesRemaining, setFreeMovesRemaining] = useState(0);
+  const [asteroidsDestroyed, setAsteroidsDestroyed] = useState(0);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
@@ -426,9 +444,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
+        if (currentGrid[r][c].asteroid) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -447,16 +466,17 @@ export function useGameState(
             }
           }
         }
-        c = end;
+        c = end === c ? c + 1 : end;
       }
     }
 
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
+        if (currentGrid[r][c].asteroid) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -475,7 +495,7 @@ export function useGameState(
             }
           }
         }
-        r = end;
+        r = end === r ? r + 1 : end;
       }
     }
 
@@ -656,6 +676,20 @@ export function useGameState(
         }
       }
 
+      // Asteroid destruction: any asteroid that ends up on the bottom row is destroyed.
+      let destroyedThisPass = 0;
+      const destroyRow = antigravity ? 0 : ROWS - 1;
+      for (let cc = 0; cc < COLS; cc++) {
+        if (newGrid[destroyRow][cc].asteroid) {
+          destroyedThisPass++;
+          newGrid[destroyRow][cc] = refillBubble(colors);
+          newCellPositions.push({ row: destroyRow, col: cc });
+        }
+      }
+      if (destroyedThisPass > 0) {
+        setAsteroidsDestroyed(n => n + destroyedThisPass);
+      }
+
       // Adventure: ensure required words remain formable.
       repairAfterRefill(newGrid, newCellPositions, colors);
 
@@ -677,6 +711,11 @@ export function useGameState(
   }, [findWords, popAndCascade]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
+    // Asteroids cannot be moved.
+    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid) {
+      setSelectedBubble(null);
+      return;
+    }
     const newGrid = grid.map((r) => [...r]);
     const temp = newGrid[fromRow][fromCol];
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
@@ -793,6 +832,7 @@ export function useGameState(
   const resetGame = useCallback(() => {
     const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
+    if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
@@ -808,7 +848,8 @@ export function useGameState(
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
-  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves]);
+    setAsteroidsDestroyed(0);
+  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids]);
 
   const addMoves = useCallback((amount: number) => {
     if (amount <= 0) return;
@@ -855,5 +896,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
+    asteroidsDestroyed,
   };
 }
