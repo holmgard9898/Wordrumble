@@ -47,6 +47,9 @@ export interface BubbleData {
   color: BubbleColor;
   bomb?: number;
   powerup?: PowerupType;
+  /** Adventure-only obstacle: cannot be moved or formed into words.
+   *  Falls when bubbles below it pop. Destroyed when it reaches the bottom row. */
+  asteroid?: boolean;
 }
 
 export interface Position {
