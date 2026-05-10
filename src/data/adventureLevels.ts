@@ -635,7 +635,7 @@ export const adventureLevels: AdventureLevel[] = [
       da: 'Ud af hulen, ind i den tætte skov! Find 5 skovord.',
       fi: 'Ulos luolasta tiheään metsään! Löydä 5 metsäsanaa.',
     },
-    background: 'wood',
+    background: 'forest',
     goal: { type: 'find-words', words: wl(
       ['tree', 'leaf', 'wolf', 'moss', 'pine'],
       ['träd', 'löv', 'varg', 'mossa', 'gran'],
@@ -669,7 +669,7 @@ export const adventureLevels: AdventureLevel[] = [
       da: 'Bomber i krattet! 130 point på 70 træk før de eksploderer.',
       fi: 'Pommeja tiheikössä! 130 pistettä 70 siirrolla ennen räjähdystä.',
     },
-    background: 'wood',
+    background: 'forest',
     mode: 'bomb',
     goal: { type: 'reach-score', target: 130 },
     showProgressBar: true,
@@ -693,7 +693,7 @@ export const adventureLevels: AdventureLevel[] = [
       da: 'Find skovord for at afsløre det skjulte ord!',
       fi: 'Löydä metsäsanoja paljastaaksesi salaisen sanan!',
     },
-    background: 'wood',
+    background: 'forest',
     goal: {
       type: 'hidden-word',
       hiddenWord: { en: 'FOREST', sv: 'SKOGEN', de: 'WALD', es: 'BOSQUE', fr: 'FORET', it: 'FORESTA', pt: 'FLORESTA', nl: 'WOUD', no: 'SKOGEN', da: 'SKOVEN', fi: 'METSA' },

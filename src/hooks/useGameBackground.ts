@@ -10,6 +10,7 @@ import caveBg from '@/assets/bg-cave.jpg';
 import cityBg from '@/assets/bg-city.jpg';
 import storybookBg from '@/assets/bg-storybook.jpg';
 import moonBg from '@/assets/bg-moon.jpg';
+import forestBg from '@/assets/bg-forest.jpg';
 
 const BG_IMAGES: Partial<Record<GameBackground, string>> = {
   storybook: storybookBg,
@@ -23,6 +24,7 @@ const BG_IMAGES: Partial<Record<GameBackground, string>> = {
   cave: caveBg,
   city: cityBg,
   moon: moonBg,
+  forest: forestBg,
 };
 
 /**
