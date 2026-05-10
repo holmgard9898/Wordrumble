@@ -1031,7 +1031,8 @@ export function useGameState(
     setIsProcessing(false);
     setMovesUsed(saved.movesUsed);
     setFreeMovesRemaining(saved.freeMovesRemaining);
-  }, []);
+    rocksPlacedRef.current = adventureSeed?.collapsingCave ? Math.max(0, saved.movesUsed - 4) : 0;
+  }, [adventureSeed?.collapsingCave]);
 
   const startFromState = useCallback((newGrid: BubbleData[][], maxMoves: number, blockedWords: string[] = []) => {
     setGrid(newGrid.map(row => row.map(b => ({ ...b }))));
