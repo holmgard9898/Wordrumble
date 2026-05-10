@@ -331,6 +331,13 @@ export function useGameState(
   const targetLettersRef = useRef<string>('');
   targetLettersRef.current = (adventureSeed?.targetWords ?? []).join('').toUpperCase();
 
+  // Words that must remain formable in some color throughout the game.
+  // Updated reactively from outside via setKeepFormableWords.
+  const keepFormableRef = useRef<string[]>(adventureSeed?.keepFormableWords ?? []);
+  const setKeepFormableWords = useCallback((words: string[]) => {
+    keepFormableRef.current = words.map(w => w.toUpperCase());
+  }, []);
+
   const createInitialGrid = useCallback((): BubbleData[][] => {
     if (adventureSeed && adventureSeed.targetWords.length > 0) {
       return buildSeededGrid(
@@ -340,6 +347,7 @@ export function useGameState(
         getColorsForMode(mode),
         pool,
         values,
+        keepFormableRef.current,
       );
     }
     return createCleanGrid(isValidWord, mode, pool, values);
@@ -354,6 +362,20 @@ export function useGameState(
     }
     return createRandomBubble(colors, pool, values);
   }, [pool, values]);
+
+  /** After refilling some cells, ensure all keep-formable words are still formable. */
+  const repairAfterRefill = useCallback(
+    (newGrid: BubbleData[][], newCellPositions: Position[], colors: BubbleColor[]) => {
+      const required = keepFormableRef.current;
+      if (!required || required.length === 0) return newGrid;
+      repairFormability(newGrid, required, newCellPositions, {
+        values,
+        allowedColors: colors,
+      });
+      return newGrid;
+    },
+    [values],
+  );
 
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
