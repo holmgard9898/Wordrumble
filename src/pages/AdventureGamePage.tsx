@@ -426,6 +426,10 @@ const AdventureGamePage = () => {
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
     if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
+    if (level.goal.type === 'two-hidden-words') {
+      const labels: Record<string, string> = { en: 'Reveal TWO hidden words:', sv: 'Avslöja TVÅ dolda ord:', de: 'Enthülle ZWEI versteckte Wörter:', es: 'Revela DOS palabras ocultas:', fr: 'Révélez DEUX mots cachés :', it: 'Rivela DUE parole nascoste:', pt: 'Revela DUAS palavras ocultas:', nl: 'Onthul TWEE verborgen woorden:', no: 'Avslør TO skjulte ord:', da: 'Afslør TO skjulte ord:', fi: 'Paljasta KAKSI salaista sanaa:' };
+      return labels[settings.language] ?? labels.en;
+    }
     if (level.goal.type === 'best-word-score') {
       const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
