@@ -711,6 +711,11 @@ export function useGameState(
   }, [findWords, popAndCascade]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
+    // Asteroids cannot be moved.
+    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid) {
+      setSelectedBubble(null);
+      return;
+    }
     const newGrid = grid.map((r) => [...r]);
     const temp = newGrid[fromRow][fromCol];
     newGrid[fromRow][fromCol] = newGrid[toRow][toCol];
