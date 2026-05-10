@@ -7,6 +7,8 @@ export type AdventureGoal =
   | { type: 'reach-score'; target: number }
   | { type: 'find-long-word'; minLength: number }
   | { type: 'survive-moves'; moves: number }
+  /** Find a single word worth at least `target` points (used with mode 'oneword'). */
+  | { type: 'best-word-score'; target: number }
   /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
   | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
 
