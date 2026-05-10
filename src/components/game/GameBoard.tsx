@@ -238,7 +238,7 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
               ? '0 0 12px hsl(140,90%,55%), 0 0 24px hsl(140,90%,55%)'
               : '0 0 12px hsl(0,90%,55%), 0 0 24px hsl(0,90%,55%)',
             borderRadius: 999,
-            animation: 'pop 0.55s ease-out forwards',
+            animation: 'laser-fade 0.55s ease-out forwards',
             zIndex: 30,
           }}
         />
