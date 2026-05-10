@@ -599,7 +599,7 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(g);
     if (adventureSeed?.satellite) placeSatellite(g);
     if (adventureSeed?.ufos) placeUfos(g);
-    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(g, adventureSeed.startPowerups);
+    // Note: startPowerups are NOT placed on the board — they are surfaced as free toolbar buttons in the UI.
     if (adventureSeed?.infection) ensureInfection(g);
     return g;
   });
@@ -642,10 +642,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock || currentGrid[r][c].dead) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && !currentGrid[r][end].rock && !currentGrid[r][end].dead && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && !currentGrid[r][end].rock && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -671,10 +671,10 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock || currentGrid[r][c].dead) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && !currentGrid[end][c].dead && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -1113,7 +1113,7 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     if (adventureSeed?.satellite) placeSatellite(newGrid);
     if (adventureSeed?.ufos) placeUfos(newGrid);
-    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(newGrid, adventureSeed.startPowerups);
+    // startPowerups handled in UI as free buttons (not placed on board).
     if (adventureSeed?.infection) ensureInfection(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
@@ -1166,21 +1166,33 @@ export function useGameState(
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
 
-  /** Adventure laser: replace one bubble's letter (color & flags preserved). */
+  /** Adventure laser / free swap-letter powerup: replace one bubble's letter (color & flags preserved). */
   const swapBubbleLetter = useCallback((row: number, col: number, newLetter: string) => {
     if (gameOver || isProcessing) return;
     const upper = newLetter.toUpperCase();
     if (!upper) return;
     setGrid(prev => {
-      const b = prev[row][col];
-      if (!b || b.satellite || b.asteroid) return prev;
+      const b = prev[row]?.[col];
+      if (!b || b.satellite || b.asteroid || b.ufo || b.rock || b.dead) return prev;
       const ng = prev.map(r => [...r]);
       ng[row][col] = { ...b, letter: upper, value: values[upper] ?? 1 };
-      // Schedule a word-check on the new grid.
       setTimeout(() => checkForWords(ng), 120);
       return ng;
     });
   }, [gameOver, isProcessing, values, checkForWords]);
+
+  /** Free swap-color powerup: change one bubble's color (letter preserved). */
+  const swapBubbleColor = useCallback((row: number, col: number, newColor: BubbleColor) => {
+    if (gameOver || isProcessing) return;
+    setGrid(prev => {
+      const b = prev[row]?.[col];
+      if (!b || b.satellite || b.asteroid || b.ufo || b.rock || b.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[row][col] = { ...b, color: newColor };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, checkForWords]);
 
   /** Adventure 3 powerup: change a target bubble's letter; consume the powerup at source cell. */
   const applyPowerupSwapLetter = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newLetter: string) => {
@@ -1231,6 +1243,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
-    asteroidsDestroyed, swapBubbleLetter, applyPowerupSwapLetter, applyPowerupSwapColor,
+    asteroidsDestroyed, swapBubbleLetter, swapBubbleColor, applyPowerupSwapLetter, applyPowerupSwapColor,
   };
 }

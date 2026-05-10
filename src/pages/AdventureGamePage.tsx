@@ -83,11 +83,21 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
-  // Adventure 3-3 powerup activation state
-  const [powerupArming, setPowerupArming] = useState<{ kind: 'swapletter' | 'swapcolor'; row: number; col: number } | null>(null);
-  const [powerupTarget, setPowerupTarget] = useState<{ row: number; col: number } | null>(null);
-  const [powerupNewLetter, setPowerupNewLetter] = useState<string>('');
-  const [powerupNewColor, setPowerupNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
+  // Adventure 3-3 free powerups (toolbar buttons, like rockets)
+  const initialSwapLetters = useMemo(
+    () => (level?.startPowerups ?? []).filter(p => p === 'swapletter').length,
+    [level?.id, level?.startPowerups]
+  );
+  const initialSwapColors = useMemo(
+    () => (level?.startPowerups ?? []).filter(p => p === 'swapcolor').length,
+    [level?.id, level?.startPowerups]
+  );
+  const [swapLettersLeft, setSwapLettersLeft] = useState(initialSwapLetters);
+  const [swapColorsLeft, setSwapColorsLeft] = useState(initialSwapColors);
+  const [swapArming, setSwapArming] = useState<null | 'letter' | 'color'>(null);
+  const [swapTarget, setSwapTarget] = useState<{ row: number; col: number } | null>(null);
+  const [swapNewLetter, setSwapNewLetter] = useState<string>('');
+  const [swapNewColor, setSwapNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
 
   // Laser (satellite levels)
   const LASER_INTERVAL = 5;
@@ -115,6 +125,8 @@ const AdventureGamePage = () => {
     setLaserCharge(0); setLaserArming(false); setLaserDud(false); setLaserTarget(null); setLaserNewLetter(''); setLaserShot(null);
     prevMovesUsedRef.current = 0;
   }, [level?.id]);
+
+  useEffect(() => { setSwapLettersLeft(initialSwapLetters); setSwapColorsLeft(initialSwapColors); setSwapArming(null); setSwapTarget(null); }, [level?.id, initialSwapLetters, initialSwapColors]);
 
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
@@ -272,26 +284,14 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
-    if (powerupArming) {
+    if (swapArming) {
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite && !cell.asteroid && !cell.ufo && !cell.rock && !cell.dead) {
-        if (row === powerupArming.row && col === powerupArming.col) {
-          setPowerupArming(null);
-          return;
-        }
-        setPowerupTarget({ row, col });
-        setPowerupNewLetter(cell.letter);
-        setPowerupNewColor(cell.color);
+        setSwapTarget({ row, col });
+        setSwapNewLetter(cell.letter);
+        setSwapNewColor(cell.color);
       }
       return;
-    }
-    // Tapping a powerup bubble (when nothing else selected) arms it.
-    if (!game.selectedBubble) {
-      const cell = game.grid[row]?.[col];
-      if (cell?.powerup === 'swapletter' || cell?.powerup === 'swapcolor') {
-        setPowerupArming({ kind: cell.powerup, row, col });
-        return;
-      }
     }
     if (laserDud) {
       const cell = game.grid[row]?.[col];
@@ -310,7 +310,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, powerupArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
@@ -544,14 +544,47 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : ''}`}>
+      {/* Free swap-letter / swap-color powerups (Adventure 3+) */}
+      {(initialSwapLetters > 0 || initialSwapColors > 0) && (
+        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+          {initialSwapLetters > 0 && (
+            <Button
+              onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
+              disabled={swapLettersLeft <= 0}
+              className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
+            >
+              {swapArming === 'letter'
+                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                : `🔤 × ${swapLettersLeft}`}
+            </Button>
+          )}
+          {initialSwapColors > 0 && (
+            <Button
+              onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
+              disabled={swapColorsLeft <= 0}
+              className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
+            >
+              {swapArming === 'color'
+                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                : `🎨 × ${swapColorsLeft}`}
+            </Button>
+          )}
+          {swapArming && (
+            <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
         <GameBoard
           ref={boardRef}
           grid={game.grid}
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
-          onSwipe={(rocketArming || laserArming) ? undefined : game.handleSwipe}
+          onSwipe={(rocketArming || laserArming || swapArming) ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
           laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
@@ -708,38 +741,38 @@ const AdventureGamePage = () => {
           </div>
         </DialogContent>
       </Dialog>
-      {/* Powerup swap-letter / swap-color dialog (Adventure 3-3) */}
-      <Dialog open={!!powerupTarget} onOpenChange={(open) => { if (!open) { setPowerupTarget(null); } }}>
+      {/* Free swap-letter / swap-color dialog (Adventure 3+) */}
+      <Dialog open={!!swapTarget} onOpenChange={(open) => { if (!open) { setSwapTarget(null); } }}>
         <DialogContent className="max-w-sm rounded-2xl border-purple-500/30" style={{ background: 'linear-gradient(135deg, rgba(40,15,55,0.97), rgba(20,8,35,0.97))' }}>
           <DialogHeader>
             <DialogTitle className="text-white text-center text-xl">
-              {powerupArming?.kind === 'swapcolor'
+              {swapArming === 'color'
                 ? (settings.language === 'sv' ? '🎨 Byt färg' : '🎨 Swap color')
                 : (settings.language === 'sv' ? '🔤 Byt bokstav' : '🔤 Swap letter')}
             </DialogTitle>
             <DialogDescription className="text-white/70 text-center text-xs">
-              {powerupArming?.kind === 'swapcolor'
+              {swapArming === 'color'
                 ? (settings.language === 'sv' ? 'Välj ny färg på vald bricka.' : 'Pick a new color for the selected tile.')
                 : (settings.language === 'sv' ? 'Välj ny bokstav. Färgen behålls.' : 'Pick a new letter. Color stays.')}
             </DialogDescription>
           </DialogHeader>
 
-          {powerupArming?.kind === 'swapcolor' ? (
+          {swapArming === 'color' ? (
             <div className="grid grid-cols-5 gap-2 py-3">
               {(['red','green','blue','yellow','pink'] as const).map(c => {
                 const styles = { red: 'hsl(0,75%,50%)', green: 'hsl(140,65%,42%)', blue: 'hsl(210,80%,52%)', yellow: 'hsl(45,90%,52%)', pink: 'hsl(330,75%,58%)' }[c];
-                const sel = powerupNewColor === c;
+                const sel = swapNewColor === c;
                 return (
-                  <button key={c} onClick={() => setPowerupNewColor(c)} className={`aspect-square rounded-full transition-all ${sel ? 'scale-110 ring-4 ring-white' : 'opacity-80'}`} style={{ background: styles, boxShadow: sel ? `0 0 14px ${styles}` : '0 2px 4px rgba(0,0,0,0.3)' }} />
+                  <button key={c} onClick={() => setSwapNewColor(c)} className={`aspect-square rounded-full transition-all ${sel ? 'scale-110 ring-4 ring-white' : 'opacity-80'}`} style={{ background: styles, boxShadow: sel ? `0 0 14px ${styles}` : '0 2px 4px rgba(0,0,0,0.3)' }} />
                 );
               })}
             </div>
           ) : (
             <div className="grid grid-cols-7 gap-1.5 py-1">
               {alphabet.map(letter => {
-                const selected = powerupNewLetter === letter;
+                const selected = swapNewLetter === letter;
                 return (
-                  <button key={letter} onClick={() => setPowerupNewLetter(letter)} className={`aspect-square rounded-md font-bold text-sm transition-all ${selected ? 'bg-purple-500 text-white scale-110 shadow-[0_0_10px_hsl(280,90%,60%)]' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                  <button key={letter} onClick={() => setSwapNewLetter(letter)} className={`aspect-square rounded-md font-bold text-sm transition-all ${selected ? 'bg-purple-500 text-white scale-110 shadow-[0_0_10px_hsl(280,90%,60%)]' : 'bg-white/10 text-white hover:bg-white/20'}`}>
                     {letter}
                   </button>
                 );
@@ -748,19 +781,21 @@ const AdventureGamePage = () => {
           )}
 
           <div className="flex gap-2 mt-2">
-            <Button onClick={() => { setPowerupTarget(null); }} variant="outline" className="flex-1 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+            <Button onClick={() => { setSwapTarget(null); }} variant="outline" className="flex-1 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
               <X className="w-4 h-4" />{settings.language === 'sv' ? 'Avbryt' : 'Cancel'}
             </Button>
             <Button
               onClick={() => {
-                if (!powerupArming || !powerupTarget) return;
-                if (powerupArming.kind === 'swapcolor' && powerupNewColor) {
-                  game.applyPowerupSwapColor?.(powerupArming.row, powerupArming.col, powerupTarget.row, powerupTarget.col, powerupNewColor);
-                } else if (powerupArming.kind === 'swapletter' && powerupNewLetter) {
-                  game.applyPowerupSwapLetter?.(powerupArming.row, powerupArming.col, powerupTarget.row, powerupTarget.col, powerupNewLetter);
+                if (!swapArming || !swapTarget) return;
+                if (swapArming === 'color' && swapNewColor) {
+                  game.swapBubbleColor?.(swapTarget.row, swapTarget.col, swapNewColor);
+                  setSwapColorsLeft(n => Math.max(0, n - 1));
+                } else if (swapArming === 'letter' && swapNewLetter) {
+                  game.swapBubbleLetter?.(swapTarget.row, swapTarget.col, swapNewLetter);
+                  setSwapLettersLeft(n => Math.max(0, n - 1));
                 }
-                setPowerupTarget(null);
-                setPowerupArming(null);
+                setSwapTarget(null);
+                setSwapArming(null);
               }}
               className="flex-1 bg-purple-600 hover:bg-purple-500 text-white"
             >OK</Button>
