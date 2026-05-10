@@ -704,7 +704,7 @@ export function useGameState(
 
     const colors = getColorsForMode(mode);
     const antigravity = adventureSeed?.antigravity === true;
-    const satBounds = getSatelliteBounds(currentGrid);
+    const colBlockers = getColumnBlockers(currentGrid);
 
     setTimeout(() => {
       setPoppingCells(new Set());
@@ -715,21 +715,26 @@ export function useGameState(
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
-        const colHasSat = satBounds && satBounds.cols.has(c);
+        const blockers = colBlockers.get(c);
 
-        if (colHasSat && !antigravity) {
-          // Split column into upper [0..topRow-1] and lower [botRow+1..ROWS-1].
-          // New bubbles in the lower region spawn from just BELOW the satellite.
-          for (const region of [
-            { lo: 0, hi: satBounds!.topRow - 1 },
-            { lo: satBounds!.botRow + 1, hi: ROWS - 1 },
-          ]) {
-            if (region.lo > region.hi) continue;
+        if (blockers && !antigravity) {
+          // Split column into segments separated by blockers (satellite/ufo).
+          // Each segment refills new bubbles at its TOP.
+          const segments: { lo: number; hi: number }[] = [];
+          let lo = 0;
+          for (const br of blockers) {
+            if (br - 1 >= lo) segments.push({ lo, hi: br - 1 });
+            lo = br + 1;
+          }
+          if (lo <= ROWS - 1) segments.push({ lo, hi: ROWS - 1 });
+
+          for (const region of segments) {
             const remaining: BubbleData[] = [];
             for (let r = region.lo; r <= region.hi; r++) {
               if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
             }
             const popCount = (region.hi - region.lo + 1) - remaining.length;
+            if (popCount === 0) continue;
             const newBubbles: BubbleData[] = [];
             for (let i = 0; i < popCount; i++) newBubbles.push(refillBubble(colors));
             const fullColumn = [...newBubbles, ...remaining];
