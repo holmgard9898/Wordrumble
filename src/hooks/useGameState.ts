@@ -19,6 +19,8 @@ export interface AdventureSeed {
   antigravity?: boolean;
   /** Place immovable asteroids on rows 4 & 6 (alternating cols). Destroyed at bottom row. */
   asteroids?: boolean;
+  /** Place an immovable 2x2 satellite in the center; new bubbles below it spawn from below the satellite. */
+  satellite?: boolean;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
@@ -33,6 +35,38 @@ function placeAsteroids(grid: BubbleData[][]): void {
   for (const p of asteroidSeedPositions()) {
     grid[p.row][p.col] = { ...grid[p.row][p.col], asteroid: true, bomb: undefined, powerup: undefined };
   }
+}
+
+/** 2x2 satellite at the geometric center of the grid. */
+function satelliteSeedPositions(): Position[] {
+  const r0 = Math.floor(ROWS / 2) - 1; // 4 for ROWS=10
+  const c0 = Math.floor(COLS / 2) - 1; // 3 for COLS=8
+  return [
+    { row: r0, col: c0 }, { row: r0, col: c0 + 1 },
+    { row: r0 + 1, col: c0 }, { row: r0 + 1, col: c0 + 1 },
+  ];
+}
+
+function placeSatellite(grid: BubbleData[][]): void {
+  for (const p of satelliteSeedPositions()) {
+    grid[p.row][p.col] = { ...grid[p.row][p.col], satellite: true, asteroid: undefined, bomb: undefined, powerup: undefined };
+  }
+}
+
+function getSatelliteBounds(grid: BubbleData[][]): { topRow: number; botRow: number; cols: Set<number> } | null {
+  let topRow = ROWS, botRow = -1;
+  const cols = new Set<number>();
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c].satellite) {
+        if (r < topRow) topRow = r;
+        if (r > botRow) botRow = r;
+        cols.add(c);
+      }
+    }
+  }
+  if (botRow === -1) return null;
+  return { topRow, botRow, cols };
 }
 
 let seedBubbleCounter = 0;
