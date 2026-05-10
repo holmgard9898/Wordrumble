@@ -2,6 +2,7 @@ import type { GameLanguage } from './languages';
 import type { GameBackground } from '@/contexts/SettingsContext';
 import type { GameMode } from '@/pages/GamePage';
 import type { BubbleColor } from './gameConstants';
+import { CAVE_TARGET_WORD, CAVE_MOVES, CAVE_STORY, buildAllCavePresetGrids } from './cavePuzzleBoards';
 
 export type AdventureGoal =
   | { type: 'find-words'; words: Record<GameLanguage, string[]>; minScore?: number }
