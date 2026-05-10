@@ -711,22 +711,33 @@ const AdventureGamePage = () => {
 
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} onBackToMap={() => { setShowMenu(false); navigate('/adventure'); }} />
 
-      {/* Tutorial / intro modal — shown every time in adventure */}
-      <TutorialModal
-        open={showIntro}
-        steps={[
-          ...((level.storyIntro ?? []).map((card) => ({
-            title: card.title[settings.language] ?? card.title.en ?? '',
-            body: card.body[settings.language] ?? card.body.en ?? '',
-          }))),
-          {
-            title: `${level.icon} ${level.name[settings.language]}`,
-            body: `${level.intro[settings.language]}\n\n🎯 ${goalText}`,
-          },
-          ...(level.hideModeTutorial ? [] : getTutorialSteps(levelMode, settings.language)),
-        ]}
-        onClose={() => setShowIntro(false)}
-      />
+      {/* Tutorial / intro modal — narrative storyIntro + level-specific goal,
+           plus concept tutorials only the FIRST time each concept appears. */}
+      {(() => {
+        const conceptIds = level.hideModeTutorial ? [] : getLevelConcepts(level);
+        const unseenConcepts = conceptIds.filter(id => !isSeen(id));
+        const conceptSteps = unseenConcepts.flatMap(id => getConceptSteps(id, settings.language));
+        return (
+          <TutorialModal
+            open={showIntro}
+            steps={[
+              ...((level.storyIntro ?? []).map((card) => ({
+                title: card.title[settings.language] ?? card.title.en ?? '',
+                body: card.body[settings.language] ?? card.body.en ?? '',
+              }))),
+              {
+                title: `${level.icon} ${level.name[settings.language]}`,
+                body: `${level.intro[settings.language]}\n\n🎯 ${goalText}`,
+              },
+              ...conceptSteps,
+            ]}
+            onClose={() => {
+              setShowIntro(false);
+              if (unseenConcepts.length) markSeen(unseenConcepts);
+            }}
+          />
+        );
+      })()}
 
       {/* Success modal */}
       <Dialog open={showSuccess} onOpenChange={() => {}}>
