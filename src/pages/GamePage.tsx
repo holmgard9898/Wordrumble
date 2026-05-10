@@ -23,6 +23,9 @@ import { Menu, Volume2, VolumeX, Music, Zap, Bomb, Hash, Target } from 'lucide-r
 import { TutorialModal } from '@/components/TutorialModal';
 import { getTutorialSteps } from '@/data/tutorials';
 import { useTutorialSeen } from '@/hooks/useTutorialSeen';
+import { useGameEffects } from '@/hooks/useGameEffects';
+import { FireModeFrame } from '@/components/game/FireModeFrame';
+import { LightningOverlay } from '@/components/game/LightningOverlay';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
 
@@ -65,6 +68,14 @@ const GamePage = () => {
   const [scoreSaved, setScoreSaved] = useState(false);
   const [explosionPx, setExplosionPx] = useState<{ x: number; y: number } | null>(null);
   const boardRef = useRef<GameBoardHandle | null>(null);
+  const boardWrapperRef = useRef<HTMLDivElement | null>(null);
+  const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
+  const { fireMode, lightning } = useGameEffects({
+    lastWordEvent: game.lastWordEvent,
+    movesUsed: game.movesUsed,
+    getCellRect,
+    containerEl: boardWrapperRef.current,
+  });
   const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialSeen(`mode-${gameMode}`);
   const [showTutorial, setShowTutorial] = useState(!tutorialSeen);
   useEffect(() => { setShowTutorial(!tutorialSeen); }, [tutorialSeen, gameMode]);
