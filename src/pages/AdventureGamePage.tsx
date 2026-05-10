@@ -194,6 +194,9 @@ const AdventureGamePage = () => {
     else if (level.goal.type === 'best-word-score') {
       done = (game.bestWordScore ?? 0) >= level.goal.target;
     }
+    else if (level.goal.type === 'destroy-asteroids') {
+      done = (game.asteroidsDestroyed ?? 0) >= level.goal.count;
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
