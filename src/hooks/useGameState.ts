@@ -34,6 +34,7 @@ function buildSeededGrid(
   colors: BubbleColor[],
   pool: string,
   values: Record<string, number>,
+  keepFormableWords: string[] = [],
 ): BubbleData[][] {
   // Build target letter pool (weighted) for refill bias
   const targetLetters = targetWords.join('').toUpperCase().replace(/[^A-ZÅÄÖÉÈÊËÀÂÎÏÔÛÙÜÇÑ]/g, '');
@@ -75,12 +76,32 @@ function buildSeededGrid(
   for (let attempt = 0; attempt < 25; attempt++) {
     const g = tryBuild();
     if (!g) continue;
-    const cleaned = ensureGridHasNoWords(g, {
+    let cleaned = ensureGridHasNoWords(g, {
       isValidWord,
       minWordLength: minWordLen,
       createBubble: weightedRefill,
       maxPasses: 50,
     });
+    // Make sure every keep-formable word is plantable in some color from the start.
+    // Plant any missing ones into the cleaned grid; then re-clean.
+    const missing = keepFormableWords.filter(w => !wordIsFormable(cleaned, w));
+    if (missing.length > 0) {
+      // Collect random "fresh" cell positions to overwrite (every cell is fair game here).
+      const allCells: Position[] = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) allCells.push({ row: r, col: c });
+      repairFormability(cleaned, missing, allCells, { values, allowedColors: colors });
+      cleaned = ensureGridHasNoWords(cleaned, {
+        isValidWord,
+        minWordLength: minWordLen,
+        createBubble: weightedRefill,
+        maxPasses: 50,
+      });
+      // Final guard: if cleanup broke formability, re-repair once more.
+      const stillMissing = keepFormableWords.filter(w => !wordIsFormable(cleaned, w));
+      if (stillMissing.length > 0) {
+        repairFormability(cleaned, stillMissing, allCells, { values, allowedColors: colors });
+      }
+    }
     return cleaned;
   }
   // Fallback
