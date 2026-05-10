@@ -27,6 +27,10 @@ export interface AdventureSeed {
   collapsingCave?: boolean;
   /** Fully pre-determined start grid (overrides random/seeded generation). */
   presetGrid?: Array<Array<{ l: string; c: BubbleColor }>>;
+  /** Adventure 3+: smitta-mekanik. Minst en infekterad bricka på brädet. */
+  infection?: boolean;
+  /** Adventure 3-3: powerups som ska placeras vid start. */
+  startPowerups?: Array<import('@/data/gameConstants').PowerupType>;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
