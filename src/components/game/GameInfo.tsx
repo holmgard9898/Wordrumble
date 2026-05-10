@@ -29,22 +29,22 @@ export function GameInfo({
 
   const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color: string; border: string } | null> = {
     classic: null,
-    surge: { icon: <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />, label: t.modeSurge, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(234,179,8,0.4)' },
-    fiveplus: { icon: <Hash className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400" />, label: t.modeFiveplus, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(34,211,238,0.4)' },
-    bomb: { icon: <Bomb className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-400" />, label: t.modeBomb, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(239,68,68,0.4)' },
-    oneword: { icon: <Target className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-400" />, label: t.modeOneword, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(16,185,129,0.4)' },
+    surge: { icon: <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />, label: t.modeSurge, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(168, 85, 247, 0.5)' },
+    fiveplus: { icon: <Hash className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400" />, label: t.modeFiveplus, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(168, 85, 247, 0.5)' },
+    bomb: { icon: <Bomb className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-400" />, label: t.modeBomb, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(168, 85, 247, 0.5)' },
+    oneword: { icon: <Target className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-400" />, label: t.modeOneword, color: 'rgba(15, 23, 42, 0.8)', border: 'rgba(168, 85, 247, 0.5)' },
   };
 
   const badge = MODE_BADGE[mode];
 
-  // Gemensam stil för statistik-rutorna
-  const statsBoxClass = "flex-1 rounded-2xl py-4 px-2 md:p-4 text-center bg-slate-900/70 backdrop-blur-xl border border-white/10 shadow-lg transition-all";
+  // Den lila stilen för boxarna: mörkblå glas + lila kant + lila glöd
+  const statsBoxClass = "flex-1 rounded-2xl py-4 px-2 md:p-4 text-center bg-slate-900/70 backdrop-blur-xl border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.15)] transition-all";
 
   return (
     <div className="flex flex-col gap-1.5 md:gap-3 w-full px-0 md:px-0">
       {/* Mode badge */}
       {!hideBadge && badge && (
-        <div className="flex items-center justify-center gap-2 rounded-full py-1 px-4 self-center backdrop-blur-md shadow-lg" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
+        <div className="flex items-center justify-center gap-2 rounded-full py-1 px-4 self-center backdrop-blur-md shadow-[0_0_10px_rgba(168,85,247,0.2)]" style={{ background: badge.color, border: `1px solid ${badge.border}` }}>
           {badge.icon}
           <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white">{badge.label}</span>
         </div>
@@ -82,7 +82,7 @@ export function GameInfo({
 
       {/* Bomb mode: free-moves shield indicator */}
       {isBomb && freeMovesRemaining > 0 && (
-        <div className="rounded-xl py-2 px-4 text-center self-center flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 shadow-lg">
+        <div className="rounded-xl py-2 px-4 text-center self-center flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md border border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
           <span className="text-base">🛡️</span>
           <span className="text-sm md:text-base font-bold text-emerald-300 uppercase tracking-wide">
             {freeMovesRemaining} {t.movesLeft.toLowerCase()}
@@ -92,7 +92,7 @@ export function GameInfo({
 
       {/* Word found toast */}
       {lastFoundWord && (
-        <div className="rounded-2xl p-3 text-center animate-in zoom-in duration-300 bg-emerald-500/20 backdrop-blur-xl border border-emerald-500/30 shadow-xl">
+        <div className="rounded-2xl p-3 text-center animate-in zoom-in duration-300 bg-emerald-500/20 backdrop-blur-xl border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
           <div className="text-[10px] uppercase tracking-widest font-bold text-emerald-300/70">{t.wordFound}</div>
           <div className="text-xl md:text-2xl font-black tracking-[0.2em] text-emerald-300 uppercase">{lastFoundWord}</div>
         </div>
@@ -102,16 +102,16 @@ export function GameInfo({
       <div className="flex gap-2 md:gap-3 mt-1">
         <Button 
           onClick={onShowWords} 
-          className="flex-1 gap-2 bg-slate-900/80 backdrop-blur-md border border-white/10 text-white hover:bg-slate-800 h-14 md:h-12 text-sm font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+          className="flex-1 gap-2 bg-slate-900/80 backdrop-blur-md border border-purple-500/40 text-white hover:bg-slate-800 h-14 md:h-12 text-sm font-bold rounded-2xl shadow-[0_0_15px_rgba(168,85,247,0.1)] active:scale-95 transition-all"
         >
           <List className="w-5 h-5 text-white/50" /> 
           <span className="uppercase tracking-tight">{t.words}</span>
-          <span className="bg-white/10 px-2 py-0.5 rounded-lg text-xs font-black">{usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''}</span>
+          <span className="bg-purple-500/20 px-2 py-0.5 rounded-lg text-xs font-black text-purple-200 border border-purple-500/30">{usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''}</span>
         </Button>
         
         <Button 
           onClick={onResetGame} 
-          className="w-14 h-14 md:w-12 md:h-12 bg-slate-900/80 backdrop-blur-md border border-white/10 text-white hover:bg-slate-800 p-0 rounded-2xl shadow-lg active:scale-95 transition-all"
+          className="w-14 h-14 md:w-12 md:h-12 bg-slate-900/80 backdrop-blur-md border border-purple-500/40 text-white hover:bg-slate-800 p-0 rounded-2xl shadow-[0_0_15px_rgba(168,85,247,0.1)] active:scale-95 transition-all"
         >
           <RotateCcw className="w-5 h-5" />
         </Button>
