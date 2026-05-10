@@ -83,11 +83,21 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
-  // Adventure 3-3 powerup activation state
-  const [powerupArming, setPowerupArming] = useState<{ kind: 'swapletter' | 'swapcolor'; row: number; col: number } | null>(null);
-  const [powerupTarget, setPowerupTarget] = useState<{ row: number; col: number } | null>(null);
-  const [powerupNewLetter, setPowerupNewLetter] = useState<string>('');
-  const [powerupNewColor, setPowerupNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
+  // Adventure 3-3 free powerups (toolbar buttons, like rockets)
+  const initialSwapLetters = useMemo(
+    () => (level?.startPowerups ?? []).filter(p => p === 'swapletter').length,
+    [level?.id, level?.startPowerups]
+  );
+  const initialSwapColors = useMemo(
+    () => (level?.startPowerups ?? []).filter(p => p === 'swapcolor').length,
+    [level?.id, level?.startPowerups]
+  );
+  const [swapLettersLeft, setSwapLettersLeft] = useState(initialSwapLetters);
+  const [swapColorsLeft, setSwapColorsLeft] = useState(initialSwapColors);
+  const [swapArming, setSwapArming] = useState<null | 'letter' | 'color'>(null);
+  const [swapTarget, setSwapTarget] = useState<{ row: number; col: number } | null>(null);
+  const [swapNewLetter, setSwapNewLetter] = useState<string>('');
+  const [swapNewColor, setSwapNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
 
   // Laser (satellite levels)
   const LASER_INTERVAL = 5;
