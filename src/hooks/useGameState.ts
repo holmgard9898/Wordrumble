@@ -65,7 +65,42 @@ function placeUfos(grid: BubbleData[][]): void {
   }
 }
 
-/** Returns per-column sorted row indices that are immovable (satellite, ufo, or rock). */
+/** Ordered queue of rock placement batches for the collapsing-cave mechanic.
+ *  Per row: right-corner, left-corner, middle-pair, then outer→inner pairs. */
+function buildRockSchedule(): Position[][] {
+  const out: Position[][] = [];
+  for (let r = 0; r < ROWS; r++) {
+    out.push([{ row: r, col: COLS - 1 }]);
+    out.push([{ row: r, col: 0 }]);
+    const m1 = Math.floor(COLS / 2) - 1;
+    const m2 = Math.floor(COLS / 2);
+    out.push([{ row: r, col: m1 }, { row: r, col: m2 }]);
+    let left = 1, right = COLS - 2;
+    while (left < m1 && right > m2) {
+      out.push([{ row: r, col: right }, { row: r, col: left }]);
+      left++; right--;
+    }
+  }
+  return out;
+}
+const ROCK_SCHEDULE: Position[][] = buildRockSchedule();
+
+let rockIdCounter = 0;
+function applyRockBatch(grid: BubbleData[][], batch: Position[]): void {
+  for (const p of batch) {
+    const cell = grid[p.row]?.[p.col];
+    if (!cell || cell.satellite || cell.asteroid || cell.ufo || cell.rock) continue;
+    grid[p.row][p.col] = {
+      id: `rock-${rockIdCounter++}`,
+      letter: '',
+      value: 0,
+      color: cell.color,
+      rock: true,
+    };
+  }
+}
+
+
 function getColumnBlockers(grid: BubbleData[][]): Map<number, number[]> {
   const map = new Map<number, number[]>();
   for (let c = 0; c < COLS; c++) {
