@@ -794,9 +794,24 @@ export function useGameState(
     }
   }, [findWords, popAndCascade]);
 
+  const tickUfos = useCallback((g: BubbleData[][], colors: BubbleColor[]) => {
+    for (let r = 0; r < ROWS - 1; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (g[r][c].ufo) {
+          const below = g[r + 1][c];
+          if (below.satellite || below.asteroid || below.ufo) continue;
+          // Replace with a fresh random bubble (new color & letter).
+          g[r + 1][c] = createRandomBubble(colors, pool, values);
+        }
+      }
+    }
+  }, [pool, values]);
+
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids cannot be moved.
-    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid || grid[fromRow][fromCol].satellite || grid[toRow][toCol].satellite) {
+    // Asteroids/satellite/UFOs cannot be moved.
+    const a = grid[fromRow][fromCol];
+    const b = grid[toRow][toCol];
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo) {
       setSelectedBubble(null);
       return;
     }
@@ -806,6 +821,10 @@ export function useGameState(
     newGrid[toRow][toCol] = temp;
 
     setMovesUsed((prev) => prev + 1);
+
+    const colors = getColorsForMode(mode);
+    const hasUfos = adventureSeed?.ufos === true;
+    if (hasUfos) tickUfos(newGrid, colors);
 
     if (mode === 'bomb') {
       setGrid(newGrid);
@@ -850,7 +869,7 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras]);
+  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, tickUfos]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
