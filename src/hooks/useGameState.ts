@@ -967,10 +967,10 @@ export function useGameState(
   }, [pool, values]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids/satellite/UFOs/rocks cannot be moved.
+    // Asteroids/satellite/UFOs/rocks/ghosts cannot be moved.
     const a = grid[fromRow][fromCol];
     const b = grid[toRow][toCol];
-    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock) {
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock || a.dead || b.dead) {
       setSelectedBubble(null);
       return;
     }
@@ -993,6 +993,12 @@ export function useGameState(
         applyRockBatch(newGrid, ROCK_SCHEDULE[rocksPlacedRef.current]);
         rocksPlacedRef.current += 1;
       }
+    }
+
+    // Adventure 3 infection: tick smitta/ghosts after each player swap.
+    if (adventureSeed?.infection) {
+      const penalty = tickInfection(newGrid);
+      if (penalty !== 0) setScore(prev => Math.max(0, prev + penalty));
     }
 
     if (mode === 'bomb') {
