@@ -21,6 +21,8 @@ export interface AdventureSeed {
   asteroids?: boolean;
   /** Place an immovable 2x2 satellite in the center; new bubbles below it spawn from below the satellite. */
   satellite?: boolean;
+  /** Place immovable UFOs (rows 4 & 6 alternating) that swap the bubble below them every move. */
+  ufos?: boolean;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
@@ -51,6 +53,25 @@ function placeSatellite(grid: BubbleData[][]): void {
   for (const p of satelliteSeedPositions()) {
     grid[p.row][p.col] = { ...grid[p.row][p.col], satellite: true, asteroid: undefined, bomb: undefined, powerup: undefined };
   }
+}
+
+function placeUfos(grid: BubbleData[][]): void {
+  for (const p of asteroidSeedPositions()) {
+    grid[p.row][p.col] = { ...grid[p.row][p.col], ufo: true, asteroid: undefined, satellite: undefined, bomb: undefined, powerup: undefined };
+  }
+}
+
+/** Returns per-column sorted row indices that are immovable (satellite or ufo). */
+function getColumnBlockers(grid: BubbleData[][]): Map<number, number[]> {
+  const map = new Map<number, number[]>();
+  for (let c = 0; c < COLS; c++) {
+    const rows: number[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      if (grid[r][c].satellite || grid[r][c].ufo) rows.push(r);
+    }
+    if (rows.length > 0) map.set(c, rows);
+  }
+  return map;
 }
 
 function getSatelliteBounds(grid: BubbleData[][]): { topRow: number; botRow: number; cols: Set<number> } | null {
