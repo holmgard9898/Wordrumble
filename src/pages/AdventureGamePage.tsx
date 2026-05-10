@@ -83,6 +83,11 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
+  // Adventure 3-3 powerup activation state
+  const [powerupArming, setPowerupArming] = useState<{ kind: 'swapletter' | 'swapcolor'; row: number; col: number } | null>(null);
+  const [powerupTarget, setPowerupTarget] = useState<{ row: number; col: number } | null>(null);
+  const [powerupNewLetter, setPowerupNewLetter] = useState<string>('');
+  const [powerupNewColor, setPowerupNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
 
   // Laser (satellite levels)
   const LASER_INTERVAL = 5;
@@ -267,8 +272,28 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (powerupArming) {
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite && !cell.asteroid && !cell.ufo && !cell.rock && !cell.dead) {
+        if (row === powerupArming.row && col === powerupArming.col) {
+          setPowerupArming(null);
+          return;
+        }
+        setPowerupTarget({ row, col });
+        setPowerupNewLetter(cell.letter);
+        setPowerupNewColor(cell.color);
+      }
+      return;
+    }
+    // Tapping a powerup bubble (when nothing else selected) arms it.
+    if (!game.selectedBubble) {
+      const cell = game.grid[row]?.[col];
+      if (cell?.powerup === 'swapletter' || cell?.powerup === 'swapcolor') {
+        setPowerupArming({ kind: cell.powerup, row, col });
+        return;
+      }
+    }
     if (laserDud) {
-      // Satellite not charged → just shoot a red dud laser, no popup, no change.
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite) {
         setLaserShot({ row, col, color: 'red', id: `red-${Date.now()}` });
@@ -285,7 +310,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, powerupArming]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
