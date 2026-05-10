@@ -553,36 +553,31 @@ export const adventureLevels: AdventureLevel[] = [
   },
 
   // ─── Map 3: Crash landing → Caves → Dark Forest → Castle → City ───
-  (() => {
-    // Lazy import to avoid circular: defined inline.
-    const { CAVE_TARGET_WORD, CAVE_MOVES, CAVE_STORY, buildAllCavePresetGrids } =
-      require('./cavePuzzleBoards') as typeof import('./cavePuzzleBoards');
-    return {
-      id: 'adv-3-1', number: 1, icon: '🔦', map: 3,
-      name: { en: 'The Crash', sv: 'Kraschen', de: 'Der Absturz', es: 'El Choque', fr: 'Le Crash', it: 'Lo Schianto', pt: 'A Queda', nl: 'De Crash', no: 'Krasjet', da: 'Styrtet', fi: 'Törmäys' },
-      intro: {
-        en: 'Find LIGHT to see in the dark.',
-        sv: 'Hitta LJUS för att se i mörkret.',
-        de: 'Finde LICHT, um im Dunkeln zu sehen.',
-        es: 'Encuentra LUZ para ver en la oscuridad.',
-        fr: 'Trouve la LUEUR pour voir dans le noir.',
-        it: 'Trova LUCE per vedere nel buio.',
-        pt: 'Encontra LUZ para ver no escuro.',
-        nl: 'Vind LICHT om in het donker te zien.',
-        no: 'Finn LYS for å se i mørket.',
-        da: 'Find LYS for at se i mørket.',
-        fi: 'Löydä VALO nähdäksesi pimeässä.',
-      },
-      background: 'cave',
-      goal: { type: 'single-word', word: { ...CAVE_TARGET_WORD } },
-      presetGrid: buildAllCavePresetGrids(),
-      maxMovesByLang: { ...CAVE_MOVES },
-      storyIntro: CAVE_STORY,
-      hideModeTutorial: true,
-      mapPosition: { x: 18, y: 88 },
-      connectsTo: ['adv-3-2'],
-    } as AdventureLevel;
-  })(),
+  {
+    id: 'adv-3-1', number: 1, icon: '🔦', map: 3,
+    name: { en: 'The Crash', sv: 'Kraschen', de: 'Der Absturz', es: 'El Choque', fr: 'Le Crash', it: 'Lo Schianto', pt: 'A Queda', nl: 'De Crash', no: 'Krasjet', da: 'Styrtet', fi: 'Törmäys' },
+    intro: {
+      en: 'Find LIGHT to see in the dark.',
+      sv: 'Hitta LJUS för att se i mörkret.',
+      de: 'Finde LICHT, um im Dunkeln zu sehen.',
+      es: 'Encuentra LUZ para ver en la oscuridad.',
+      fr: 'Trouve la LUEUR pour voir dans le noir.',
+      it: 'Trova LUCE per vedere nel buio.',
+      pt: 'Encontra LUZ para ver no escuro.',
+      nl: 'Vind LICHT om in het donker te zien.',
+      no: 'Finn LYS for å se i mørket.',
+      da: 'Find LYS for at se i mørket.',
+      fi: 'Löydä VALO nähdäksesi pimeässä.',
+    },
+    background: 'cave',
+    goal: { type: 'single-word', word: { ...CAVE_TARGET_WORD } },
+    presetGrid: buildAllCavePresetGrids(),
+    maxMovesByLang: { ...CAVE_MOVES },
+    storyIntro: CAVE_STORY,
+    hideModeTutorial: true,
+    mapPosition: { x: 18, y: 88 },
+    connectsTo: ['adv-3-2'],
+  },
   {
     id: 'adv-3-2', number: 2, icon: '💎', map: 3,
     name: { en: 'Crystal Caverns', sv: 'Kristallgrottan', de: 'Kristallhöhlen', es: 'Cavernas Cristal', fr: 'Cavernes Cristal', it: 'Caverne Cristallo', pt: 'Cavernas Cristal', nl: 'Kristalgrotten', no: 'Krystallhuler', da: 'Krystalhuler', fi: 'Kristalliluolat' },
