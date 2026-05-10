@@ -255,6 +255,10 @@ const AdventureGamePage = () => {
       const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
     }
+    if (level.goal.type === 'destroy-asteroids') {
+      const labels: Record<string, string> = { en: 'Destroy asteroids:', sv: 'Förstör asteroider:', de: 'Zerstöre Asteroiden:', es: 'Destruye asteroides:', fr: 'Détruire astéroïdes :', it: 'Distruggi asteroidi:', pt: 'Destruir asteroides:', nl: 'Vernietig asteroïden:', no: 'Ødelegg asteroider:', da: 'Ødelæg asteroider:', fi: 'Tuhoa asteroideja:' };
+      return `☄️ ${labels[settings.language] ?? labels.en} ${level.goal.count}`;
+    }
     return t.goalFindWords;
   })();
 
@@ -263,6 +267,7 @@ const AdventureGamePage = () => {
     if (level.goal.type === 'reach-score') return Math.min(100, Math.round((game.score / level.goal.target) * 100));
     if (level.goal.type === 'survive-moves') return Math.min(100, Math.round((game.movesUsed / level.goal.moves) * 100));
     if (level.goal.type === 'best-word-score') return Math.min(100, Math.round(((game.bestWordScore ?? 0) / level.goal.target) * 100));
+    if (level.goal.type === 'destroy-asteroids') return Math.min(100, Math.round(((game.asteroidsDestroyed ?? 0) / level.goal.count) * 100));
     return null;
   })();
 
