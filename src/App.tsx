@@ -42,6 +42,7 @@ const App = () => (
             <Route path="/info" element={<InfoPage />} />
             <Route path="/adventure" element={<AdventureMap />} />
             <Route path="/adventure/map/2" element={<AdventureMap mapNumber={2} />} />
+            <Route path="/adventure/map/3" element={<AdventureMap mapNumber={3} />} />
             <Route path="/adventure/:levelId" element={<AdventureGamePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

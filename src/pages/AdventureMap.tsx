@@ -87,14 +87,14 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
               <path d={curvePath(from, to)} fill="none" stroke="rgba(60,30,10,0.35)"
                 strokeWidth="1.4" strokeLinecap="round" strokeDasharray="2.2,2.2"
                 vectorEffect="non-scaling-stroke" transform="translate(0.3,0.3)" />
-              <path d={curvePath(from, to)} fill="none" stroke={mapNumber === 2 ? '#fde68a' : '#5a2e0c'}
+              <path d={curvePath(from, to)} fill="none" stroke={isDarkMap ? '#fde68a' : '#5a2e0c'}
                 strokeWidth="0.9" strokeLinecap="round" strokeDasharray="2,2"
                 vectorEffect="non-scaling-stroke" />
             </g>
           ))}
-          {mapNumber === 1 && portalUnlocked && (
+          {hasNextMap && portalUpUnlocked && (
             <g filter="url(#inkBleed)">
-              <path d={curvePath(lastLevel.mapPosition, portalPos)} fill="none" stroke="#5a2e0c"
+              <path d={curvePath(lastLevel.mapPosition, portalUpPos)} fill="none" stroke={isDarkMap ? '#fde68a' : '#5a2e0c'}
                 strokeWidth="0.9" strokeLinecap="round" strokeDasharray="2,2"
                 vectorEffect="non-scaling-stroke" />
             </g>
@@ -104,8 +104,8 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
         {levels.map(lvl => {
           const unlocked = isUnlocked(lvl.id);
           const completed = isCompleted(lvl.id);
-          const labelColor = mapNumber === 2 ? '#fef3c7' : '#3a2510';
-          const labelShadow = mapNumber === 2 ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 0 rgba(255,255,255,0.5)';
+          const labelColor = isDarkMap ? '#fef3c7' : '#3a2510';
+          const labelShadow = isDarkMap ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 0 rgba(255,255,255,0.5)';
           return (
             <button
               key={lvl.id}
@@ -146,13 +146,13 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
           );
         })}
 
-        {/* Portal: map 1 → map 2 (top-right), map 2 → map 1 (bottom) */}
-        {mapNumber === 1 ? (
+        {/* Up portal: leads to next map (always at top-right of last level) */}
+        {hasNextMap && (
           <button
-            onClick={() => { if (portalUnlocked) { playClick(); navigate('/adventure/map/2'); } }}
-            disabled={!portalUnlocked}
+            onClick={() => { if (portalUpUnlocked) { playClick(); navigate(`/adventure/map/${mapNumber + 1}`); } }}
+            disabled={!portalUpUnlocked}
             className="absolute -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 active:scale-95"
-            style={{ left: `${portalPos.x}%`, top: `${portalPos.y}%`, opacity: portalUnlocked ? 1 : 0.5 }}
+            style={{ left: `${portalUpPos.x}%`, top: `${portalUpPos.y}%`, opacity: portalUpUnlocked ? 1 : 0.5 }}
           >
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{
               background: 'radial-gradient(circle at 30% 30%, #fde68a, #b45309)',
@@ -161,15 +161,18 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
             }}>
               <ArrowUp className="w-6 h-6" style={{ color: '#3a1a06' }} strokeWidth={3} />
             </div>
-            <div className="text-center mt-1 text-[10px] font-bold" style={{ color: '#3a2510', textShadow: '1px 1px 0 rgba(255,255,255,0.5)' }}>
-              {portalUnlocked ? '🚀' : '???'}
+            <div className="text-center mt-1 text-[10px] font-bold" style={{ color: isDarkMap ? '#fef3c7' : '#3a2510', textShadow: isDarkMap ? '1px 1px 2px rgba(0,0,0,0.8)' : '1px 1px 0 rgba(255,255,255,0.5)' }}>
+              {portalUpUnlocked ? (mapNumber === 1 ? '🚀' : mapNumber === 2 ? '🏰' : '➡️') : '???'}
             </div>
           </button>
-        ) : (
+        )}
+
+        {/* Down portal: returns to previous map */}
+        {hasPrevMap && (
           <button
-            onClick={() => { playClick(); navigate('/adventure'); }}
+            onClick={() => { playClick(); navigate(mapNumber === 2 ? '/adventure' : `/adventure/map/${mapNumber - 1}`); }}
             className="absolute -translate-x-1/2 -translate-y-1/2 transition-transform hover:scale-110 active:scale-95"
-            style={{ left: `${portalPos.x}%`, top: `${portalPos.y}%` }}
+            style={{ left: `${portalDownPos.x}%`, top: `${portalDownPos.y}%` }}
           >
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{
               background: 'radial-gradient(circle at 30% 30%, #a7f3d0, #047857)',
@@ -179,14 +182,14 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
               <ArrowDown className="w-6 h-6" style={{ color: '#fef3c7' }} strokeWidth={3} />
             </div>
             <div className="text-center mt-1 text-[10px] font-bold" style={{ color: '#fef3c7', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-              🗺️ I
+              🗺️ {mapNumber === 2 ? 'I' : 'II'}
             </div>
           </button>
         )}
       </div>
 
-      <Button onClick={() => { playClick(); navigate(mapNumber === 2 ? '/adventure' : '/'); }} variant="ghost" className="gap-2" style={{ color: '#5a3a1a' }}>
-        <ArrowLeft className="w-4 h-4" /> {mapNumber === 2 ? `🗺️ ${t.adventureTitle} I` : t.mainMenu}
+      <Button onClick={() => { playClick(); navigate(mapNumber > 1 ? (mapNumber === 2 ? '/adventure' : `/adventure/map/${mapNumber - 1}`) : '/'); }} variant="ghost" className="gap-2" style={{ color: '#5a3a1a' }}>
+        <ArrowLeft className="w-4 h-4" /> {mapNumber > 1 ? `🗺️ ${t.adventureTitle} ${mapNumber === 2 ? 'I' : 'II'}` : t.mainMenu}
       </Button>
     </div>
   );
