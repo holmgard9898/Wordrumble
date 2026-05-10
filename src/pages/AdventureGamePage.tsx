@@ -42,24 +42,25 @@ const AdventureGamePage = () => {
     if (!level) return undefined;
     const antigravity = level.antigravity === true;
     const asteroids = level.asteroids === true;
+    const satellite = level.satellite === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids, satellite };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
       const hidden = level.goal.hiddenWord[settings.language];
-      // Both the thematic words AND the hidden word must remain formable.
       return {
         targetWords: thematic,
         maxMoves: level.maxMoves,
         keepFormableWords: [hidden, ...thematic],
         antigravity,
         asteroids,
+        satellite,
       };
     }
-    if (level.maxMoves || antigravity || asteroids) {
-      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids };
+    if (level.maxMoves || antigravity || asteroids || satellite) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids, satellite };
     }
     return undefined;
   }, [level, settings.language]);
