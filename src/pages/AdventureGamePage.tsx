@@ -128,6 +128,17 @@ const AdventureGamePage = () => {
 
   useEffect(() => { setSwapLettersLeft(initialSwapLetters); setSwapColorsLeft(initialSwapColors); setSwapArming(null); setSwapTarget(null); }, [level?.id, initialSwapLetters, initialSwapColors]);
 
+  // Restart helper: resets game AND refills starting powerups to their initial counts.
+  const restartLevel = () => {
+    game.resetGame();
+    setSwapLettersLeft(initialSwapLetters);
+    setSwapColorsLeft(initialSwapColors);
+    setSwapArming(null);
+    setSwapTarget(null);
+    setRocketsLeft(level?.freeRockets ?? 0);
+    setRocketArming(false);
+  };
+
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   // Unlock shop item simply by reaching this level (e.g. Moon background on Moon Landing).
@@ -598,7 +609,7 @@ const AdventureGamePage = () => {
           movesLeft={game.movesLeft}
           score={game.score}
           lastFoundWord={game.lastFoundWord}
-          onResetGame={() => game.resetGame()}
+          onResetGame={restartLevel}
           onShowWords={() => {}}
           usedWordsCount={game.usedWords.length}
           mode={levelMode}
@@ -646,7 +657,7 @@ const AdventureGamePage = () => {
             <Button onClick={() => navigate('/adventure')} variant="outline" className="w-full gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
               <MapIcon className="w-4 h-4" /> {t.adventureBackToMap}
             </Button>
-            <Button onClick={() => { setShowSuccess(false); game.resetGame(); }} variant="ghost" className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/10">
+            <Button onClick={() => { setShowSuccess(false); restartLevel(); }} variant="ghost" className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/10">
               <RotateCcw className="w-4 h-4" /> {t.adventurePlayAgain}
             </Button>
             <Button onClick={() => navigate('/')} variant="ghost" className="w-full gap-2 text-white/60 hover:text-white hover:bg-white/10">
@@ -675,7 +686,7 @@ const AdventureGamePage = () => {
             >
               <Video className="w-4 h-4" /> {t.adventureWatchAd}
             </Button>
-            <Button onClick={() => game.resetGame()} variant="outline" className="w-full gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+            <Button onClick={restartLevel} variant="outline" className="w-full gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
               <RotateCcw className="w-4 h-4" /> {t.adventureTryAgain}
             </Button>
             <Button onClick={() => navigate('/adventure')} variant="ghost" className="w-full gap-2 text-white/80 hover:text-white hover:bg-white/10">
