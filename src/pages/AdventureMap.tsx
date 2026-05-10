@@ -9,6 +9,7 @@ import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useSettings } from '@/contexts/SettingsContext';
 import adventureMapBg from '@/assets/adventure-map.jpg';
 import adventureMapSpaceBg from '@/assets/adventure-map-space.jpg';
+import adventureMap3Bg from '@/assets/adventure-map-3.jpg';
 
 interface Props {
   mapNumber?: number;
@@ -24,7 +25,8 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
   const lang = settings.language;
 
   const levels = adventureLevels.filter(l => (l.map ?? 1) === mapNumber);
-  const bgImage = mapNumber === 2 ? adventureMapSpaceBg : adventureMapBg;
+  const bgImage = mapNumber === 3 ? adventureMap3Bg : mapNumber === 2 ? adventureMapSpaceBg : adventureMapBg;
+  const isDarkMap = mapNumber === 2 || mapNumber === 3;
 
   // Build connection lines
   const lines: { from: { x: number; y: number }; to: { x: number; y: number }; key: string }[] = [];
@@ -35,12 +37,14 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
     }
   }
 
-  // Portal to next/prev map
+  // Portals: every map (except the last) shows an "up" portal to the next map
+  // when its final level is complete. Maps 2+ also show a "down" portal back.
   const lastLevel = levels[levels.length - 1];
-  const portalPos = mapNumber === 1
-    ? { x: Math.min(lastLevel.mapPosition.x + 8, 92), y: Math.max(lastLevel.mapPosition.y - 10, 4) }
-    : { x: 8, y: 92 }; // bottom-left back arrow on map 2
-  const portalUnlocked = mapNumber === 1 ? isCompleted(lastLevel.id) : true;
+  const hasNextMap = mapNumber < 3;
+  const hasPrevMap = mapNumber > 1;
+  const portalUpPos = { x: Math.min(lastLevel.mapPosition.x + 8, 92), y: Math.max(lastLevel.mapPosition.y - 10, 4) };
+  const portalDownPos = { x: 8, y: 92 };
+  const portalUpUnlocked = isCompleted(lastLevel.id);
 
   const curvePath = (a: { x: number; y: number }, b: { x: number; y: number }) => {
     const mx = (a.x + b.x) / 2;
@@ -54,8 +58,8 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
     return `M ${a.x} ${a.y} Q ${cx} ${cy} ${b.x} ${b.y}`;
   };
 
-  const titlePrefix = mapNumber === 2 ? '🚀' : '🗺️';
-  const titleSuffix = mapNumber === 2 ? ' II' : '';
+  const titlePrefix = mapNumber === 3 ? '🏰' : mapNumber === 2 ? '🚀' : '🗺️';
+  const titleSuffix = mapNumber === 3 ? ' III' : mapNumber === 2 ? ' II' : '';
 
   return (
     <div className="min-h-screen flex flex-col items-center treasure-map-bg p-4">
