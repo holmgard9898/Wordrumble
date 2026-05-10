@@ -555,11 +555,15 @@ const AdventureGamePage = () => {
       <TutorialModal
         open={showIntro}
         steps={[
+          ...((level.storyIntro ?? []).map((card) => ({
+            title: card.title[settings.language] ?? card.title.en ?? '',
+            body: card.body[settings.language] ?? card.body.en ?? '',
+          }))),
           {
             title: `${level.icon} ${level.name[settings.language]}`,
             body: `${level.intro[settings.language]}\n\n🎯 ${goalText}`,
           },
-          ...getTutorialSteps(levelMode, settings.language),
+          ...(level.hideModeTutorial ? [] : getTutorialSteps(levelMode, settings.language)),
         ]}
         onClose={() => setShowIntro(false)}
       />
