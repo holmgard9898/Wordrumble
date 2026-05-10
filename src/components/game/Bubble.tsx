@@ -294,7 +294,28 @@ function UfoInner({ onClick }: BubbleProps) {
   );
 }
 
-export function Bubble(props: BubbleProps) {
+function GhostInner({ bubble, onClick }: BubbleProps) {
+  return (
+    <div
+      onClick={onClick}
+      className="relative w-full aspect-square rounded-full flex items-center justify-center select-none cursor-not-allowed touch-none"
+      style={{
+        background: 'radial-gradient(circle at 35% 30%, rgba(220,220,255,0.25), rgba(120,120,160,0.15) 60%, rgba(60,60,100,0.18))',
+        border: '1.5px dashed rgba(255,255,255,0.45)',
+        opacity: 0.45,
+        filter: 'blur(0.3px)',
+      }}
+      aria-label="ghost"
+    >
+      <span className="text-base md:text-lg lg:text-xl font-bold leading-none text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>
+        {bubble.letter}
+      </span>
+      <span className="absolute -top-1 -left-1 text-base md:text-lg z-30 pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">👻</span>
+    </div>
+  );
+}
+
+function BubbleVisual(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
