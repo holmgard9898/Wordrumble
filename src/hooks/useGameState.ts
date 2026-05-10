@@ -438,6 +438,7 @@ export function useGameState(
     const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(g);
+    if (adventureSeed?.satellite) placeSatellite(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
