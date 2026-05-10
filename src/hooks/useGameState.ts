@@ -832,6 +832,7 @@ export function useGameState(
   const resetGame = useCallback(() => {
     const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
+    if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
@@ -847,7 +848,8 @@ export function useGameState(
     lastProcessedBombTick.current = 0;
     setFreeMovesRemaining(0);
     setExplodedAt(null);
-  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves]);
+    setAsteroidsDestroyed(0);
+  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids]);
 
   const addMoves = useCallback((amount: number) => {
     if (amount <= 0) return;
