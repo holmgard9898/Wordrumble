@@ -302,6 +302,10 @@ const AdventureGamePage = () => {
       const target = level.goal.word[settings.language].toLowerCase();
       done = game.usedWords.some(w => w.word.toLowerCase() === target);
     }
+    else if (level.goal.type === 'two-hidden-words' && twoHidden) {
+      const used = new Set(game.usedWords.map(w => w.word.toLowerCase()));
+      done = used.has(twoHidden.w1.toLowerCase()) && used.has(twoHidden.w2.toLowerCase());
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
