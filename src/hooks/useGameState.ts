@@ -1010,6 +1010,7 @@ export function useGameState(
     setFreeMovesRemaining(0);
     setExplodedAt(null);
     setAsteroidsDestroyed(0);
+    rocksPlacedRef.current = 0;
   }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids, adventureSeed?.satellite, adventureSeed?.ufos]);
 
   const addMoves = useCallback((amount: number) => {
