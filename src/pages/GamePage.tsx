@@ -5,6 +5,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useCoins } from '@/hooks/useCoins';
 import { useUnlocks } from '@/hooks/useUnlocks';
+import { isForestSecretWord } from '@/data/secretUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameProgress } from '@/hooks/useGameProgress';
@@ -147,6 +148,7 @@ const GamePage = () => {
   }, [game.gameOver, scoreSaved, finalScore, game.usedWords.length, gameMode, addScore, playGameOver, game.movesUsed, game.score, game.bestWordScore, recordClassicPlayed, recordSurgeMoves, recordBestSingleWord, recordBombScore, coinReward, addCoins]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
+  useEffect(() => { if (game.lastFoundWord && isForestSecretWord(game.lastFoundWord)) unlock('bg-forest'); }, [game.lastFoundWord, unlock]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     const hadSelection = game.selectedBubble !== null;

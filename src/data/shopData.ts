@@ -33,6 +33,7 @@ export const bgShopItems: BgShopItem[] = [
   { id: 'bg-underwater', bgId: 'underwater', name: 'Underwater', unlockMethod: 'coins', cost: 450, unlockDescription: 'Buy for 450 coins.' },
   { id: 'bg-cave', bgId: 'cave', name: 'Cave', unlockMethod: 'achievement', unlockDescription: 'Reach the first cave level in Adventure Mode.' },
   { id: 'bg-moon', bgId: 'moon', name: 'Moon', unlockMethod: 'achievement', unlockDescription: 'Reach the Moon Landing level in Adventure Mode.' },
+  { id: 'bg-forest', bgId: 'forest', name: 'Forest', unlockMethod: 'achievement', unlockDescription: 'Combine a secret word to unlock.' },
 ];
 
 export const tileShopItems: TileShopItem[] = [

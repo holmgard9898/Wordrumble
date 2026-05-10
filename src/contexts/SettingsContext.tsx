@@ -16,7 +16,7 @@ function detectBrowserLanguage(): GameLanguage {
 
 export type GameBackground =
   | 'default' | 'storybook' | 'clouds' | 'wood' | 'space' | 'volcano' | 'beach'
-  | 'underwater' | 'shipwreck' | 'cave' | 'city' | 'moon';
+  | 'underwater' | 'shipwreck' | 'cave' | 'city' | 'moon' | 'forest';
 export type TileStyle = 'bubble' | 'rubik' | 'shapes' | 'soapbubble' | 'sports';
 
 interface Settings {

@@ -25,6 +25,8 @@ import caveBg from '@/assets/bg-cave.jpg';
 import cityBg from '@/assets/bg-city.jpg';
 import storybookBg from '@/assets/bg-storybook.jpg';
 import moonBg from '@/assets/bg-moon.jpg';
+import forestBg from '@/assets/bg-forest.jpg';
+
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
@@ -39,6 +41,7 @@ const bgPreviews: Record<GameBackground, React.ReactNode> = {
   cave: <img src={caveBg} alt="Cave" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   city: <img src={cityBg} alt="City" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   moon: <img src={moonBg} alt="Moon" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  forest: <img src={forestBg} alt="Forest" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
 };
 
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
@@ -91,6 +94,7 @@ const Shop = () => {
     'bg-default': t.shopCosmicNight, 'bg-clouds': t.shopBlueSky, 'bg-wood': t.shopWalnut, 'bg-space': t.shopSpace,
     'bg-volcano': t.shopVolcano, 'bg-beach': t.shopBeach,
     'bg-shipwreck': t.shopShipwreck, 'bg-city': t.shopCity, 'bg-underwater': t.shopUnderwater, 'bg-cave': t.shopCave,
+    'bg-forest': t.shopForest,
     'tile-bubble': t.shopBubbles, 'tile-rubik': 'Rubik', 'tile-shapes': t.shopShapes, 'tile-soapbubble': t.shopSoapBubbles, 'tile-sports': t.shopSport,
   };
 
