@@ -58,6 +58,8 @@ export interface AdventureLevel {
   satellite?: boolean;
   /** UFO twist: immovable UFOs on rows 4 & 6 (alternating cols), each swap the bubble below them every move. */
   ufos?: boolean;
+  /** Collapsing cave: from move 5+, top tiles get replaced by immovable rocks each move. */
+  collapsingCave?: boolean;
   /** Fully pre-determined start grid per language. Overrides random generation. */
   presetGrid?: Partial<Record<GameLanguage, PresetCell[][]>>;
   /** Per-language max moves override (takes priority over `maxMoves`). */
