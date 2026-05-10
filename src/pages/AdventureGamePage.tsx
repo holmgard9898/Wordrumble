@@ -4,6 +4,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
 import { useCoins } from '@/hooks/useCoins';
 import { useUnlocks } from '@/hooks/useUnlocks';
+import { isForestSecretWord } from '@/data/secretUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -256,6 +257,7 @@ const AdventureGamePage = () => {
   }, [game.score, game.usedWords, game.movesUsed, game.asteroidsDestroyed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
+  useEffect(() => { if (game.lastFoundWord && isForestSecretWord(game.lastFoundWord)) unlock('bg-forest'); }, [game.lastFoundWord, unlock]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (rocketArming) {
