@@ -26,6 +26,7 @@ import cityBg from '@/assets/bg-city.jpg';
 import storybookBg from '@/assets/bg-storybook.jpg';
 import moonBg from '@/assets/bg-moon.jpg';
 import forestBg from '@/assets/bg-forest.jpg';
+import spookyCastleBg from '@/assets/bg-spookycastle.jpg';
 
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
@@ -42,6 +43,7 @@ const bgPreviews: Record<GameBackground, React.ReactNode> = {
   city: <img src={cityBg} alt="City" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   moon: <img src={moonBg} alt="Moon" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   forest: <img src={forestBg} alt="Forest" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  spookycastle: <img src={spookyCastleBg} alt="Spooky Castle" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
 };
 
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];

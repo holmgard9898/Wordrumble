@@ -60,6 +60,12 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       return { targetWords: thematic, maxMoves, keepFormableWords: [hidden, ...thematic], ...extras };
     }
+    if (level.goal.type === 'two-hidden-words') {
+      const thematic = level.goal.thematicWords[settings.language];
+      const h1 = level.goal.hiddenWord1[settings.language];
+      const h2 = level.goal.hiddenWord2[settings.language];
+      return { targetWords: thematic, maxMoves, keepFormableWords: [h1, h2, ...thematic], ...extras };
+    }
     if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
       return { targetWords: [w], maxMoves, keepFormableWords: [w], ...extras };
@@ -212,8 +218,20 @@ const AdventureGamePage = () => {
   }, [level, settings.language]);
 
   const hiddenThematic = useMemo<string[]>(() => {
-    if (!level || level.goal.type !== 'hidden-word') return [];
-    return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+    if (!level) return [];
+    if (level.goal.type === 'hidden-word' || level.goal.type === 'two-hidden-words') {
+      return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+    }
+    return [];
+  }, [level, settings.language]);
+
+  // Two-hidden-words data
+  const twoHidden = useMemo<{ w1: string; w2: string } | null>(() => {
+    if (!level || level.goal.type !== 'two-hidden-words') return null;
+    return {
+      w1: level.goal.hiddenWord1[settings.language].toUpperCase(),
+      w2: level.goal.hiddenWord2[settings.language].toUpperCase(),
+    };
   }, [level, settings.language]);
 
   // Keep useGameState's "must remain formable" list in sync with what the
@@ -228,6 +246,15 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
       remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    } else if (level.goal.type === 'two-hidden-words') {
+      const h1 = level.goal.hiddenWord1[settings.language];
+      const h2 = level.goal.hiddenWord2[settings.language];
+      const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
+      remaining = [
+        ...(used.has(h1.toLowerCase()) ? [] : [h1]),
+        ...(used.has(h2.toLowerCase()) ? [] : [h2]),
+        ...thematic,
+      ];
     } else if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
       remaining = used.has(w.toLowerCase()) ? [] : [w];
@@ -275,13 +302,17 @@ const AdventureGamePage = () => {
       const target = level.goal.word[settings.language].toLowerCase();
       done = game.usedWords.some(w => w.word.toLowerCase() === target);
     }
+    else if (level.goal.type === 'two-hidden-words' && twoHidden) {
+      const used = new Set(game.usedWords.map(w => w.word.toLowerCase()));
+      done = used.has(twoHidden.w1.toLowerCase()) && used.has(twoHidden.w2.toLowerCase());
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
       markCompleted(level.id);
       if (level.unlocksShopItem) unlock(level.unlocksShopItem);
     }
-  }, [game.score, game.usedWords, game.movesUsed, game.asteroidsDestroyed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, level, showSuccess, ready, addCoins, markCompleted, unlock]);
+  }, [game.score, game.usedWords, game.movesUsed, game.asteroidsDestroyed, foundTargets, targetWords, hiddenFoundCount, hiddenWord, twoHidden, level, showSuccess, ready, settings.language, addCoins, markCompleted, unlock]);
 
   useEffect(() => { if (game.lastFoundWord) playWordFound(); }, [game.lastFoundWord, playWordFound]);
   useEffect(() => { if (game.lastFoundWord && isForestSecretWord(game.lastFoundWord)) unlock('bg-forest'); }, [game.lastFoundWord, unlock]);
@@ -395,6 +426,10 @@ const AdventureGamePage = () => {
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
     if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
+    if (level.goal.type === 'two-hidden-words') {
+      const labels: Record<string, string> = { en: 'Reveal TWO hidden words:', sv: 'Avslöja TVÅ dolda ord:', de: 'Enthülle ZWEI versteckte Wörter:', es: 'Revela DOS palabras ocultas:', fr: 'Révélez DEUX mots cachés :', it: 'Rivela DUE parole nascoste:', pt: 'Revela DUAS palavras ocultas:', nl: 'Onthul TWEE verborgen woorden:', no: 'Avslør TO skjulte ord:', da: 'Afslør TO skjulte ord:', fi: 'Paljasta KAKSI salaista sanaa:' };
+      return labels[settings.language] ?? labels.en;
+    }
     if (level.goal.type === 'best-word-score') {
       const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
@@ -497,6 +532,58 @@ const AdventureGamePage = () => {
               </div>
             </>
           )}
+          {level.goal.type === 'two-hidden-words' && twoHidden && (() => {
+            const usedSet = new Set(game.usedWords.map(u => u.word.toLowerCase()));
+            const distinctThematicFound = new Set(
+              game.usedWords.map(u => u.word.toLowerCase()).filter(w => hiddenThematic.includes(w))
+            ).size;
+            const total = twoHidden.w1.length + twoHidden.w2.length;
+            const w1Count = Math.min(distinctThematicFound, twoHidden.w1.length);
+            const w2Count = Math.max(0, Math.min(distinctThematicFound - twoHidden.w1.length, twoHidden.w2.length));
+            const w1Done = usedSet.has(twoHidden.w1.toLowerCase());
+            const w2Done = usedSet.has(twoHidden.w2.toLowerCase());
+            return (
+              <>
+                <div className="flex flex-wrap gap-1 justify-center mt-2">
+                  {hiddenThematic.map(w => {
+                    const found = usedSet.has(w);
+                    return (
+                      <span key={w} className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${found ? 'line-through text-emerald-300' : 'text-white/80'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)' }}>
+                        {w.toUpperCase()}
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-1.5 justify-center mt-2 font-mono">
+                  {twoHidden.w1.split('').map((ch, i) => (
+                    <span key={`w1-${i}`} className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${w1Done ? 'border-emerald-500 text-emerald-200 bg-emerald-500/20' : i < w1Count ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}>
+                      {(w1Done || i < w1Count) ? ch : '_'}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-1.5 justify-center mt-1.5 font-mono">
+                  {twoHidden.w2.split('').map((ch, i) => (
+                    <span key={`w2-${i}`} className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${w2Done ? 'border-emerald-500 text-emerald-200 bg-emerald-500/20' : i < w2Count ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}>
+                      {(w2Done || i < w2Count) ? ch : '_'}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-[11px] text-white/60 mt-1.5">
+                  {Math.min(distinctThematicFound, total)} / {total}
+                  {(w1Count >= twoHidden.w1.length && !w1Done) && (
+                    <span className="block mt-1 text-emerald-300 font-bold animate-pulse">
+                      {settings.language === 'sv' ? `Skapa nu ${twoHidden.w1}!` : `Now form ${twoHidden.w1}!`}
+                    </span>
+                  )}
+                  {(w2Count >= twoHidden.w2.length && !w2Done) && (
+                    <span className="block mt-1 text-emerald-300 font-bold animate-pulse">
+                      {settings.language === 'sv' ? `Skapa nu ${twoHidden.w2}!` : `Now form ${twoHidden.w2}!`}
+                    </span>
+                  )}
+                </div>
+              </>
+            );
+          })()}
           {progressPct !== null && (
             <div className="mt-2 px-1">
               <Progress value={progressPct} className="h-2 bg-white/10" />
@@ -644,9 +731,15 @@ const AdventureGamePage = () => {
         <DialogContent className="max-w-xs rounded-2xl border-emerald-500/30" style={{ background: 'linear-gradient(135deg, rgba(20,80,40,0.95), rgba(10,40,20,0.95))' }}>
           <DialogHeader>
             <DialogTitle className="text-white text-center text-2xl flex items-center justify-center gap-2">
-              <Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureCongrats}
+              {level.finalCelebration
+                ? <span>🎈 {settings.language === 'sv' ? 'Vi tog luftballong hem!' : 'We took a hot-air balloon home!'}</span>
+                : <><Trophy className="w-7 h-7 text-yellow-400" /> {t.adventureCongrats}</>}
             </DialogTitle>
-            <DialogDescription className="text-white/80 text-center pt-2">{t.adventureLevelComplete} +20 coins</DialogDescription>
+            <DialogDescription className="text-white/80 text-center pt-2">
+              {level.finalCelebration
+                ? (settings.language === 'sv' ? 'Nya äventyr väntar senare. +20 mynt' : 'New adventures await later. +20 coins')
+                : `${t.adventureLevelComplete} +20 coins`}
+            </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2 mt-2">
             {nextLevel && (
