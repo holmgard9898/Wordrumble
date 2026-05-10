@@ -110,6 +110,11 @@ const AdventureGamePage = () => {
 
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
+  // Unlock shop item simply by reaching this level (e.g. Moon background on Moon Landing).
+  useEffect(() => {
+    if (level?.unlocksShopItem) unlock(level.unlocksShopItem);
+  }, [level?.id, level?.unlocksShopItem, unlock]);
+
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
   const savedGame = useSavedGame(`adv-${levelId}`);
