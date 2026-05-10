@@ -611,6 +611,10 @@ export function useGameState(
   const [explodedAt, setExplodedAt] = useState<Position | null>(null);
   const [poppingCells, setPoppingCells] = useState<Set<string>>(new Set());
   const [lastFoundWord, setLastFoundWord] = useState<string | null>(null);
+  const [lastWordEvent, setLastWordEvent] = useState<{
+    id: number; word: string; length: number; color: BubbleColor;
+    score: number; positions: Position[];
+  } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [movesUsed, setMovesUsed] = useState(0);
   const [bonusPopups, setBonusPopups] = useState<BonusMovesEvent[]>([]);
@@ -780,6 +784,14 @@ export function useGameState(
     const wordLen = word.positions.length;
     const centerPos = word.positions[Math.floor(word.positions.length / 2)];
     const wordColor = currentGrid[word.positions[0].row][word.positions[0].col].color;
+    setLastWordEvent({
+      id: ++bonusEventId,
+      word: word.word,
+      length: wordLen,
+      color: wordColor,
+      score: word.score,
+      positions: [...word.positions],
+    });
 
     setScore((prev) => prev + word.score);
     setUsedWords((prev) => [...prev, { word: word.word, score: word.score }]);
@@ -1239,7 +1251,7 @@ export function useGameState(
 
   return {
     grid, selectedBubble, movesLeft, score, usedWords, gameOver, poppingCells,
-    lastFoundWord, isProcessing, handleBubbleClick, handleSwipe, resetGame,
+    lastFoundWord, lastWordEvent, isProcessing, handleBubbleClick, handleSwipe, resetGame,
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
