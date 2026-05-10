@@ -107,7 +107,9 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
     setBeam({ x: sx, y: sy, length, angle, color: laserShot.color, id: laserShot.id });
     const t = setTimeout(() => setBeam(null), 550);
     return () => clearTimeout(t);
-  }, [laserShot, grid]);
+    // Only re-fire when a NEW shot is dispatched (id changes), not on grid updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [laserShot?.id]);
 
   return (
     <div
