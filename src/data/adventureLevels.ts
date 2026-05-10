@@ -36,6 +36,8 @@ export interface AdventureLevel {
   maxMoves?: number;
   /** Number of free rockets the player gets at start (level 8 powerup). */
   freeRockets?: number;
+  /** Antigravity twist: bubbles fall upward; new bubbles spawn from the bottom. */
+  antigravity?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
