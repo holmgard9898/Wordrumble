@@ -43,12 +43,16 @@ function BombBadge({ bomb }: { bomb: number }) {
   );
 }
 
-function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' }) {
+function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' | 'swapletter' | 'swapcolor' }) {
   const cfg = type === 'x2'
     ? { bg: 'linear-gradient(135deg, hsl(280, 80%, 55%), hsl(260, 75%, 40%))', label: '×2' }
     : type === 'x3'
     ? { bg: 'linear-gradient(135deg, hsl(45, 100%, 55%), hsl(30, 95%, 45%))', label: '×3' }
-    : { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' };
+    : type === 'free5'
+    ? { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' }
+    : type === 'swapletter'
+    ? { bg: 'linear-gradient(135deg, hsl(200, 90%, 55%), hsl(220, 80%, 40%))', label: '🔤' }
+    : { bg: 'linear-gradient(135deg, hsl(320, 85%, 60%), hsl(280, 80%, 45%))', label: '🎨' };
   return (
     <span
       className="absolute -top-1 -right-1 px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-extrabold animate-pulse z-20"
