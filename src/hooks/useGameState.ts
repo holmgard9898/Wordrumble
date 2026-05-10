@@ -6,13 +6,15 @@ import {
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
-import { createWordlessGrid, ensureGridHasNoWords } from '@/utils/gridGeneration';
+import { createWordlessGrid, ensureGridHasNoWords, repairFormability, wordIsFormable } from '@/utils/gridGeneration';
 
 export interface AdventureSeed {
   /** Target words (any case) that should be plantable on the start grid in matching color. */
   targetWords: string[];
   /** Override max moves for this run (adventure mode). */
   maxMoves?: number;
+  /** Words that must remain formable in some color throughout the game. */
+  keepFormableWords?: string[];
 }
 
 let seedBubbleCounter = 0;
