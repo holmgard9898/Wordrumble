@@ -626,6 +626,7 @@ export function useGameState(
       setLastFoundWord(null);
       const newGrid = currentGrid.map((row) => [...row]);
       const colsAffected = new Set(word.positions.map((p) => p.col));
+      const newCellPositions: Position[] = [];
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
@@ -635,7 +636,12 @@ export function useGameState(
         for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
         const fullColumn = [...newBubbles, ...remaining];
         for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+        // Track newly-spawned cells (top `newBubbles.length` rows of this column).
+        for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
       }
+
+      // Adventure: ensure required words remain formable.
+      repairAfterRefill(newGrid, newCellPositions, colors);
 
       setGrid(newGrid);
       setTimeout(() => {
@@ -644,7 +650,7 @@ export function useGameState(
         else setIsProcessing(false);
       }, 300);
     }, 500);
-  }, [findWords, mode, refillBubble, freeLabel]);
+  }, [findWords, mode, refillBubble, freeLabel, repairAfterRefill]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
