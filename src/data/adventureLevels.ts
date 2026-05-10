@@ -9,6 +9,8 @@ export type AdventureGoal =
   | { type: 'survive-moves'; moves: number }
   /** Find a single word worth at least `target` points (used with mode 'oneword'). */
   | { type: 'best-word-score'; target: number }
+  /** Destroy `count` asteroids by letting them fall to the bottom row. */
+  | { type: 'destroy-asteroids'; count: number }
   /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
   | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
 
