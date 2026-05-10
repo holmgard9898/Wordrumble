@@ -197,6 +197,33 @@ function SportsBallInner({ bubble, isSelected, isPopping, onClick, onTouchStart,
   );
 }
 
+function AsteroidInner({ onClick }: BubbleProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full aspect-square rounded-full flex items-center justify-center select-none cursor-not-allowed touch-none"
+      style={{
+        background: 'radial-gradient(circle at 35% 30%, hsl(30, 8%, 55%), hsl(25, 10%, 32%) 65%, hsl(20, 12%, 18%))',
+        border: '2px solid hsl(20, 15%, 12%)',
+        boxShadow: 'inset 0 -3px 6px hsl(20, 15%, 12%), 0 2px 6px rgba(0,0,0,0.55), inset 0 0 8px rgba(0,0,0,0.4)',
+      }}
+      aria-label="asteroid"
+    >
+      <span className="text-xl md:text-2xl lg:text-3xl leading-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.6)]">
+        ☄️
+      </span>
+      <span
+        className="absolute top-1.5 left-2 w-1.5 h-1.5 rounded-full opacity-40"
+        style={{ background: 'hsl(0,0%,15%)' }}
+      />
+      <span
+        className="absolute bottom-2 right-2.5 w-1 h-1 rounded-full opacity-50"
+        style={{ background: 'hsl(0,0%,10%)' }}
+      />
+    </button>
+  );
+}
+
 export function Bubble(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
@@ -205,6 +232,7 @@ export function Bubble(props: BubbleProps) {
   const { settings } = useSettings();
   const style = settings.tileStyle;
 
+  if (bubble.asteroid) return <AsteroidInner {...props} />;
   if (style === 'soapbubble') return <SoapBubbleInner {...props} />;
   if (style === 'sports') return <SportsBallInner {...props} />;
 
