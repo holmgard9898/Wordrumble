@@ -15,6 +15,10 @@ interface GameBoardProps {
   onBonusPopupDone?: (id: string) => void;
   /** Visual state for the satellite (Adventure 2-3). */
   laserCharge?: { ready: boolean; current: number; max: number; arming: boolean };
+  /** Click-handler when player taps the satellite directly. */
+  onSatelliteClick?: () => void;
+  /** When set, draw a laser beam from satellite to (row,col) in given color. */
+  laserShot?: { row: number; col: number; color: 'green' | 'red'; id: string } | null;
 }
 
 export interface GameBoardHandle {
