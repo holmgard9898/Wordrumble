@@ -242,6 +242,10 @@ const AdventureGamePage = () => {
     else if (level.goal.type === 'destroy-asteroids') {
       done = (game.asteroidsDestroyed ?? 0) >= level.goal.count;
     }
+    else if (level.goal.type === 'single-word') {
+      const target = level.goal.word[settings.language].toLowerCase();
+      done = game.usedWords.some(w => w.word.toLowerCase() === target);
+    }
     if (done) {
       setShowSuccess(true);
       addCoins(20);
