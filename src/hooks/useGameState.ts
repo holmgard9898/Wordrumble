@@ -528,6 +528,7 @@ export function useGameState(
   const pendingBombTick = useRef(0);
   const lastProcessedBombTick = useRef(0);
   const freeMovesRef = useRef(0);
+  const rocksPlacedRef = useRef(0);
   freeMovesRef.current = freeMovesRemaining;
 
   const minWordLen = getMinWordLength(mode);
