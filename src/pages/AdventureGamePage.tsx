@@ -44,25 +44,27 @@ const AdventureGamePage = () => {
     const asteroids = level.asteroids === true;
     const satellite = level.satellite === true;
     const ufos = level.ufos === true;
+    const presetGrid = level.presetGrid?.[settings.language];
+    const maxMoves = level.maxMovesByLang?.[settings.language] ?? level.maxMoves;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos };
+      return { targetWords: words, maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos, presetGrid };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
       const hidden = level.goal.hiddenWord[settings.language];
       return {
-        targetWords: thematic,
-        maxMoves: level.maxMoves,
+        targetWords: thematic, maxMoves,
         keepFormableWords: [hidden, ...thematic],
-        antigravity,
-        asteroids,
-        satellite,
-        ufos,
+        antigravity, asteroids, satellite, ufos, presetGrid,
       };
     }
-    if (level.maxMoves || antigravity || asteroids || satellite || ufos) {
-      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids, satellite, ufos };
+    if (level.goal.type === 'single-word') {
+      const w = level.goal.word[settings.language];
+      return { targetWords: [w], maxMoves, keepFormableWords: [w], antigravity, asteroids, satellite, ufos, presetGrid };
+    }
+    if (maxMoves || antigravity || asteroids || satellite || ufos || presetGrid) {
+      return { targetWords: [] as string[], maxMoves, antigravity, asteroids, satellite, ufos, presetGrid };
     }
     return undefined;
   }, [level, settings.language]);
@@ -197,6 +199,9 @@ const AdventureGamePage = () => {
       const hidden = level.goal.hiddenWord[settings.language];
       const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
       remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    } else if (level.goal.type === 'single-word') {
+      const w = level.goal.word[settings.language];
+      remaining = used.has(w.toLowerCase()) ? [] : [w];
     }
     game.setKeepFormableWords(remaining);
   }, [level, settings.language, game.usedWords, game.setKeepFormableWords]);
@@ -236,6 +241,10 @@ const AdventureGamePage = () => {
     }
     else if (level.goal.type === 'destroy-asteroids') {
       done = (game.asteroidsDestroyed ?? 0) >= level.goal.count;
+    }
+    else if (level.goal.type === 'single-word') {
+      const target = level.goal.word[settings.language].toLowerCase();
+      done = game.usedWords.some(w => w.word.toLowerCase() === target);
     }
     if (done) {
       setShowSuccess(true);
@@ -351,6 +360,10 @@ const AdventureGamePage = () => {
     if (level.goal.type === 'best-word-score') {
       const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
       return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
+    }
+    if (level.goal.type === 'single-word') {
+      const labels: Record<string, string> = { en: 'Find', sv: 'Hitta', de: 'Finde', es: 'Encuentra', fr: 'Trouve', it: 'Trova', pt: 'Encontra', nl: 'Vind', no: 'Finn', da: 'Find', fi: 'Löydä' };
+      return `🔦 ${labels[settings.language] ?? labels.en} ${level.goal.word[settings.language].toUpperCase()}`;
     }
     if (level.goal.type === 'destroy-asteroids') {
       const labels: Record<string, string> = { en: 'Destroy asteroids:', sv: 'Förstör asteroider:', de: 'Zerstöre Asteroiden:', es: 'Destruye asteroides:', fr: 'Détruire astéroïdes :', it: 'Distruggi asteroidi:', pt: 'Destruir asteroides:', nl: 'Vernietig asteroïden:', no: 'Ødelegg asteroider:', da: 'Ødelæg asteroider:', fi: 'Tuhoa asteroideja:' };
@@ -542,11 +555,15 @@ const AdventureGamePage = () => {
       <TutorialModal
         open={showIntro}
         steps={[
+          ...((level.storyIntro ?? []).map((card) => ({
+            title: card.title[settings.language] ?? card.title.en ?? '',
+            body: card.body[settings.language] ?? card.body.en ?? '',
+          }))),
           {
             title: `${level.icon} ${level.name[settings.language]}`,
             body: `${level.intro[settings.language]}\n\n🎯 ${goalText}`,
           },
-          ...getTutorialSteps(levelMode, settings.language),
+          ...(level.hideModeTutorial ? [] : getTutorialSteps(levelMode, settings.language)),
         ]}
         onClose={() => setShowIntro(false)}
       />

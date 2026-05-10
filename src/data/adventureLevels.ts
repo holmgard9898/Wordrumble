@@ -1,6 +1,8 @@
 import type { GameLanguage } from './languages';
 import type { GameBackground } from '@/contexts/SettingsContext';
 import type { GameMode } from '@/pages/GamePage';
+import type { BubbleColor } from './gameConstants';
+import { CAVE_TARGET_WORD, CAVE_MOVES, CAVE_STORY, buildAllCavePresetGrids } from './cavePuzzleBoards';
 
 export type AdventureGoal =
   | { type: 'find-words'; words: Record<GameLanguage, string[]>; minScore?: number }
@@ -12,7 +14,17 @@ export type AdventureGoal =
   /** Destroy `count` asteroids by letting them fall to the bottom row. */
   | { type: 'destroy-asteroids'; count: number }
   /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
-  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> };
+  | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> }
+  /** Find a single specific word (translated per language). Used for puzzle levels. */
+  | { type: 'single-word'; word: Record<GameLanguage, string> };
+
+/** Compact cell descriptor: { l: letter, c: color }. */
+export interface PresetCell { l: string; c: BubbleColor }
+
+export interface StoryCard {
+  title: Record<GameLanguage, string>;
+  body: Record<GameLanguage, string>;
+}
 
 export interface AdventureLevel {
   id: string;
@@ -46,6 +58,14 @@ export interface AdventureLevel {
   satellite?: boolean;
   /** UFO twist: immovable UFOs on rows 4 & 6 (alternating cols), each swap the bubble below them every move. */
   ufos?: boolean;
+  /** Fully pre-determined start grid per language. Overrides random generation. */
+  presetGrid?: Partial<Record<GameLanguage, PresetCell[][]>>;
+  /** Per-language max moves override (takes priority over `maxMoves`). */
+  maxMovesByLang?: Partial<Record<GameLanguage, number>>;
+  /** Story-style intro cards shown instead of (or in addition to) the mode tutorial. */
+  storyIntro?: StoryCard[];
+  /** When true, hide the generic mode tutorial steps and show only the storyIntro. */
+  hideModeTutorial?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
@@ -534,38 +554,29 @@ export const adventureLevels: AdventureLevel[] = [
 
   // ─── Map 3: Crash landing → Caves → Dark Forest → Castle → City ───
   {
-    id: 'adv-3-1', number: 1, icon: '💥', map: 3,
-    name: { en: 'Crash Site', sv: 'Kraschplats', de: 'Absturzstelle', es: 'Lugar del Choque', fr: 'Lieu du Crash', it: 'Sito Schianto', pt: 'Local da Queda', nl: 'Crashplek', no: 'Krasjsted', da: 'Styrtsted', fi: 'Putoamispaikka' },
+    id: 'adv-3-1', number: 1, icon: '🔦', map: 3,
+    name: { en: 'The Crash', sv: 'Kraschen', de: 'Der Absturz', es: 'El Choque', fr: 'Le Crash', it: 'Lo Schianto', pt: 'A Queda', nl: 'De Crash', no: 'Krasjet', da: 'Styrtet', fi: 'Törmäys' },
     intro: {
-      en: 'You crash-landed in a dark cave! Find 4 cave words to get your bearings.',
-      sv: 'Du kraschlandade i en mörk grotta! Hitta 4 grottord för att orientera dig.',
-      de: 'Du bist in einer dunklen Höhle abgestürzt! Finde 4 Höhlenwörter zur Orientierung.',
-      es: '¡Has caído en una cueva oscura! Encuentra 4 palabras para orientarte.',
-      fr: 'Vous avez atterri dans une grotte ! Trouvez 4 mots pour vous repérer.',
-      it: 'Sei precipitato in una grotta scura! Trova 4 parole per orientarti.',
-      pt: 'Caíste numa caverna escura! Encontra 4 palavras para te orientares.',
-      nl: 'Neergestort in een donkere grot! Vind 4 grotwoorden om je te oriënteren.',
-      no: 'Du har krasjet i en mørk hule! Finn 4 huleord for å orientere deg.',
-      da: 'Du er styrtet i en mørk hule! Find 4 huleord for at orientere dig.',
-      fi: 'Putosit pimeään luolaan! Löydä 4 luolasanaa.',
+      en: 'Find LIGHT to see in the dark.',
+      sv: 'Hitta LJUS för att se i mörkret.',
+      de: 'Finde LICHT, um im Dunkeln zu sehen.',
+      es: 'Encuentra LUZ para ver en la oscuridad.',
+      fr: 'Trouve la LUEUR pour voir dans le noir.',
+      it: 'Trova LUCE per vedere nel buio.',
+      pt: 'Encontra LUZ para ver no escuro.',
+      nl: 'Vind LICHT om in het donker te zien.',
+      no: 'Finn LYS for å se i mørket.',
+      da: 'Find LYS for at se i mørket.',
+      fi: 'Löydä VALO nähdäksesi pimeässä.',
     },
     background: 'cave',
-    goal: { type: 'find-words', words: wl(
-      ['rock', 'cave', 'dark', 'wall'],
-      ['sten', 'grotta', 'mörk', 'vägg'],
-      ['fels', 'höhle', 'dunkel', 'wand'],
-      ['roca', 'cueva', 'oscuro', 'muro'],
-      ['roche', 'grotte', 'noir', 'mur'],
-      ['roccia', 'grotta', 'buio', 'muro'],
-      ['rocha', 'gruta', 'escuro', 'muro'],
-      ['rots', 'grot', 'donker', 'muur'],
-      ['stein', 'hule', 'mørk', 'vegg'],
-      ['sten', 'hule', 'mørk', 'væg'],
-      ['kivi', 'luola', 'pimeä', 'seinä'],
-    ) },
+    goal: { type: 'single-word', word: { ...CAVE_TARGET_WORD } },
+    presetGrid: buildAllCavePresetGrids(),
+    maxMovesByLang: { ...CAVE_MOVES },
+    storyIntro: CAVE_STORY,
+    hideModeTutorial: true,
     mapPosition: { x: 18, y: 88 },
     connectsTo: ['adv-3-2'],
-    maxMoves: 100,
   },
   {
     id: 'adv-3-2', number: 2, icon: '💎', map: 3,
