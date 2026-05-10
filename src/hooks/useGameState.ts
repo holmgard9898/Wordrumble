@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, type BubbleColor,
+  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, LETTER_VALUES, type BubbleColor,
 } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
@@ -226,6 +226,13 @@ function isCorner(r: number, c: number) {
   return CORNERS.has(`${r}-${c}`);
 }
 
+function minTimerForOrdinal(ordinal: number, rareVowel: boolean): number {
+  // ordinal = how many bombs will be on board including this one (1-based)
+  if (ordinal <= 1) return rareVowel ? 12 : 10;
+  if (ordinal === 2) return rareVowel ? 17 : 15;
+  return rareVowel ? 21 : 20;
+}
+
 function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<string>): void {
   const vowelPositions: Position[] = [];
   for (let r = 0; r < ROWS; r++) {
@@ -245,17 +252,15 @@ function addBombsToGrid(grid: BubbleData[][], count: number, vowelSet: Set<strin
     [vowelPositions[i], vowelPositions[j]] = [vowelPositions[j], vowelPositions[i]];
   }
   const toAdd = Math.min(count, vowelPositions.length);
-  const timers: number[] = [];
-  for (let i = 0; i < toAdd; i++) {
-    timers.push(10 + Math.floor(Math.random() * 11));
-  }
-  if (toAdd >= 3) {
-    const minIdx = timers.reduce((m, v, i, a) => (v < a[m] ? i : m), 0);
-    if (timers[minIdx] < 13) timers[minIdx] = 13;
-  }
+  const existing = countBombs(grid);
   for (let i = 0; i < toAdd; i++) {
     const p = vowelPositions[i];
-    const t = Math.max(10, timers[i]);
+    const letter = grid[p.row][p.col].letter;
+    const rareVowel = (LETTER_VALUES[letter] ?? 1) >= 4;
+    const ordinal = existing + i + 1;
+    const minTimer = minTimerForOrdinal(ordinal, rareVowel);
+    const rand = 10 + Math.floor(Math.random() * 11);
+    const t = Math.max(minTimer, rand);
     grid[p.row][p.col] = { ...grid[p.row][p.col], bomb: t };
   }
 }
