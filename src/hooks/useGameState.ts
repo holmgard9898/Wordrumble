@@ -481,7 +481,7 @@ export function useGameState(
         if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && !currentGrid[r][end].asteroid && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -510,7 +510,7 @@ export function useGameState(
         if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
