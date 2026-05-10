@@ -510,7 +510,7 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
         while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && currentGrid[r][end].color === color) end++;
@@ -539,7 +539,7 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
         while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && currentGrid[end][c].color === color) end++;
