@@ -295,19 +295,20 @@ function UfoInner({ onClick }: BubbleProps) {
 }
 
 function GhostInner({ bubble, onClick }: BubbleProps) {
+  const colors = BUBBLE_COLOR_STYLES[bubble.color];
   return (
     <div
       onClick={onClick}
       className="relative w-full aspect-square rounded-full flex items-center justify-center select-none cursor-not-allowed touch-none"
       style={{
-        background: 'radial-gradient(circle at 35% 30%, rgba(220,220,255,0.25), rgba(120,120,160,0.15) 60%, rgba(60,60,100,0.18))',
-        border: '1.5px dashed rgba(255,255,255,0.45)',
+        background: `radial-gradient(circle at 35% 30%, ${colors.bg.replace('hsl', 'hsla').replace(')', ', 0.22)')}, rgba(120,120,160,0.12) 60%, rgba(60,60,100,0.14))`,
+        border: `1.5px dashed ${colors.bg.replace('hsl', 'hsla').replace(')', ', 0.55)')}`,
         opacity: 0.45,
         filter: 'blur(0.3px)',
       }}
       aria-label="ghost"
     >
-      <span className="text-base md:text-lg lg:text-xl font-bold leading-none text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>
+      <span className="text-base md:text-lg lg:text-xl font-bold leading-none text-white" style={{ textShadow: `0 1px 2px rgba(0,0,0,0.6), 0 0 8px ${colors.bg}` }}>
         {bubble.letter}
       </span>
       <span className="absolute -top-1 -left-1 text-base md:text-lg z-30 pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">👻</span>
