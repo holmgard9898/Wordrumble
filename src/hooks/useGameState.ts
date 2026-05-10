@@ -403,6 +403,7 @@ export function useGameState(
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
+    if (adventureSeed?.asteroids) placeAsteroids(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
@@ -417,6 +418,7 @@ export function useGameState(
   const [movesUsed, setMovesUsed] = useState(0);
   const [bonusPopups, setBonusPopups] = useState<BonusMovesEvent[]>([]);
   const [freeMovesRemaining, setFreeMovesRemaining] = useState(0);
+  const [asteroidsDestroyed, setAsteroidsDestroyed] = useState(0);
 
   const usedWordsRef = useRef(usedWords);
   usedWordsRef.current = usedWords;
