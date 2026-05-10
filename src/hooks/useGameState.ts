@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   BubbleData, Position, ROWS, COLS, MAX_MOVES, MIN_WORD_LENGTH, MAX_WORD_LENGTH,
-  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, type BubbleColor,
+  createRandomBubble, BUBBLE_COLORS, REDUCED_COLORS, LETTER_VALUES, type BubbleColor,
 } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
