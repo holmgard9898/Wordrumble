@@ -1,9 +1,15 @@
 /**
  * Adventure 3-1 ("The Crash") — pre-built puzzle boards.
  *
- * Each board is 100% deterministic per language. The target word's letters
- * appear in BLUE only; all other cells use neutral non-target letters in
- * non-blue colors. The same language always sees the same starting grid.
+ * Design: target letters (BLUE) sit in column 3 with one RED letter between
+ * each pair. Each red row also contains a 3-letter language combo word
+ * (cols 1-2-3, with cols 1 & 2 swapped from final order). Player solves by
+ * making one swap per combo row to spell that word — popping 3 red cells in
+ * cols 1-3, which causes blues above to fall one row. After (N-1) such
+ * combos, all N blue letters end up vertically adjacent in correct order
+ * and the target word auto-forms → win.
+ *
+ * Move budget = N - 1 (= word length - 1).
  */
 import type { GameLanguage } from './languages';
 import type { PresetCell } from './adventureLevels';
@@ -25,29 +31,35 @@ export const CAVE_TARGET_WORD: Record<GameLanguage, string> = {
   fi: 'VALO',
 };
 
-/** Move budget per language — tight, requires planning but solvable. */
+/**
+ * Combo words used to "drop" target letters into place.
+ * Need (target.length - 1) common 3-letter words per language.
+ * All chosen as very frequent words present in standard dictionaries.
+ */
+const COMBO_WORDS: Record<GameLanguage, string[]> = {
+  sv: ['BAR', 'SOL', 'TOM'],         // 3 → LJUS (4)
+  en: ['BAR', 'SUN', 'CAT', 'RUN'],  // 4 → LIGHT (5)
+  de: ['TAG', 'ROT', 'HUT', 'BAR'],  // 4 → LICHT (5)
+  es: ['SOL', 'MAR'],                // 2 → LUZ (3)
+  fr: ['BAR', 'ROI', 'SUR', 'TOI'],  // 4 → LUEUR (5)
+  it: ['SOL', 'MAR', 'RIO'],         // 3 → LUCE (4)
+  pt: ['SOL', 'MAR'],                // 2 → LUZ (3)
+  nl: ['BAR', 'ROK', 'ZAK', 'BUS'],  // 4 → LICHT (5)
+  no: ['SOL', 'BAR'],                // 2 → LYS (3)
+  da: ['SOL', 'BAR'],                // 2 → LYS (3)
+  fi: ['ASE', 'OSA', 'ISO'],         // 3 → VALO (4)
+};
+
+/** Move budget per language: word length − 1. */
 export const CAVE_MOVES: Record<GameLanguage, number> = {
-  en: 12, sv: 10, de: 12, es: 7, fr: 12, it: 10,
-  pt: 7, nl: 12, no: 7, da: 7, fi: 10,
+  en: 4, sv: 3, de: 4, es: 2, fr: 4, it: 3,
+  pt: 2, nl: 4, no: 2, da: 2, fi: 3,
 };
 
-/** Non-blue colors used to fill decoy cells. */
-const DECOY_COLORS: BubbleColor[] = ['red', 'green', 'yellow', 'pink'];
-
-/** Per-language safe filler letters (common, won't combine into trivial words). */
-const FILLER_LETTERS: Record<GameLanguage, string> = {
-  en: 'AENRTOMDPB',
-  sv: 'AENRTOMDPB',
-  de: 'AENRTOMDPB',
-  es: 'AENROMDPCQ',
-  fr: 'AENROMDPCQ',
-  it: 'AENROMDPCQ',
-  pt: 'AENROMDPCQ',
-  nl: 'AENROMDPKQ',
-  no: 'AENROMDPKQ',
-  da: 'AENROMDPKQ',
-  fi: 'AEIKMNOPRT',
-};
+/** Filler colors (never red, never blue → no accidental matches). */
+const FILLER_COLORS: BubbleColor[] = ['yellow', 'green', 'pink'];
+/** Safe filler letters (avoid the 3-letter combo letters where possible). */
+const FILLER_LETTERS = 'ENMDPKQWFY';
 
 /** Mulberry32 deterministic PRNG. */
 function mulberry32(seed: number) {
@@ -67,75 +79,58 @@ function hashCode(str: string): number {
   return h;
 }
 
-/**
- * Place every target letter in the BLUE color on the bottom two rows,
- * spaced out so the player must cluster them with careful swaps.
- *
- * Layout patterns by word length (col positions on row 9 unless noted):
- *  3 letters: cols 0, 3, 6   (need ~5 swaps; budget tight ≈ 7)
- *  4 letters: cols 0, 2, 5, 7  (need ~6 swaps; budget ≈ 10)
- *  5 letters: cols 0, 2, 4, 6 + (8,3) on row 8  (need ~8 swaps; budget ≈ 12)
- *  7 letters (LUMIERE-class): cols spread across rows 8-9
- */
-function targetPositions(word: string): { row: number; col: number; letter: string }[] {
-  const len = word.length;
-  const layouts: Record<number, [number, number][]> = {
-    3: [[9, 0], [9, 3], [9, 6]],
-    4: [[9, 0], [9, 2], [9, 5], [9, 7]],
-    5: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 3]],
-    6: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 3], [8, 5]],
-    7: [[9, 0], [9, 2], [9, 4], [9, 6], [8, 1], [8, 3], [8, 5]],
-  };
-  const slots = layouts[len] ?? layouts[5];
-  const out: { row: number; col: number; letter: string }[] = [];
-  for (let i = 0; i < word.length && i < slots.length; i++) {
-    const [r, c] = slots[i];
-    out.push({ row: r, col: c, letter: word[i] });
-  }
-  return out;
-}
-
 export function buildCavePresetGrid(lang: GameLanguage): PresetCell[][] {
   const word = CAVE_TARGET_WORD[lang];
-  const fillers = FILLER_LETTERS[lang];
-  const targets = targetPositions(word);
-  const targetSet = new Map<string, string>();
-  for (const t of targets) targetSet.set(`${t.row}-${t.col}`, t.letter);
+  const combos = COMBO_WORDS[lang];
+  const N = word.length;
+  const rng = mulberry32(hashCode(`cave-v2|${lang}|${word}`));
 
-  const rng = mulberry32(hashCode(`cave|${lang}|${word}`));
+  // 1) Fill grid with safe non-red/non-blue letters.
   const grid: PresetCell[][] = [];
-
   for (let r = 0; r < ROWS; r++) {
     const row: PresetCell[] = [];
     for (let c = 0; c < COLS; c++) {
-      const tk = `${r}-${c}`;
-      if (targetSet.has(tk)) {
-        row.push({ l: targetSet.get(tk)!, c: 'blue' });
-      } else {
-        // Pick decoy letter & color, avoiding adjacent matches with previous cells
-        let letter = fillers[Math.floor(rng() * fillers.length)];
-        let color: BubbleColor = DECOY_COLORS[Math.floor(rng() * DECOY_COLORS.length)];
-        // Avoid 3-in-a-row of the same color horizontally
-        const left = c >= 1 ? row[c - 1] : null;
-        const left2 = c >= 2 ? row[c - 2] : null;
-        if (left && left2 && left.c === color && left2.c === color) {
-          color = DECOY_COLORS[(DECOY_COLORS.indexOf(color) + 1) % DECOY_COLORS.length];
-        }
-        // Avoid 3-in-a-row of the same color vertically
-        const up = r >= 1 ? grid[r - 1][c] : null;
-        const up2 = r >= 2 ? grid[r - 2][c] : null;
-        if (up && up2 && up.c === color && up2.c === color) {
-          color = DECOY_COLORS[(DECOY_COLORS.indexOf(color) + 1) % DECOY_COLORS.length];
-        }
-        // Avoid letter repetition next to itself
-        if (left && left.l === letter) {
-          letter = fillers[(fillers.indexOf(letter) + 1) % fillers.length];
-        }
-        row.push({ l: letter, c: color });
+      let letter = FILLER_LETTERS[Math.floor(rng() * FILLER_LETTERS.length)];
+      let color: BubbleColor = FILLER_COLORS[Math.floor(rng() * FILLER_COLORS.length)];
+      // Avoid 3-in-row horizontally
+      if (c >= 2 && row[c - 1].c === color && row[c - 2].c === color) {
+        color = FILLER_COLORS[(FILLER_COLORS.indexOf(color) + 1) % FILLER_COLORS.length];
       }
+      // Avoid 3-in-row vertically
+      if (r >= 2 && grid[r - 1][c].c === color && grid[r - 2][c].c === color) {
+        color = FILLER_COLORS[(FILLER_COLORS.indexOf(color) + 1) % FILLER_COLORS.length];
+      }
+      // Avoid same letter side-by-side
+      if (c >= 1 && row[c - 1].l === letter) {
+        letter = FILLER_LETTERS[(FILLER_LETTERS.indexOf(letter) + 1) % FILLER_LETTERS.length];
+      }
+      row.push({ l: letter, c: color });
     }
     grid.push(row);
   }
+
+  // 2) Place target letters (BLUE) in column 3 at odd rows starting at 1.
+  //    For N letters: rows 1, 3, 5, ..., 2N-1.
+  for (let i = 0; i < N; i++) {
+    const r = 1 + 2 * i;
+    grid[r][3] = { l: word[i], c: 'blue' };
+  }
+
+  // 3) Place combo words (RED) in cols 1-2-3 at even rows starting at 2.
+  //    Cols 1 and 2 are SWAPPED so the player must perform the swap to form
+  //    the word. Col 3 holds the third (red) letter that, when popped,
+  //    drops the blue stack above by one row.
+  for (let i = 0; i < combos.length; i++) {
+    const r = 2 + 2 * i;
+    const w = combos[i];
+    grid[r][1] = { l: w[1], c: 'red' };  // initially "wrong"
+    grid[r][2] = { l: w[0], c: 'red' };  // initially "wrong"
+    grid[r][3] = { l: w[2], c: 'red' };
+    // Make sure col 0 and col 4 are NOT red, so the red run can't extend.
+    if (grid[r][0].c === 'red') grid[r][0] = { l: grid[r][0].l, c: 'yellow' };
+    if (grid[r][4].c === 'red') grid[r][4] = { l: grid[r][4].l, c: 'yellow' };
+  }
+
   return grid;
 }
 
