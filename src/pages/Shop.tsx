@@ -24,6 +24,7 @@ import shipwreckBg from '@/assets/bg-shipwreck.jpg';
 import caveBg from '@/assets/bg-cave.jpg';
 import cityBg from '@/assets/bg-city.jpg';
 import storybookBg from '@/assets/bg-storybook.jpg';
+import moonBg from '@/assets/bg-moon.jpg';
 
 const bgPreviews: Record<GameBackground, React.ReactNode> = {
   default: <div className="w-full h-full rounded-xl" style={{ background: 'linear-gradient(135deg, hsl(220, 60%, 12%) 0%, hsl(260, 50%, 18%) 50%, hsl(200, 55%, 15%) 100%)' }} />,
@@ -37,6 +38,7 @@ const bgPreviews: Record<GameBackground, React.ReactNode> = {
   shipwreck: <img src={shipwreckBg} alt="Shipwreck" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   cave: <img src={caveBg} alt="Cave" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
   city: <img src={cityBg} alt="City" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
+  moon: <img src={moonBg} alt="Moon" className="w-full h-full object-cover rounded-xl" loading="lazy" />,
 };
 
 const tileColors: BubbleColor[] = ['red', 'green', 'blue', 'yellow', 'pink'];
