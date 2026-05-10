@@ -46,27 +46,26 @@ const AdventureGamePage = () => {
     const satellite = level.satellite === true;
     const ufos = level.ufos === true;
     const collapsingCave = level.collapsingCave === true;
+    const infection = level.infection === true;
+    const startPowerups = level.startPowerups;
     const presetGrid = level.presetGrid?.[settings.language];
     const maxMoves = level.maxMovesByLang?.[settings.language] ?? level.maxMoves;
+    const extras = { antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid, infection, startPowerups };
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+      return { targetWords: words, maxMoves, keepFormableWords: words, ...extras };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
       const hidden = level.goal.hiddenWord[settings.language];
-      return {
-        targetWords: thematic, maxMoves,
-        keepFormableWords: [hidden, ...thematic],
-        antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid,
-      };
+      return { targetWords: thematic, maxMoves, keepFormableWords: [hidden, ...thematic], ...extras };
     }
     if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
-      return { targetWords: [w], maxMoves, keepFormableWords: [w], antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+      return { targetWords: [w], maxMoves, keepFormableWords: [w], ...extras };
     }
-    if (maxMoves || antigravity || asteroids || satellite || ufos || collapsingCave || presetGrid) {
-      return { targetWords: [] as string[], maxMoves, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+    if (maxMoves || antigravity || asteroids || satellite || ufos || collapsingCave || presetGrid || infection || startPowerups) {
+      return { targetWords: [] as string[], maxMoves, ...extras };
     }
     return undefined;
   }, [level, settings.language]);
