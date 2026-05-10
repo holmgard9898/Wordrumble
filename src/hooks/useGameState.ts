@@ -478,7 +478,7 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
         while (end < COLS && !currentGrid[r][end].asteroid && currentGrid[r][end].color === color) end++;
@@ -507,7 +507,7 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
         while (end < ROWS && !currentGrid[end][c].asteroid && currentGrid[end][c].color === color) end++;
@@ -714,7 +714,7 @@ export function useGameState(
       let destroyedThisPass = 0;
       const destroyRow = antigravity ? 0 : ROWS - 1;
       for (let cc = 0; cc < COLS; cc++) {
-        if (newGrid[destroyRow][cc].asteroid) {
+        if (newGrid[destroyRow][cc].asteroid || currentGrid[r][c].satellite) {
           destroyedThisPass++;
           newGrid[destroyRow][cc] = refillBubble(colors);
           newCellPositions.push({ row: destroyRow, col: cc });
@@ -746,7 +746,7 @@ export function useGameState(
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
     // Asteroids cannot be moved.
-    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid) {
+    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid || currentGrid[r][c].satellite) {
       setSelectedBubble(null);
       return;
     }
