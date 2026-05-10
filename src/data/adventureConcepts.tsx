@@ -172,15 +172,27 @@ const CONCEPTS: Record<ConceptId, ConceptDef> = {
   },
   'mode-surge': {
     id: 'mode-surge',
-    steps: (lang) => [
-      {
-        title: pick({ en: 'Word Surge', sv: 'Word Surge' }, lang),
-        body: pick({
-          en: 'Long or high-scoring words give EXTRA moves. ≥10 pts → +10, ≥15 → +25. Long words add even more.',
-          sv: 'Långa eller högpoängsord ger EXTRA drag. ≥10 p → +10, ≥15 → +25. Långa ord ger ännu fler.',
-        }, lang),
-      },
-    ],
+    steps: (lang) => {
+      const word = DEMO_WORDS[lang] ?? DEMO_WORDS.en;
+      return [
+        {
+          title: pick({ en: 'Word Surge', sv: 'Word Surge' }, lang),
+          body: pick({
+            en: 'Long or high-scoring words give EXTRA moves. ≥10 pts → +10, ≥15 → +25. Long words add even more.',
+            sv: 'Långa eller högpoängsord ger EXTRA drag. ≥10 p → +10, ≥15 → +25. Långa ord ger ännu fler.',
+          }, lang),
+        },
+        {
+          title: pick({ en: 'Try a swap', sv: 'Prova ett byte' }, lang),
+          body: pick({
+            en: `Spell ${word} to see how a word fires off — in this mode, that\'d also earn extra moves!`,
+            sv: `Stava ${word} för att se hur ett ord avfyras — i det här läget hade det också gett extra drag!`,
+          }, lang),
+          interactive: true,
+          renderVisual: ({ done }) => <InteractiveSwapDemo word={word} onComplete={done} />,
+        },
+      ];
+    },
   },
   'mode-fiveplus': {
     id: 'mode-fiveplus',
@@ -196,27 +208,51 @@ const CONCEPTS: Record<ConceptId, ConceptDef> = {
   },
   'mode-oneword': {
     id: 'mode-oneword',
-    steps: (lang) => [
-      {
-        title: pick({ en: 'Best word wins', sv: 'Bästa ordet räknas' }, lang),
-        body: pick({
-          en: 'Find as many words as you like — but only your single highest-scoring word counts at the end!',
-          sv: 'Hitta så många ord du vill — men bara ditt högst poängsatta ord räknas i slutet!',
-        }, lang),
-      },
-    ],
+    steps: (lang) => {
+      const word = DEMO_WORDS[lang] ?? DEMO_WORDS.en;
+      return [
+        {
+          title: pick({ en: 'Best word wins', sv: 'Bästa ordet räknas' }, lang),
+          body: pick({
+            en: 'Find as many words as you like — but only your single highest-scoring word counts at the end!',
+            sv: 'Hitta så många ord du vill — men bara ditt högst poängsatta ord räknas i slutet!',
+          }, lang),
+        },
+        {
+          title: pick({ en: 'Warm up', sv: 'Värm upp' }, lang),
+          body: pick({
+            en: `Practise on ${word}. In a real one-word level, aim for the longest, juiciest word you can build.`,
+            sv: `Öva på ${word}. På en riktig ettords-nivå siktar du på det längsta, saftigaste ord du kan bygga.`,
+          }, lang),
+          interactive: true,
+          renderVisual: ({ done }) => <InteractiveSwapDemo word={word} onComplete={done} />,
+        },
+      ];
+    },
   },
   'mode-bomb': {
     id: 'mode-bomb',
-    steps: (lang) => [
-      {
-        title: pick({ en: 'Bombs are ticking', sv: 'Bomberna tickar' }, lang),
-        body: pick({
-          en: 'Bombs sit on vowels with a countdown. Each move ticks them down by 1. Pop a bomb by using its letter in a word — if any bomb hits 0, the round ends!',
-          sv: 'Bomber sitter på vokaler med en nedräkning. Varje drag tickar ner dem med 1. Poppa en bomb genom att ha med dess bokstav i ett ord — når någon bomb 0 är rundan slut!',
-        }, lang),
-      },
-    ],
+    steps: (lang) => {
+      const word = DEMO_WORDS[lang] ?? DEMO_WORDS.en;
+      return [
+        {
+          title: pick({ en: 'Bombs are ticking', sv: 'Bomberna tickar' }, lang),
+          body: pick({
+            en: 'Bombs sit on vowels with a countdown. Each move ticks them down by 1. Pop a bomb by using its letter in a word — if any bomb hits 0, the round ends!',
+            sv: 'Bomber sitter på vokaler med en nedräkning. Varje drag tickar ner dem med 1. Poppa en bomb genom att ha med dess bokstav i ett ord — når någon bomb 0 är rundan slut!',
+          }, lang),
+        },
+        {
+          title: pick({ en: 'Practise popping', sv: 'Öva på att poppa' }, lang),
+          body: pick({
+            en: `Spell ${word}. Any vowel you include would defuse a bomb sitting on that letter.`,
+            sv: `Stava ${word}. Varje vokal du tar med skulle desarmera en bomb som sitter på den bokstaven.`,
+          }, lang),
+          interactive: true,
+          renderVisual: ({ done }) => <InteractiveSwapDemo word={word} onComplete={done} />,
+        },
+      ];
+    },
   },
   'infection': {
     id: 'infection',
