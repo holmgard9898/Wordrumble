@@ -42,8 +42,8 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
   const lastLevel = levels[levels.length - 1];
   const hasNextMap = mapNumber < 3;
   const hasPrevMap = mapNumber > 1;
-  const portalUpPos = { x: Math.min(lastLevel.mapPosition.x + 8, 92), y: Math.max(lastLevel.mapPosition.y - 10, 4) };
-  const portalDownPos = { x: 8, y: 92 };
+  const portalUpPos = { x: 92, y: 6 };
+  const portalDownPos = { x: 8, y: 94 };
   const portalUpUnlocked = isCompleted(lastLevel.id);
 
   const curvePath = (a: { x: number; y: number }, b: { x: number; y: number }) => {
