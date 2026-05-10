@@ -23,6 +23,8 @@ export interface AdventureSeed {
   satellite?: boolean;
   /** Place immovable UFOs (rows 4 & 6 alternating) that swap the bubble below them every move. */
   ufos?: boolean;
+  /** Fully pre-determined start grid (overrides random/seeded generation). */
+  presetGrid?: Array<Array<{ l: string; c: BubbleColor }>>;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
