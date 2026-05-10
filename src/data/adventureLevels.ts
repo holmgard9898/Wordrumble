@@ -64,7 +64,7 @@ export interface AdventureLevel {
   /** Story-style intro cards shown instead of (or in addition to) the mode tutorial. */
   storyIntro?: StoryCard[];
   /** When true, hide the generic mode tutorial steps and show only the storyIntro. */
-  hideModeT utorial?: boolean;
+  hideModeTutorial?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
