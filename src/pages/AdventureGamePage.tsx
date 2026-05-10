@@ -495,7 +495,9 @@ const AdventureGamePage = () => {
           onSwipe={(rocketArming || laserArming) ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
-          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming } : undefined}
+          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
+          onSatelliteClick={level.satellite ? handleSatelliteClick : undefined}
+          laserShot={laserShot}
         />
       </div>
 
