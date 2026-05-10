@@ -760,6 +760,10 @@ export function useGameState(
       const newCol: BubbleData[] = [];
       for (let r = 0; r < ROWS; r++) newCol.push(refillBubble(colors));
       for (let r = 0; r < ROWS; r++) newGrid[r][col] = newCol[r];
+      // The whole rocket column is freshly spawned.
+      const newCellPositions: Position[] = [];
+      for (let r = 0; r < ROWS; r++) newCellPositions.push({ row: r, col });
+      repairAfterRefill(newGrid, newCellPositions, colors);
       setGrid(newGrid);
       setTimeout(() => {
         const next = findWords(newGrid);
@@ -768,7 +772,7 @@ export function useGameState(
       }, 250);
     }, 500);
     return letterPoints;
-  }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade]);
+  }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade, repairAfterRefill]);
 
   const resetGame = useCallback(() => {
     const newGrid = createInitialGrid();
