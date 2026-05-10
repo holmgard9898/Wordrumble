@@ -419,6 +419,11 @@ export function useGameState(
   }, []);
 
   const createInitialGrid = useCallback((): BubbleData[][] => {
+    if (adventureSeed?.presetGrid) {
+      return adventureSeed.presetGrid.map(row =>
+        row.map(cell => makeSeedBubble(cell.l, cell.c, values))
+      );
+    }
     if (adventureSeed && adventureSeed.targetWords.length > 0) {
       return buildSeededGrid(
         adventureSeed.targetWords,
@@ -431,7 +436,7 @@ export function useGameState(
       );
     }
     return createCleanGrid(isValidWord, mode, pool, values);
-  }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|')]);
+  }, [isValidWord, mode, pool, values, adventureSeed?.targetWords.join('|'), adventureSeed?.presetGrid]);
 
   const refillBubble = useCallback((colors: BubbleColor[]): BubbleData => {
     const tl = targetLettersRef.current;
