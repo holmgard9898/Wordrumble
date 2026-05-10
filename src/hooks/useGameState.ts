@@ -671,10 +671,10 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock || currentGrid[r][c].dead) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && !currentGrid[end][c].dead && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
