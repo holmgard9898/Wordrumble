@@ -532,6 +532,58 @@ const AdventureGamePage = () => {
               </div>
             </>
           )}
+          {level.goal.type === 'two-hidden-words' && twoHidden && (() => {
+            const usedSet = new Set(game.usedWords.map(u => u.word.toLowerCase()));
+            const distinctThematicFound = new Set(
+              game.usedWords.map(u => u.word.toLowerCase()).filter(w => hiddenThematic.includes(w))
+            ).size;
+            const total = twoHidden.w1.length + twoHidden.w2.length;
+            const w1Count = Math.min(distinctThematicFound, twoHidden.w1.length);
+            const w2Count = Math.max(0, Math.min(distinctThematicFound - twoHidden.w1.length, twoHidden.w2.length));
+            const w1Done = usedSet.has(twoHidden.w1.toLowerCase());
+            const w2Done = usedSet.has(twoHidden.w2.toLowerCase());
+            return (
+              <>
+                <div className="flex flex-wrap gap-1 justify-center mt-2">
+                  {hiddenThematic.map(w => {
+                    const found = usedSet.has(w);
+                    return (
+                      <span key={w} className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${found ? 'line-through text-emerald-300' : 'text-white/80'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)' }}>
+                        {w.toUpperCase()}
+                      </span>
+                    );
+                  })}
+                </div>
+                <div className="flex gap-1.5 justify-center mt-2 font-mono">
+                  {twoHidden.w1.split('').map((ch, i) => (
+                    <span key={`w1-${i}`} className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${w1Done ? 'border-emerald-500 text-emerald-200 bg-emerald-500/20' : i < w1Count ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}>
+                      {(w1Done || i < w1Count) ? ch : '_'}
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-1.5 justify-center mt-1.5 font-mono">
+                  {twoHidden.w2.split('').map((ch, i) => (
+                    <span key={`w2-${i}`} className={`w-7 h-9 flex items-center justify-center rounded-md text-base font-bold border-b-2 ${w2Done ? 'border-emerald-500 text-emerald-200 bg-emerald-500/20' : i < w2Count ? 'border-emerald-400 text-emerald-300 bg-emerald-500/10' : 'border-white/40 text-white/30 bg-white/5'}`}>
+                      {(w2Done || i < w2Count) ? ch : '_'}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-[11px] text-white/60 mt-1.5">
+                  {Math.min(distinctThematicFound, total)} / {total}
+                  {(w1Count >= twoHidden.w1.length && !w1Done) && (
+                    <span className="block mt-1 text-emerald-300 font-bold animate-pulse">
+                      {settings.language === 'sv' ? `Skapa nu ${twoHidden.w1}!` : `Now form ${twoHidden.w1}!`}
+                    </span>
+                  )}
+                  {(w2Count >= twoHidden.w2.length && !w2Done) && (
+                    <span className="block mt-1 text-emerald-300 font-bold animate-pulse">
+                      {settings.language === 'sv' ? `Skapa nu ${twoHidden.w2}!` : `Now form ${twoHidden.w2}!`}
+                    </span>
+                  )}
+                </div>
+              </>
+            );
+          })()}
           {progressPct !== null && (
             <div className="mt-2 px-1">
               <Progress value={progressPct} className="h-2 bg-white/10" />
