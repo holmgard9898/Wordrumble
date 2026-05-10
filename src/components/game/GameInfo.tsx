@@ -29,91 +29,93 @@ export function GameInfo({
 
   const MODE_BADGE: Record<GameMode, { icon: React.ReactNode; label: string; color: string; border: string } | null> = {
     classic: null,
-    surge: { icon: <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />, label: t.modeSurge, color: 'rgba(15, 23, 42, 0.9)', border: 'rgba(168, 85, 247, 0.6)' },
-    fiveplus: { icon: <Hash className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400" />, label: t.modeFiveplus, color: 'rgba(15, 23, 42, 0.9)', border: 'rgba(168, 85, 247, 0.6)' },
-    bomb: { icon: <Bomb className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-400" />, label: t.modeBomb, color: 'rgba(15, 23, 42, 0.9)', border: 'rgba(168, 85, 247, 0.6)' },
-    oneword: { icon: <Target className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-400" />, label: t.modeOneword, color: 'rgba(15, 23, 42, 0.9)', border: 'rgba(168, 85, 247, 0.6)' },
+    surge: { icon: <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-yellow-400" />, label: t.modeSurge, color: 'rgba(234,179,8,0.2)', border: 'rgba(168, 85, 247, 0.6)' },
+    fiveplus: { icon: <Hash className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400" />, label: t.modeFiveplus, color: 'rgba(34,211,238,0.2)', border: 'rgba(168, 85, 247, 0.6)' },
+    bomb: { icon: <Bomb className="w-3.5 h-3.5 md:w-4 md:h-4 text-red-400" />, label: t.modeBomb, color: 'rgba(239,68,68,0.2)', border: 'rgba(168, 85, 247, 0.6)' },
+    oneword: { icon: <Target className="w-3.5 h-3.5 md:w-4 md:h-4 text-emerald-400" />, label: t.modeOneword, color: 'rgba(16,185,129,0.2)', border: 'rgba(168, 85, 247, 0.6)' },
   };
 
   const badge = MODE_BADGE[mode];
 
-  // Här använder vi border-2 för att få den där lite tydligare ramen
-  const statsBoxClass = "flex-1 rounded-2xl py-4 px-2 md:p-4 text-center bg-slate-900/80 backdrop-blur-xl border-2 border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.2)] transition-all";
+  // Återställd till gamla rundningen (rounded-lg / md:rounded-xl) och transparensen (rgba 0.3)
+  const statsBoxClass = "flex-1 rounded-lg md:rounded-xl py-4 px-2 md:p-4 text-center border-2 border-purple-500/60 shadow-[0_0_15px_rgba(168,85,247,0.2)]";
 
   return (
     <div className="flex flex-col gap-1.5 md:gap-3 w-full px-0 md:px-0">
       {/* Mode badge */}
       {!hideBadge && badge && (
-        <div className="flex items-center justify-center gap-2 rounded-full py-1 px-4 self-center backdrop-blur-md shadow-lg" style={{ background: badge.color, border: `2px solid ${badge.border}` }}>
+        <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-2.5 self-center border-2" style={{ background: badge.color, borderColor: 'rgba(168, 85, 247, 0.6)' }}>
           {badge.icon}
-          <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-white">{badge.label}</span>
+          <span className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-white">{badge.label}</span>
         </div>
       )}
 
       {/* Stats row */}
-      <div className="flex gap-2 md:gap-3">
+      <div className="flex gap-1.5 md:gap-3">
         {isOneWord ? (
           <>
-            <div className={statsBoxClass}>
-              <div className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-white/50 mb-1">{t.bestWord}</div>
-              <div className="text-3xl font-black text-emerald-400 drop-shadow-sm">{bestWordScore}</div>
-              {bestWord && <div className="text-xs font-medium text-white/40 mt-1 uppercase tracking-tighter">{bestWord}</div>}
+            <div className={statsBoxClass} style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.bestWord}</div>
+              <div className="text-3xl md:text-3xl font-bold text-emerald-400">{bestWordScore}</div>
+              {bestWord && <div className="text-xs md:text-xs text-white/50">{bestWord}</div>}
             </div>
-            <div className={statsBoxClass}>
-              <div className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-white/50 mb-1">{t.movesLeft}</div>
-              <div className={`text-3xl font-black drop-shadow-sm ${movesLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{movesLeft}</div>
+            <div className={statsBoxClass} style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
+              <div className={`text-3xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
             </div>
           </>
         ) : (
           <>
-            <div className={statsBoxClass}>
-              <div className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-white/50 mb-1">{t.score}</div>
-              <div className="text-3xl font-black text-white drop-shadow-sm">{score}</div>
+            <div className={statsBoxClass} style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.score}</div>
+              <div className="text-3xl md:text-3xl font-bold text-white">{score}</div>
             </div>
             {!isBomb && (
-              <div className={statsBoxClass}>
-                <div className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-white/50 mb-1">{t.movesLeft}</div>
-                <div className={`text-3xl font-black drop-shadow-sm ${movesLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-white'}`}>{movesLeft}</div>
+              <div className={statsBoxClass} style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-70 text-white">{t.movesLeft}</div>
+                <div className={`text-3xl md:text-3xl font-bold ${movesLeft <= 10 ? 'text-red-400' : 'text-white'}`}>{movesLeft}</div>
               </div>
             )}
           </>
         )}
       </div>
 
-      {/* Bomb mode: free-moves shield indicator */}
+      {/* Bomb mode indicator */}
       {isBomb && freeMovesRemaining > 0 && (
-        <div className="rounded-xl py-2 px-4 text-center self-center flex items-center gap-2 bg-emerald-500/20 backdrop-blur-md border-2 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+        <div className="rounded-lg md:rounded-xl py-1.5 px-3 text-center self-center flex items-center gap-2 border-2"
+          style={{ background: 'rgba(34,197,94,0.2)', borderColor: 'rgba(34,197,94,0.45)' }}>
           <span className="text-base">🛡️</span>
-          <span className="text-sm md:text-base font-bold text-emerald-300 uppercase tracking-wide">
-            {freeMovesRemaining} {t.movesLeft.toLowerCase()}
+          <span className="text-sm md:text-base font-bold text-green-300">
+            {freeMovesRemaining} fri{freeMovesRemaining === 1 ? 'tt' : 'a'} drag
           </span>
         </div>
       )}
 
       {/* Word found toast */}
       {lastFoundWord && (
-        <div className="rounded-2xl p-3 text-center animate-in zoom-in duration-300 bg-emerald-500/20 backdrop-blur-xl border-2 border-purple-500/60 shadow-[0_0_25px_rgba(168,85,247,0.4)]">
-          <div className="text-[10px] uppercase tracking-widest font-bold text-emerald-300/70">{t.wordFound}</div>
-          <div className="text-xl md:text-2xl font-black tracking-[0.2em] text-emerald-300 uppercase">{lastFoundWord}</div>
+        <div className="rounded-lg md:rounded-xl p-2 md:p-3 text-center animate-pulse border-2" style={{ background: 'rgba(34,197,94,0.2)', borderColor: 'rgba(168, 85, 247, 0.6)' }}>
+          <div className="text-[9px] md:text-xs uppercase tracking-wider opacity-70 text-green-300">{t.wordFound}</div>
+          <div className="text-lg md:text-2xl font-bold tracking-widest text-green-300">{lastFoundWord}</div>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="flex gap-2 md:gap-3 mt-1">
+      <div className="flex gap-1.5 md:gap-2">
         <Button 
           onClick={onShowWords} 
-          className="flex-1 gap-2 bg-slate-900/90 backdrop-blur-md border-2 border-purple-500/50 text-white hover:bg-slate-800 h-14 md:h-12 text-sm font-bold rounded-2xl shadow-lg active:scale-95 transition-all"
+          variant="outline" 
+          size="sm" 
+          className="flex-1 gap-1.5 border-2 border-purple-500/60 bg-white/10 text-white hover:bg-white/20 h-12 md:h-10 text-sm shadow-[0_0_10px_rgba(168,85,247,0.15)]"
         >
-          <List className="w-5 h-5 text-white/50" /> 
-          <span className="uppercase tracking-tight">{t.words}</span>
-          <span className="bg-purple-500/30 px-2 py-0.5 rounded-lg text-xs font-black text-purple-100 border border-purple-500/40">{usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''}</span>
+          <List className="w-4 h-4" /> {t.words} ({usedWordsCount}{blockedWordsCount > 0 ? `+${blockedWordsCount}` : ''})
         </Button>
-        
         <Button 
           onClick={onResetGame} 
-          className="w-14 h-14 md:w-12 md:h-12 bg-slate-900/90 backdrop-blur-md border-2 border-purple-500/50 text-white hover:bg-slate-800 p-0 rounded-2xl shadow-lg active:scale-95 transition-all"
+          variant="outline" 
+          size="sm" 
+          className="gap-1.5 border-2 border-purple-500/60 bg-white/10 text-white hover:bg-white/20 h-12 w-12 md:h-10 p-0 shadow-[0_0_10px_rgba(168,85,247,0.15)]"
         >
-          <RotateCcw className="w-5 h-5" />
+          <RotateCcw className="w-4 h-4" />
         </Button>
       </div>
     </div>
