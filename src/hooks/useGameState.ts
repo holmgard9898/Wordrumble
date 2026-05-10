@@ -1113,6 +1113,8 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     if (adventureSeed?.satellite) placeSatellite(newGrid);
     if (adventureSeed?.ufos) placeUfos(newGrid);
+    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(newGrid, adventureSeed.startPowerups);
+    if (adventureSeed?.infection) ensureInfection(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
