@@ -22,7 +22,8 @@ import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
-import { getTutorialSteps } from '@/data/tutorials';
+import { getLevelConcepts, getConceptSteps } from '@/data/adventureConcepts';
+import { useSeenAdventureConcepts } from '@/hooks/useSeenAdventureConcepts';
 import { getLanguageConfig } from '@/data/languages';
 
 const AdventureGamePage = () => {
