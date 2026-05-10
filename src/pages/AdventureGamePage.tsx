@@ -128,6 +128,17 @@ const AdventureGamePage = () => {
 
   useEffect(() => { setSwapLettersLeft(initialSwapLetters); setSwapColorsLeft(initialSwapColors); setSwapArming(null); setSwapTarget(null); }, [level?.id, initialSwapLetters, initialSwapColors]);
 
+  // Restart helper: resets game AND refills starting powerups to their initial counts.
+  const restartLevel = () => {
+    game.resetGame();
+    setSwapLettersLeft(initialSwapLetters);
+    setSwapColorsLeft(initialSwapColors);
+    setSwapArming(null);
+    setSwapTarget(null);
+    setRocketsLeft(level?.freeRockets ?? 0);
+    setRocketArming(false);
+  };
+
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   // Unlock shop item simply by reaching this level (e.g. Moon background on Moon Landing).
