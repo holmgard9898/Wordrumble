@@ -246,6 +246,10 @@ const AdventureGamePage = () => {
       return `${labels[settings.language] ?? labels.en} ${level.goal.moves}`;
     }
     if (level.goal.type === 'hidden-word') return hiddenLabels[settings.language] ?? hiddenLabels.en;
+    if (level.goal.type === 'best-word-score') {
+      const labels: Record<string, string> = { en: 'Best word ≥', sv: 'Bästa ord ≥', de: 'Bestes Wort ≥', es: 'Mejor palabra ≥', fr: 'Meilleur mot ≥', it: 'Miglior parola ≥', pt: 'Melhor palavra ≥', nl: 'Beste woord ≥', no: 'Beste ord ≥', da: 'Bedste ord ≥', fi: 'Paras sana ≥' };
+      return `${labels[settings.language] ?? labels.en} ${level.goal.target}`;
+    }
     return t.goalFindWords;
   })();
 
@@ -253,6 +257,7 @@ const AdventureGamePage = () => {
     if (!level.showProgressBar) return null;
     if (level.goal.type === 'reach-score') return Math.min(100, Math.round((game.score / level.goal.target) * 100));
     if (level.goal.type === 'survive-moves') return Math.min(100, Math.round((game.movesUsed / level.goal.moves) * 100));
+    if (level.goal.type === 'best-word-score') return Math.min(100, Math.round(((game.bestWordScore ?? 0) / level.goal.target) * 100));
     return null;
   })();
 
