@@ -40,10 +40,18 @@ const AdventureGamePage = () => {
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
     if (level.goal.type === 'find-words') {
-      return { targetWords: level.goal.words[settings.language], maxMoves: level.maxMoves };
+      const words = level.goal.words[settings.language];
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words };
     }
     if (level.goal.type === 'hidden-word') {
-      return { targetWords: level.goal.thematicWords[settings.language], maxMoves: level.maxMoves };
+      const thematic = level.goal.thematicWords[settings.language];
+      const hidden = level.goal.hiddenWord[settings.language];
+      // Both the thematic words AND the hidden word must remain formable.
+      return {
+        targetWords: thematic,
+        maxMoves: level.maxMoves,
+        keepFormableWords: [hidden, ...thematic],
+      };
     }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
