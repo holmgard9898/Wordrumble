@@ -6,13 +6,15 @@ import {
 import { getLanguageConfig } from '@/data/languages';
 import type { GameLanguage } from '@/data/languages';
 import type { GameMode } from '@/pages/GamePage';
-import { createWordlessGrid, ensureGridHasNoWords } from '@/utils/gridGeneration';
+import { createWordlessGrid, ensureGridHasNoWords, repairFormability, wordIsFormable } from '@/utils/gridGeneration';
 
 export interface AdventureSeed {
   /** Target words (any case) that should be plantable on the start grid in matching color. */
   targetWords: string[];
   /** Override max moves for this run (adventure mode). */
   maxMoves?: number;
+  /** Words that must remain formable in some color throughout the game. */
+  keepFormableWords?: string[];
 }
 
 let seedBubbleCounter = 0;
@@ -32,6 +34,7 @@ function buildSeededGrid(
   colors: BubbleColor[],
   pool: string,
   values: Record<string, number>,
+  keepFormableWords: string[] = [],
 ): BubbleData[][] {
   // Build target letter pool (weighted) for refill bias
   const targetLetters = targetWords.join('').toUpperCase().replace(/[^A-ZÅÄÖÉÈÊËÀÂÎÏÔÛÙÜÇÑ]/g, '');
@@ -73,12 +76,32 @@ function buildSeededGrid(
   for (let attempt = 0; attempt < 25; attempt++) {
     const g = tryBuild();
     if (!g) continue;
-    const cleaned = ensureGridHasNoWords(g, {
+    let cleaned = ensureGridHasNoWords(g, {
       isValidWord,
       minWordLength: minWordLen,
       createBubble: weightedRefill,
       maxPasses: 50,
     });
+    // Make sure every keep-formable word is plantable in some color from the start.
+    // Plant any missing ones into the cleaned grid; then re-clean.
+    const missing = keepFormableWords.filter(w => !wordIsFormable(cleaned, w));
+    if (missing.length > 0) {
+      // Collect random "fresh" cell positions to overwrite (every cell is fair game here).
+      const allCells: Position[] = [];
+      for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) allCells.push({ row: r, col: c });
+      repairFormability(cleaned, missing, allCells, { values, allowedColors: colors });
+      cleaned = ensureGridHasNoWords(cleaned, {
+        isValidWord,
+        minWordLength: minWordLen,
+        createBubble: weightedRefill,
+        maxPasses: 50,
+      });
+      // Final guard: if cleanup broke formability, re-repair once more.
+      const stillMissing = keepFormableWords.filter(w => !wordIsFormable(cleaned, w));
+      if (stillMissing.length > 0) {
+        repairFormability(cleaned, stillMissing, allCells, { values, allowedColors: colors });
+      }
+    }
     return cleaned;
   }
   // Fallback
@@ -308,6 +331,13 @@ export function useGameState(
   const targetLettersRef = useRef<string>('');
   targetLettersRef.current = (adventureSeed?.targetWords ?? []).join('').toUpperCase();
 
+  // Words that must remain formable in some color throughout the game.
+  // Updated reactively from outside via setKeepFormableWords.
+  const keepFormableRef = useRef<string[]>(adventureSeed?.keepFormableWords ?? []);
+  const setKeepFormableWords = useCallback((words: string[]) => {
+    keepFormableRef.current = words.map(w => w.toUpperCase());
+  }, []);
+
   const createInitialGrid = useCallback((): BubbleData[][] => {
     if (adventureSeed && adventureSeed.targetWords.length > 0) {
       return buildSeededGrid(
@@ -317,6 +347,7 @@ export function useGameState(
         getColorsForMode(mode),
         pool,
         values,
+        keepFormableRef.current,
       );
     }
     return createCleanGrid(isValidWord, mode, pool, values);
@@ -331,6 +362,20 @@ export function useGameState(
     }
     return createRandomBubble(colors, pool, values);
   }, [pool, values]);
+
+  /** After refilling some cells, ensure all keep-formable words are still formable. */
+  const repairAfterRefill = useCallback(
+    (newGrid: BubbleData[][], newCellPositions: Position[], colors: BubbleColor[]) => {
+      const required = keepFormableRef.current;
+      if (!required || required.length === 0) return newGrid;
+      repairFormability(newGrid, required, newCellPositions, {
+        values,
+        allowedColors: colors,
+      });
+      return newGrid;
+    },
+    [values],
+  );
 
   const [grid, setGrid] = useState<BubbleData[][]>(() => {
     const g = createInitialGrid();
@@ -581,6 +626,7 @@ export function useGameState(
       setLastFoundWord(null);
       const newGrid = currentGrid.map((row) => [...row]);
       const colsAffected = new Set(word.positions.map((p) => p.col));
+      const newCellPositions: Position[] = [];
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
@@ -590,7 +636,12 @@ export function useGameState(
         for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
         const fullColumn = [...newBubbles, ...remaining];
         for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+        // Track newly-spawned cells (top `newBubbles.length` rows of this column).
+        for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
       }
+
+      // Adventure: ensure required words remain formable.
+      repairAfterRefill(newGrid, newCellPositions, colors);
 
       setGrid(newGrid);
       setTimeout(() => {
@@ -599,7 +650,7 @@ export function useGameState(
         else setIsProcessing(false);
       }, 300);
     }, 500);
-  }, [findWords, mode, refillBubble, freeLabel]);
+  }, [findWords, mode, refillBubble, freeLabel, repairAfterRefill]);
 
   const checkForWords = useCallback((currentGrid: BubbleData[][]) => {
     const foundWords = findWords(currentGrid);
@@ -709,6 +760,10 @@ export function useGameState(
       const newCol: BubbleData[] = [];
       for (let r = 0; r < ROWS; r++) newCol.push(refillBubble(colors));
       for (let r = 0; r < ROWS; r++) newGrid[r][col] = newCol[r];
+      // The whole rocket column is freshly spawned.
+      const newCellPositions: Position[] = [];
+      for (let r = 0; r < ROWS; r++) newCellPositions.push({ row: r, col });
+      repairAfterRefill(newGrid, newCellPositions, colors);
       setGrid(newGrid);
       setTimeout(() => {
         const next = findWords(newGrid);
@@ -717,7 +772,7 @@ export function useGameState(
       }, 250);
     }, 500);
     return letterPoints;
-  }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade]);
+  }, [gameOver, isProcessing, grid, mode, refillBubble, findWords, popAndCascade, repairAfterRefill]);
 
   const resetGame = useCallback(() => {
     const newGrid = createInitialGrid();
@@ -783,6 +838,6 @@ export function useGameState(
     lastFoundWord, isProcessing, handleBubbleClick, handleSwipe, resetGame,
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
-    freeMovesRemaining, explodedAt, addMoves, fireRocket,
+    freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
   };
 }

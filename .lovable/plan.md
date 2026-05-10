@@ -1,84 +1,116 @@
 ## Mål
 
-1. Visa tutorial-popup vid **varje** äventyrsnivå (även om den spelats förut).
-2. Göra tutorial-rutorna **interaktiva**: spelaren swipar själv en bokstav i en minirutnät för att stava ett ord.
-3. Ordet i den interaktiva rutan **anpassas efter språk** (t.ex. CAT / KATT).
-4. Lägg till en **animerad tecknad vit handske** som visuellt visar swipe-rörelsen (med ett vitt spår bakom), som vägledning. Spelaren utför själv den faktiska handlingen.
-5. Förberedelse för nästa steg: bygga ut Map 2 (ersätta placeholder-nivåerna). Görs i ett separat steg.
+I äventyrsnivåer av typen **find-words** och **hidden-word** ska de ord som krävs för att klara nivån **alltid gå att kombinera** på brädet — både direkt vid start och kontinuerligt under spelets gång. När bubblor poppas och nya genereras ska systemet se till att minst en färg fortfarande har alla bokstäver som behövs för varje icke-funnet målord. Spelaren behöver inte veta om detta — det är en tyst "frustration-saver".
 
----
+## Nuvarande beteende
 
-## Steg 1 – Alltid visa tutorial i Adventure
+- `buildSeededGrid` (i `useGameState.ts`) planterar målord vid start i samma färg. Bra.
+- `refillBubble` viktar bara nya bubblor mot målbokstäver med 45% sannolikhet och **slumpar färg**. Det finns ingen garanti att hidden-word eller find-words-orden förblir formbara.
+- `hidden-word`-nivåer skickar bara *thematicWords* som seed — själva det dolda ordet (t.ex. SKEPP) seedas inte alls.
+- Inga checks görs efter popp + refill att ord fortfarande är formbara.
 
-I `AdventureGamePage.tsx`:
-- Ta bort dagens `showIntro`-flow (texten i `level.intro`) som första modal — ersätt med en ny `<AdventureTutorialModal />` som öppnas alltid när nivån laddas.
-- Modalen visar:
-  1. Korta intro-text (från `level.intro[lang]`) + målet (från goalText).
-  2. Lägesspecifika tutorial-steg från `getTutorialSteps(level.mode ?? 'classic', lang)` (samma som klassiskt läge).
-  3. Sista sidan = "Spela!" knapp som stänger.
-- Gated på `ready` (efter att spelet är initierat) precis som idag.
-- **Ingen** koppling till `useTutorialSeen` här — visas alltid.
+## Steg 1 – Definiera "formability"
 
-## Steg 2 – Interaktiva tutorial-steg
+Lägg till hjälpare i `src/utils/gridGeneration.ts`:
 
-Skapa ny komponent `src/components/tutorial/InteractiveSwapDemo.tsx`:
-- Litet 4x4-rutnät av "bubblor" (samma stil som spelets `Bubble`).
-- Tar in ett mål-ord (`targetWord`, t.ex. "CAT"/"KATT") och placerar bokstäverna i rutnätet på ett sätt så att en bokstav är **3 positioner** ifrån sin slutposition (för att visa fri svajping till skillnad mot Candy Crush).
-- Spelaren swipar bokstaven steg för steg. När bokstaven är på rätt plats och hela ordet bildats → "klart"-state och tutorialen kan gå vidare ("Nästa"-knapp aktiveras).
-- Färger: alla bokstäver i ordet får **samma färg** (t.ex. grön) för att visa "samma färg = ord". Övriga bubblor får andra färger för kontrast.
-- Vid mount: animerad "hint"-hand pekar på den felplacerade bokstaven och ritar en streckad vit linje längs vägen den ska swipas. Loopar tills spelaren rört vid bubblan.
-
-Skapa `src/components/tutorial/AnimatedHand.tsx`:
-- En liten SVG/PNG-hand (vit handske, tecknad stil — lägg under `src/assets/hand-pointer.svg`, jag genererar den med `imagegen`).
-- Animation: hand glider från startpos → slutpos längs vald axel; bakom följer en mjukt fade:ad vit svans (CSS box-shadow eller en SVG `<path>` som ritas med `stroke-dashoffset`).
-- Loopar med 1s paus mellan varje svep.
-- Pausar/försvinner när spelaren börjar interagera.
-
-## Steg 3 – Språkanpassade demo-ord
-
-Lägg till en map i `src/data/tutorials.tsx`:
 ```ts
-const DEMO_WORDS: Record<GameLanguage, string> = {
-  en: 'CAT', sv: 'KATT', de: 'KATZ', es: 'GATO', fr: 'CHAT',
-  it: 'GATTO', pt: 'GATO', nl: 'KAT', no: 'KATT', da: 'KAT', fi: 'KISSA',
-};
+export function colorHasLetters(grid, word, color): boolean
+// True om gridet har minst N exemplar av varje bokstav i `word` med given färg
+// (count med multiplicitet — KATT kräver 2 st T i samma färg).
+
+export function wordIsFormable(grid, word): boolean
+// True om någon färg uppfyller colorHasLetters(grid, word, color).
+
+export function findBestColorForWord(grid, word): { color, missing: Record<letter, count> } | null
+// Returnerar färgen som är "närmast" att kunna forma ordet (minst antal saknade bokstäver),
+// och en map över hur många bokstäver av varje sort som saknas.
 ```
-- `getTutorialSteps` byter ut det nuvarande "Same color forms words"-steget mot ett interaktivt steg som använder `DEMO_WORDS[lang]`.
-- Den befintliga statiska `MiniGrid`-visualiseringen tas bort där den ersätts. Behåll den för andra steg som bara förklarar (t.ex. "5+ letters only" för fiveplus).
 
-## Steg 4 – TutorialModal stöd för interaktiva steg
+## Steg 2 – Utöka AdventureSeed
 
-I `src/components/TutorialModal.tsx`:
-- Lägg till valfritt `interactive?: boolean` och `onComplete?: () => void` på `TutorialStep`.
-- Om `interactive` är true: dölj "Nästa"-pilen tills `onComplete` triggats (rendrera ändå "Hoppa över" som liten länk för accessibility).
-- "Visual" får ta över hela kortets innehåll (utan body-text) när det är interaktivt, för plats.
+I `useGameState.ts`:
 
-## Steg 5 – Adventure: använd tutorial efter rätt mode
+```ts
+export interface AdventureSeed {
+  targetWords: string[];
+  maxMoves?: number;
+  /** Words that must remain formable in some color throughout the game. */
+  keepFormableWords?: string[];
+}
+```
 
-`AdventureGamePage` skickar `level.mode ?? 'classic'` till `getTutorialSteps`. Bombnivåer får alltså bombstegen, surge får surgestegen, etc. Hidden-word/find-words-nivåer faller tillbaka på classic-stegen + en extra slide som förklarar målet (kommer från `level.intro` + `goalText`).
+Lägg till en ref `keepFormableRef` med dessa ord, och en setter via en ny exporterad funktion `setRemainingFormableWords(words)` så att `AdventureGamePage` kan ta bort ord ur listan när spelaren hittat dem (slipper onödigt arbete).
 
-## Steg 6 – Nästa loop (inte i denna omgång)
+## Steg 3 – Garantera initial formability
 
-- Designa ut Map 2-nivåerna (`adv-2-1` … `adv-2-N`) med riktiga mål, ord, lägen, bakgrunder och progression Earth → Moon → Earth.
-- Lägga till intro-texter på alla språk.
+Utöka `buildSeededGrid`:
 
----
+1. Plantera `targetWords` precis som idag.
+2. För varje ord i `keepFormableWords` som **inte** redan finns i en enskild färg på brädet (efter steg 1), välj en färg och *plantera även det ordet* (en bokstav per cell, samma färg) på lediga / icke-konflikterande positioner.
+3. Kör fortfarande `ensureGridHasNoWords` så vi inte börjar med färdiga ord.
+
+Detta löser hidden-word-fallet: SKEPP planteras vid start.
+
+## Steg 4 – Garantera fortsatt formability vid refill
+
+Skapa ny funktion i `gridGeneration.ts`:
+
+```ts
+export function repairFormability(
+  grid, requiredWords: string[],
+  newCells: { row: number; col: number }[],  // celler som just genererats
+  values, pool
+): BubbleData[][]
+```
+
+Logik:
+1. För varje ord i `requiredWords`:
+   - Om `wordIsFormable(grid, word)` → hoppa över.
+   - Annars: hitta `findBestColorForWord(grid, word)`. Om någon `newCells`-cell redan har den färgen, byt dess bokstav till en av de saknade. Annars: byt en av `newCells` (helst en i en kolumn som tillhör samma färg-cluster, annars valfri) till bokstav + färg som saknas.
+2. Iterera tills alla `requiredWords` är formbara, eller `newCells` är slut. Om vi inte räcker till: använd även gamla bubblor från brädet i nödfall (sällsynt, men en sista fallback för att garantera invarianten).
+3. Kör `ensureGridHasNoWords` igen för att inte oavsiktligt ha skapat ett färdigt ord på raden.
+
+I `useGameState.ts`:
+- Efter `popAndCascade`s `newGrid`-bygge (raden där `setGrid(newGrid)` anropas, ~rad 595) — kör `repairFormability` med de nya cellerna (positionerna i `newBubbles`) **innan** `setGrid`.
+- Samma sak i `fireRocket` (~rad 711) för raketkolumnen.
+
+Tracking av nya celler: i refill-loopen håll reda på `(r, c)` för varje `newBubbles[i]` så vi kan skicka in dem till `repairFormability`.
+
+## Steg 5 – AdventureGamePage skickar in rätt ord
+
+I `adventureSeed`-memon:
+
+- **find-words**: `keepFormableWords = words.filter(w => !foundTargets.includes(w))`
+- **hidden-word**: `keepFormableWords = [hiddenWord, ...thematicWordsEjFunna]`
+- **andra typer**: lämna tomt.
+
+Eftersom `useGameState` lever genom hela nivån behöver vi en reaktiv uppdatering. Två alternativ:
+
+1. **Enkelt**: Exponera `setKeepFormableWords` från `useGameState`. Adventure-sidan har en effekt som synkar varje gång `usedWords`/`hiddenFoundCount` ändras.
+2. Alternativt: Adventure passerar en callback `getKeepFormable()` som useGameState läser via ref vid varje refill. Mindre re-renders.
+
+Vi går på alternativ 2 (ref-baserad) för minimal omrendrering.
+
+## Steg 6 – Sanity-test
+
+Lägg till ett vitest-fall i `src/test/gridGeneration.test.ts`:
+
+- Bygg ett rutnät där SKEPP-bokstäver bara finns i röd, ta bort ett P (simulera popp), kör `repairFormability` med `requiredWords = ['SKEPP']` och en lista nya celler. Förvänta att `wordIsFormable(result, 'SKEPP') === true` efteråt.
 
 ## Tekniska detaljer
 
-**Filer som skapas**
-- `src/components/tutorial/InteractiveSwapDemo.tsx`
-- `src/components/tutorial/AnimatedHand.tsx`
-- `src/assets/hand-pointer.svg` (genererad bild – tecknad vit handske)
-
 **Filer som ändras**
-- `src/components/TutorialModal.tsx` – stöd för interaktiva steg
-- `src/data/tutorials.tsx` – DEMO_WORDS, byter ut "find words"-steget mot interaktivt
-- `src/pages/AdventureGamePage.tsx` – ersätt `showIntro` med tutorial-modal som visas varje gång; ingen `useTutorialSeen`
-- `src/pages/GamePage.tsx` – inga funktionella ändringar, men interaktivt steg fungerar automatiskt
+- `src/utils/gridGeneration.ts` – nya helpers `colorHasLetters`, `wordIsFormable`, `findBestColorForWord`, `repairFormability`.
+- `src/hooks/useGameState.ts` – `AdventureSeed.keepFormableWords` + ref, plantera dem i `buildSeededGrid`, applicera `repairFormability` i `popAndCascade` och `fireRocket`, exponera setter/ref-uppdatering.
+- `src/pages/AdventureGamePage.tsx` – beräkna `keepFormableWords` reaktivt och synka in i game-hooken.
+- `src/test/gridGeneration.test.ts` – nytt test.
 
 **Beteendekontrakt**
-- I klassiskt läge: tutorialen visas fortfarande bara första gången (via `useTutorialSeen`).
-- I adventure: visas alltid.
-- Spelaren kan inte gå vidare i ett interaktivt steg utan att slutföra (kan dock stänga hela modalen via X eller "Hoppa över").
+- Find-words och hidden-word-nivåer: målorden är *garanterat* formbara i någon färg från start och efter varje refill, **såvida inte** ordet redan hittats av spelaren.
+- Övriga lägen (classic, surge, bomb, fiveplus): oförändrat beteende.
+- Inga ändringar är synliga för spelaren — bara mindre frustration.
 
+**Edge-cases**
+- Om brädet är så fullt att ingen färg kan rymma ordet ens med ompositionering: byt ut äldre bubblor (inte bara `newCells`) som sista utväg.
+- Multipla `keepFormableWords` som delar bokstäver: en enda repair-runda tillåts dela bidrag (samma S-bubbla räcker för båda).
+- Bomb mode (adv-4) påverkas inte eftersom den inte är hidden-word/find-words.

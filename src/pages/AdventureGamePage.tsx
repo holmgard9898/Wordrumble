@@ -40,10 +40,18 @@ const AdventureGamePage = () => {
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
     if (level.goal.type === 'find-words') {
-      return { targetWords: level.goal.words[settings.language], maxMoves: level.maxMoves };
+      const words = level.goal.words[settings.language];
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words };
     }
     if (level.goal.type === 'hidden-word') {
-      return { targetWords: level.goal.thematicWords[settings.language], maxMoves: level.maxMoves };
+      const thematic = level.goal.thematicWords[settings.language];
+      const hidden = level.goal.hiddenWord[settings.language];
+      // Both the thematic words AND the hidden word must remain formable.
+      return {
+        targetWords: thematic,
+        maxMoves: level.maxMoves,
+        keepFormableWords: [hidden, ...thematic],
+      };
     }
     return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
   }, [level, settings.language]);
@@ -133,6 +141,22 @@ const AdventureGamePage = () => {
     if (!level || level.goal.type !== 'hidden-word') return [];
     return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
   }, [level, settings.language]);
+
+  // Keep useGameState's "must remain formable" list in sync with what the
+  // player still needs to find. Words already used are dropped.
+  useEffect(() => {
+    if (!level) return;
+    const used = new Set(game.usedWords.map(w => w.word.toLowerCase()));
+    let remaining: string[] = [];
+    if (level.goal.type === 'find-words') {
+      remaining = level.goal.words[settings.language].filter(w => !used.has(w.toLowerCase()));
+    } else if (level.goal.type === 'hidden-word') {
+      const hidden = level.goal.hiddenWord[settings.language];
+      const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
+      remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    }
+    game.setKeepFormableWords(remaining);
+  }, [level, settings.language, game.usedWords, game.setKeepFormableWords]);
 
   // Number of hidden-word letters revealed = number of distinct thematic words found (capped at hidden word length)
   const hiddenFoundCount = useMemo(() => {
