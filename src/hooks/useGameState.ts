@@ -1044,7 +1044,7 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, movesUsed, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, adventureSeed?.collapsingCave, tickUfos]);
+  }, [grid, movesUsed, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, adventureSeed?.collapsingCave, adventureSeed?.infection, tickUfos]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
