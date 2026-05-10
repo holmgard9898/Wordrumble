@@ -769,7 +769,7 @@ export function useGameState(
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
     // Asteroids cannot be moved.
-    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid || currentGrid[r][c].satellite) {
+    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid || grid[fromRow][fromCol].satellite || grid[toRow][toCol].satellite) {
       setSelectedBubble(null);
       return;
     }
