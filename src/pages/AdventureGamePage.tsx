@@ -218,8 +218,20 @@ const AdventureGamePage = () => {
   }, [level, settings.language]);
 
   const hiddenThematic = useMemo<string[]>(() => {
-    if (!level || level.goal.type !== 'hidden-word') return [];
-    return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+    if (!level) return [];
+    if (level.goal.type === 'hidden-word' || level.goal.type === 'two-hidden-words') {
+      return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
+    }
+    return [];
+  }, [level, settings.language]);
+
+  // Two-hidden-words data
+  const twoHidden = useMemo<{ w1: string; w2: string } | null>(() => {
+    if (!level || level.goal.type !== 'two-hidden-words') return null;
+    return {
+      w1: level.goal.hiddenWord1[settings.language].toUpperCase(),
+      w2: level.goal.hiddenWord2[settings.language].toUpperCase(),
+    };
   }, [level, settings.language]);
 
   // Keep useGameState's "must remain formable" list in sync with what the
