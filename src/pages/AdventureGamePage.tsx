@@ -245,6 +245,15 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (laserDud) {
+      // Satellite not charged → just shoot a red dud laser, no popup, no change.
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite) {
+        setLaserShot({ row, col, color: 'red', id: `red-${Date.now()}` });
+      }
+      setLaserDud(false);
+      return;
+    }
     if (laserArming) {
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite && !cell.asteroid) {
@@ -254,7 +263,19 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud]);
+
+  const handleSatelliteClick = useCallback(() => {
+    if (rocketArming) return;
+    if (laserReady) {
+      setLaserArming(true);
+      setLaserDud(false);
+    } else {
+      // Not charged: arm a "dud" — next bubble click fires red laser only.
+      setLaserDud(true);
+      setLaserArming(false);
+    }
+  }, [laserReady, rocketArming]);
 
   // Build alphabet for the language (sorted, unique)
   const alphabet = useMemo(() => {
@@ -265,11 +286,18 @@ const AdventureGamePage = () => {
 
   const fireLaser = useCallback(() => {
     if (!laserTarget || !laserNewLetter) return;
-    game.swapBubbleLetter?.(laserTarget.row, laserTarget.col, laserNewLetter);
+    const target = laserTarget;
+    const newLetter = laserNewLetter;
+    // Show green laser beam first; the bubble's letter changes mid-beam so player sees the swap.
+    setLaserShot({ row: target.row, col: target.col, color: 'green', id: `green-${Date.now()}` });
     setLaserTarget(null);
     setLaserNewLetter('');
     setLaserArming(false);
+    setLaserDud(false);
     setLaserCharge(0);
+    setTimeout(() => {
+      game.swapBubbleLetter?.(target.row, target.col, newLetter);
+    }, 250);
   }, [laserTarget, laserNewLetter, game]);
 
   const cancelLaserDialog = useCallback(() => {
