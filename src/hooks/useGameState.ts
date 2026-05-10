@@ -523,7 +523,7 @@ function placeStartPowerups(grid: BubbleData[][], powerups: ReadonlyArray<import
   }
 }
 
-
+export function useGameState(
   isValidWord: (word: string) => boolean,
   mode: GameMode = 'classic',
   language: GameLanguage = 'en',
