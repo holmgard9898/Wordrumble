@@ -1166,21 +1166,33 @@ export function useGameState(
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
 
-  /** Adventure laser: replace one bubble's letter (color & flags preserved). */
+  /** Adventure laser / free swap-letter powerup: replace one bubble's letter (color & flags preserved). */
   const swapBubbleLetter = useCallback((row: number, col: number, newLetter: string) => {
     if (gameOver || isProcessing) return;
     const upper = newLetter.toUpperCase();
     if (!upper) return;
     setGrid(prev => {
-      const b = prev[row][col];
-      if (!b || b.satellite || b.asteroid) return prev;
+      const b = prev[row]?.[col];
+      if (!b || b.satellite || b.asteroid || b.ufo || b.rock || b.dead) return prev;
       const ng = prev.map(r => [...r]);
       ng[row][col] = { ...b, letter: upper, value: values[upper] ?? 1 };
-      // Schedule a word-check on the new grid.
       setTimeout(() => checkForWords(ng), 120);
       return ng;
     });
   }, [gameOver, isProcessing, values, checkForWords]);
+
+  /** Free swap-color powerup: change one bubble's color (letter preserved). */
+  const swapBubbleColor = useCallback((row: number, col: number, newColor: BubbleColor) => {
+    if (gameOver || isProcessing) return;
+    setGrid(prev => {
+      const b = prev[row]?.[col];
+      if (!b || b.satellite || b.asteroid || b.ufo || b.rock || b.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[row][col] = { ...b, color: newColor };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, checkForWords]);
 
   /** Adventure 3 powerup: change a target bubble's letter; consume the powerup at source cell. */
   const applyPowerupSwapLetter = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newLetter: string) => {
