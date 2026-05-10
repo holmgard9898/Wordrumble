@@ -43,9 +43,10 @@ const AdventureGamePage = () => {
     const antigravity = level.antigravity === true;
     const asteroids = level.asteroids === true;
     const satellite = level.satellite === true;
+    const ufos = level.ufos === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids, satellite };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
@@ -57,10 +58,11 @@ const AdventureGamePage = () => {
         antigravity,
         asteroids,
         satellite,
+        ufos,
       };
     }
-    if (level.maxMoves || antigravity || asteroids || satellite) {
-      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids, satellite };
+    if (level.maxMoves || antigravity || asteroids || satellite || ufos) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids, satellite, ufos };
     }
     return undefined;
   }, [level, settings.language]);
@@ -107,6 +109,11 @@ const AdventureGamePage = () => {
   }, [level?.id]);
 
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
+
+  // Unlock shop item simply by reaching this level (e.g. Moon background on Moon Landing).
+  useEffect(() => {
+    if (level?.unlocksShopItem) unlock(level.unlocksShopItem);
+  }, [level?.id, level?.unlocksShopItem, unlock]);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
 
@@ -209,7 +216,11 @@ const AdventureGamePage = () => {
   useEffect(() => {
     if (!level || showSuccess || !ready) return;
     let done = false;
-    if (level.goal.type === 'find-words') done = foundTargets.length >= targetWords.length && targetWords.length > 0;
+    if (level.goal.type === 'find-words') {
+      const wordsDone = foundTargets.length >= targetWords.length && targetWords.length > 0;
+      const scoreDone = level.goal.minScore == null || game.score >= level.goal.minScore;
+      done = wordsDone && scoreDone;
+    }
     else if (level.goal.type === 'reach-score') done = game.score >= level.goal.target;
     else if (level.goal.type === 'find-long-word') {
       const minLen = level.goal.minLength;
@@ -378,16 +389,24 @@ const AdventureGamePage = () => {
           <div className="text-white/70 text-xs uppercase tracking-wider">{t.adventureGoal}</div>
           <div className="text-white text-sm font-medium">{goalText}</div>
           {level.goal.type === 'find-words' && (
-            <div className="flex flex-wrap gap-1.5 justify-center mt-1.5">
-              {targetWords.map(w => {
-                const found = foundTargets.includes(w);
-                return (
-                  <span key={w} className={`px-2 py-0.5 rounded text-xs font-bold ${found ? 'line-through text-emerald-300' : 'text-white'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)' }}>
-                    {w.toUpperCase()}
-                  </span>
-                );
-              })}
-            </div>
+            <>
+              <div className="flex flex-wrap gap-1.5 justify-center mt-1.5">
+                {targetWords.map(w => {
+                  const found = foundTargets.includes(w);
+                  return (
+                    <span key={w} className={`px-2 py-0.5 rounded text-xs font-bold ${found ? 'line-through text-emerald-300' : 'text-white'}`} style={{ background: found ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)' }}>
+                      {w.toUpperCase()}
+                    </span>
+                  );
+                })}
+              </div>
+              {level.goal.minScore != null && (
+                <div className="mt-2 px-1">
+                  <Progress value={Math.min(100, Math.round((game.score / level.goal.minScore) * 100))} className="h-2 bg-white/10" />
+                  <div className="text-[11px] text-white/70 mt-1">{game.score} / {level.goal.minScore}</div>
+                </div>
+              )}
+            </>
           )}
           {level.goal.type === 'hidden-word' && (
             <>

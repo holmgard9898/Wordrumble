@@ -21,6 +21,8 @@ export interface AdventureSeed {
   asteroids?: boolean;
   /** Place an immovable 2x2 satellite in the center; new bubbles below it spawn from below the satellite. */
   satellite?: boolean;
+  /** Place immovable UFOs (rows 4 & 6 alternating) that swap the bubble below them every move. */
+  ufos?: boolean;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
@@ -51,6 +53,25 @@ function placeSatellite(grid: BubbleData[][]): void {
   for (const p of satelliteSeedPositions()) {
     grid[p.row][p.col] = { ...grid[p.row][p.col], satellite: true, asteroid: undefined, bomb: undefined, powerup: undefined };
   }
+}
+
+function placeUfos(grid: BubbleData[][]): void {
+  for (const p of asteroidSeedPositions()) {
+    grid[p.row][p.col] = { ...grid[p.row][p.col], ufo: true, asteroid: undefined, satellite: undefined, bomb: undefined, powerup: undefined };
+  }
+}
+
+/** Returns per-column sorted row indices that are immovable (satellite or ufo). */
+function getColumnBlockers(grid: BubbleData[][]): Map<number, number[]> {
+  const map = new Map<number, number[]>();
+  for (let c = 0; c < COLS; c++) {
+    const rows: number[] = [];
+    for (let r = 0; r < ROWS; r++) {
+      if (grid[r][c].satellite || grid[r][c].ufo) rows.push(r);
+    }
+    if (rows.length > 0) map.set(c, rows);
+  }
+  return map;
 }
 
 function getSatelliteBounds(grid: BubbleData[][]): { topRow: number; botRow: number; cols: Set<number> } | null {
@@ -439,6 +460,7 @@ export function useGameState(
     if (mode === 'bomb') addBombsToGrid(g, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(g);
     if (adventureSeed?.satellite) placeSatellite(g);
+    if (adventureSeed?.ufos) placeUfos(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
@@ -479,10 +501,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -508,10 +530,10 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -683,7 +705,7 @@ export function useGameState(
 
     const colors = getColorsForMode(mode);
     const antigravity = adventureSeed?.antigravity === true;
-    const satBounds = getSatelliteBounds(currentGrid);
+    const colBlockers = getColumnBlockers(currentGrid);
 
     setTimeout(() => {
       setPoppingCells(new Set());
@@ -694,21 +716,26 @@ export function useGameState(
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
-        const colHasSat = satBounds && satBounds.cols.has(c);
+        const blockers = colBlockers.get(c);
 
-        if (colHasSat && !antigravity) {
-          // Split column into upper [0..topRow-1] and lower [botRow+1..ROWS-1].
-          // New bubbles in the lower region spawn from just BELOW the satellite.
-          for (const region of [
-            { lo: 0, hi: satBounds!.topRow - 1 },
-            { lo: satBounds!.botRow + 1, hi: ROWS - 1 },
-          ]) {
-            if (region.lo > region.hi) continue;
+        if (blockers && !antigravity) {
+          // Split column into segments separated by blockers (satellite/ufo).
+          // Each segment refills new bubbles at its TOP.
+          const segments: { lo: number; hi: number }[] = [];
+          let lo = 0;
+          for (const br of blockers) {
+            if (br - 1 >= lo) segments.push({ lo, hi: br - 1 });
+            lo = br + 1;
+          }
+          if (lo <= ROWS - 1) segments.push({ lo, hi: ROWS - 1 });
+
+          for (const region of segments) {
             const remaining: BubbleData[] = [];
             for (let r = region.lo; r <= region.hi; r++) {
               if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
             }
             const popCount = (region.hi - region.lo + 1) - remaining.length;
+            if (popCount === 0) continue;
             const newBubbles: BubbleData[] = [];
             for (let i = 0; i < popCount; i++) newBubbles.push(refillBubble(colors));
             const fullColumn = [...newBubbles, ...remaining];
@@ -768,9 +795,24 @@ export function useGameState(
     }
   }, [findWords, popAndCascade]);
 
+  const tickUfos = useCallback((g: BubbleData[][], colors: BubbleColor[]) => {
+    for (let r = 0; r < ROWS - 1; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (g[r][c].ufo) {
+          const below = g[r + 1][c];
+          if (below.satellite || below.asteroid || below.ufo) continue;
+          // Replace with a fresh random bubble (new color & letter).
+          g[r + 1][c] = createRandomBubble(colors, pool, values);
+        }
+      }
+    }
+  }, [pool, values]);
+
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids cannot be moved.
-    if (grid[fromRow][fromCol].asteroid || grid[toRow][toCol].asteroid || grid[fromRow][fromCol].satellite || grid[toRow][toCol].satellite) {
+    // Asteroids/satellite/UFOs cannot be moved.
+    const a = grid[fromRow][fromCol];
+    const b = grid[toRow][toCol];
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo) {
       setSelectedBubble(null);
       return;
     }
@@ -780,6 +822,10 @@ export function useGameState(
     newGrid[toRow][toCol] = temp;
 
     setMovesUsed((prev) => prev + 1);
+
+    const colors = getColorsForMode(mode);
+    const hasUfos = adventureSeed?.ufos === true;
+    if (hasUfos) tickUfos(newGrid, colors);
 
     if (mode === 'bomb') {
       setGrid(newGrid);
@@ -824,7 +870,7 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras]);
+  }, [grid, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, tickUfos]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
@@ -892,6 +938,7 @@ export function useGameState(
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     if (adventureSeed?.satellite) placeSatellite(newGrid);
+    if (adventureSeed?.ufos) placeUfos(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
@@ -908,7 +955,7 @@ export function useGameState(
     setFreeMovesRemaining(0);
     setExplodedAt(null);
     setAsteroidsDestroyed(0);
-  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids, adventureSeed?.satellite]);
+  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids, adventureSeed?.satellite, adventureSeed?.ufos]);
 
   const addMoves = useCallback((amount: number) => {
     if (amount <= 0) return;

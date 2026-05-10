@@ -229,6 +229,47 @@ function SatelliteInner(_: BubbleProps) {
   return <div className="w-full aspect-square" style={{ pointerEvents: 'none' }} />;
 }
 
+function UfoInner({ onClick }: BubbleProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full aspect-square rounded-full flex items-center justify-center select-none cursor-not-allowed touch-none"
+      style={{ background: 'transparent', overflow: 'visible' }}
+      aria-label="ufo"
+    >
+      {/* Green tractor beam shooting downward, overflows into the cell below */}
+      <span
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2"
+        style={{
+          top: '70%',
+          width: '70%',
+          height: '110%',
+          background: 'linear-gradient(180deg, hsla(140,100%,55%,0.55) 0%, hsla(140,100%,50%,0.30) 60%, hsla(140,100%,45%,0) 100%)',
+          clipPath: 'polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%)',
+          filter: 'blur(1px)',
+          zIndex: 0,
+        }}
+      />
+      <span
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2"
+        style={{
+          top: '78%',
+          width: '40%',
+          height: '90%',
+          background: 'radial-gradient(ellipse at top, hsla(140,100%,75%,0.5), transparent 70%)',
+          zIndex: 0,
+        }}
+      />
+      <span
+        className="relative text-2xl md:text-3xl lg:text-4xl leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.7)]"
+        style={{ zIndex: 1, filter: 'drop-shadow(0 0 6px hsl(140,90%,55%))' }}
+      >
+        🛸
+      </span>
+    </button>
+  );
+}
+
 export function Bubble(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
@@ -238,6 +279,7 @@ export function Bubble(props: BubbleProps) {
   const style = settings.tileStyle;
 
   if (bubble.satellite) return <SatelliteInner {...props} />;
+  if (bubble.ufo) return <UfoInner {...props} />;
   if (bubble.asteroid) return <AsteroidInner {...props} />;
   if (style === 'soapbubble') return <SoapBubbleInner {...props} />;
   if (style === 'sports') return <SportsBallInner {...props} />;
