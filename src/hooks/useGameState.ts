@@ -17,6 +17,22 @@ export interface AdventureSeed {
   keepFormableWords?: string[];
   /** Reverse gravity: existing bubbles move up; new bubbles spawn at the bottom. */
   antigravity?: boolean;
+  /** Place immovable asteroids on rows 4 & 6 (alternating cols). Destroyed at bottom row. */
+  asteroids?: boolean;
+}
+
+/** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
+function asteroidSeedPositions(): Position[] {
+  const out: Position[] = [];
+  for (let c = 0; c < COLS; c += 2) out.push({ row: 3, col: c });
+  for (let c = 1; c < COLS; c += 2) out.push({ row: 5, col: c });
+  return out;
+}
+
+function placeAsteroids(grid: BubbleData[][]): void {
+  for (const p of asteroidSeedPositions()) {
+    grid[p.row][p.col] = { ...grid[p.row][p.col], asteroid: true, bomb: undefined, powerup: undefined };
+  }
 }
 
 let seedBubbleCounter = 0;
