@@ -433,8 +433,8 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   return { newGrid, exploded: false, explodedAt: null };
 }
 
-const INFECT_SPREAD_TURNS = 5;
-const INFECT_DIE_TURNS = 7;
+const INFECT_SPREAD_TURNS = 7;
+const INFECT_DIE_TURNS = 10;
 const GHOST_GRACE_TURNS = 5;
 
 function isOpenCell(b: BubbleData): boolean {
