@@ -433,7 +433,97 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
   return { newGrid, exploded: false, explodedAt: null };
 }
 
-export function useGameState(
+const INFECT_SPREAD_TURNS = 5;
+const INFECT_DIE_TURNS = 7;
+const GHOST_GRACE_TURNS = 5;
+
+function isOpenCell(b: BubbleData): boolean {
+  return !b.satellite && !b.asteroid && !b.ufo && !b.rock && !b.dead;
+}
+
+function infectCell(grid: BubbleData[][], r: number, c: number): void {
+  const b = grid[r][c];
+  if (!isOpenCell(b)) return;
+  if (b.infected !== undefined) return;
+  grid[r][c] = { ...b, infected: INFECT_SPREAD_TURNS, infectedDie: INFECT_DIE_TURNS };
+}
+
+function ensureInfection(grid: BubbleData[][]): void {
+  // If at least one infected/dead exists, no need to seed
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c].infected !== undefined || grid[r][c].dead) return;
+    }
+  }
+  const candidates: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (isOpenCell(grid[r][c]) && !grid[r][c].powerup && !grid[r][c].bomb) candidates.push({ row: r, col: c });
+  }
+  if (candidates.length === 0) return;
+  const p = candidates[Math.floor(Math.random() * candidates.length)];
+  infectCell(grid, p.row, p.col);
+}
+
+/** Tick infection clocks after each player swap. Returns score penalty (negative). */
+function tickInfection(grid: BubbleData[][]): number {
+  let penalty = 0;
+  // Snapshot positions of currently infected (so spread doesn't cascade in same tick)
+  const infectedNow: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (grid[r][c].infected !== undefined && !grid[r][c].dead) infectedNow.push({ row: r, col: c });
+  }
+  for (const { row: r, col: c } of infectedNow) {
+    const b = grid[r][c];
+    const nextSpread = (b.infected ?? INFECT_SPREAD_TURNS) - 1;
+    const nextDie = (b.infectedDie ?? INFECT_DIE_TURNS) - 1;
+    if (nextDie <= 0) {
+      // Become a ghost
+      grid[r][c] = { ...b, dead: true, deadAge: 0, infected: undefined, infectedDie: undefined };
+      continue;
+    }
+    if (nextSpread <= 0) {
+      // Spread to orthogonal neighbours, reset spread clock
+      grid[r][c] = { ...b, infected: INFECT_SPREAD_TURNS, infectedDie: nextDie };
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        infectCell(grid, nr, nc);
+      }
+    } else {
+      grid[r][c] = { ...b, infected: nextSpread, infectedDie: nextDie };
+    }
+  }
+  // Age ghosts and apply penalty
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const b = grid[r][c];
+    if (b.dead) {
+      const age = (b.deadAge ?? 0) + 1;
+      grid[r][c] = { ...b, deadAge: age };
+      if (age > GHOST_GRACE_TURNS) penalty -= 1;
+    }
+  }
+  ensureInfection(grid);
+  return penalty;
+}
+
+function placeStartPowerups(grid: BubbleData[][], powerups: ReadonlyArray<import('@/data/gameConstants').PowerupType>): void {
+  const candidates: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (isOpenCell(grid[r][c]) && !grid[r][c].powerup && !grid[r][c].bomb) candidates.push({ row: r, col: c });
+  }
+  // Shuffle
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  for (let i = 0; i < powerups.length && i < candidates.length; i++) {
+    const p = candidates[i];
+    grid[p.row][p.col] = { ...grid[p.row][p.col], powerup: powerups[i] };
+  }
+}
+
+
   isValidWord: (word: string) => boolean,
   mode: GameMode = 'classic',
   language: GameLanguage = 'en',
