@@ -442,9 +442,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
+        if (currentGrid[r][c].asteroid) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -463,16 +464,17 @@ export function useGameState(
             }
           }
         }
-        c = end;
+        c = end === c ? c + 1 : end;
       }
     }
 
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
+        if (currentGrid[r][c].asteroid) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -491,7 +493,7 @@ export function useGameState(
             }
           }
         }
-        r = end;
+        r = end === r ? r + 1 : end;
       }
     }
 
