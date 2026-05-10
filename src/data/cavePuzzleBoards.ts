@@ -27,8 +27,8 @@ export const CAVE_TARGET_WORD: Record<GameLanguage, string> = {
 
 /** Move budget per language — tight, requires planning but solvable. */
 export const CAVE_MOVES: Record<GameLanguage, number> = {
-  en: 11, sv: 9, de: 11, es: 7, fr: 11, it: 9,
-  pt: 7, nl: 11, no: 7, da: 7, fi: 9,
+  en: 12, sv: 10, de: 12, es: 7, fr: 12, it: 10,
+  pt: 7, nl: 12, no: 7, da: 7, fi: 10,
 };
 
 /** Non-blue colors used to fill decoy cells. */
