@@ -94,6 +94,7 @@ const Shop = () => {
     'bg-default': t.shopCosmicNight, 'bg-clouds': t.shopBlueSky, 'bg-wood': t.shopWalnut, 'bg-space': t.shopSpace,
     'bg-volcano': t.shopVolcano, 'bg-beach': t.shopBeach,
     'bg-shipwreck': t.shopShipwreck, 'bg-city': t.shopCity, 'bg-underwater': t.shopUnderwater, 'bg-cave': t.shopCave,
+    'bg-forest': t.shopForest,
     'tile-bubble': t.shopBubbles, 'tile-rubik': 'Rubik', 'tile-shapes': t.shopShapes, 'tile-soapbubble': t.shopSoapBubbles, 'tile-sports': t.shopSport,
   };
 

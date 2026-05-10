@@ -625,6 +625,7 @@ const translations = {
   shopWalnut: { en: 'Walnut', sv: 'Valnöt', de: 'Walnuss', es: 'Nogal', fr: 'Noyer', it: 'Noce', pt: 'Nogueira', nl: 'Walnoot', no: 'Valnøtt', da: 'Valnød', fi: 'Pähkinä' },
   shopSpace: { en: 'Space', sv: 'Rymden', de: 'Weltraum', es: 'Espacio', fr: 'Espace', it: 'Spazio', pt: 'Espaço', nl: 'Ruimte', no: 'Verdensrommet', da: 'Rummet', fi: 'Avaruus' },
   shopVolcano: { en: 'Volcano', sv: 'Vulkan', de: 'Vulkan', es: 'Volcán', fr: 'Volcan', it: 'Vulcano', pt: 'Vulcão', nl: 'Vulkaan', no: 'Vulkan', da: 'Vulkan', fi: 'Tulivuori' },
+  shopForest: { en: 'Forest', sv: 'Skog', de: 'Wald', es: 'Bosque', fr: 'Forêt', it: 'Bosco', pt: 'Floresta', nl: 'Bos', no: 'Skog', da: 'Skov', fi: 'Metsä' },
   shopBubbles: { en: 'Bubbles', sv: 'Bubblor', de: 'Blasen', es: 'Burbujas', fr: 'Bulles', it: 'Bolle', pt: 'Bolhas', nl: 'Bellen', no: 'Bobler', da: 'Bobler', fi: 'Kuplat' },
   shopShapes: { en: 'Shapes', sv: 'Former', de: 'Formen', es: 'Formas', fr: 'Formes', it: 'Forme', pt: 'Formas', nl: 'Vormen', no: 'Former', da: 'Former', fi: 'Muodot' },
   shopSoapBubbles: { en: 'Soap Bubbles', sv: 'Såpbubblor', de: 'Seifenblasen', es: 'Pompas de jabón', fr: 'Bulles de savon', it: 'Bolle di sapone', pt: 'Bolhas de sabão', nl: 'Zeepbellen', no: 'Såpebobler', da: 'Sæbebobler', fi: 'Saippuakuplat' },
