@@ -229,6 +229,26 @@ function SatelliteInner(_: BubbleProps) {
   return <div className="w-full aspect-square" style={{ pointerEvents: 'none' }} />;
 }
 
+function RockInner({ onClick }: BubbleProps) {
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full aspect-square flex items-center justify-center select-none cursor-not-allowed touch-none"
+      style={{
+        background: 'radial-gradient(circle at 32% 28%, hsl(25, 12%, 48%), hsl(22, 14%, 26%) 60%, hsl(20, 16%, 14%))',
+        border: '2px solid hsl(20, 18%, 10%)',
+        borderRadius: '22% 28% 24% 30% / 26% 22% 30% 24%',
+        boxShadow: 'inset 0 -4px 8px rgba(0,0,0,0.55), inset 0 2px 4px rgba(255,255,255,0.08), 0 3px 7px rgba(0,0,0,0.6)',
+      }}
+      aria-label="rock"
+    >
+      <span className="text-xl md:text-2xl lg:text-3xl leading-none drop-shadow-[0_2px_3px_rgba(0,0,0,0.7)]">🪨</span>
+      <span className="absolute top-1.5 left-2 w-1.5 h-1.5 rounded-full opacity-50" style={{ background: 'hsl(0,0%,12%)' }} />
+      <span className="absolute bottom-2 right-2 w-1 h-1 rounded-full opacity-60" style={{ background: 'hsl(0,0%,8%)' }} />
+    </button>
+  );
+}
+
 function UfoInner({ onClick }: BubbleProps) {
   return (
     <button
