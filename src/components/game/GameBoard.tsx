@@ -327,6 +327,49 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
       {bonusPopups && onBonusPopupDone && bonusPopups.map((popup) => (
         <BonusMovePopup key={popup.id} popup={popup} onDone={onBonusPopupDone} />
       ))}
+
+      {/* Pop particles overlay */}
+      <div className="pointer-events-none absolute inset-0 overflow-visible z-30">
+        {particles.map((p) => (
+          <div
+            key={p.id}
+            className="absolute"
+            style={{
+              left: p.x,
+              top: p.y,
+              width: p.size,
+              height: p.size,
+              marginLeft: -p.size / 2,
+              marginTop: -p.size / 2,
+              ['--px' as any]: `${p.dx}px`,
+              ['--py' as any]: `${p.dy}px`,
+              animation: `pop-particle 0.6s ease-out ${p.delay}ms forwards`,
+            }}
+          >
+            {p.content.kind === 'dot' && (
+              <div className="w-full h-full rounded-full" style={{ background: p.content.color, boxShadow: `0 0 6px ${p.content.color}` }} />
+            )}
+            {p.content.kind === 'emoji' && (
+              <div className="w-full h-full flex items-center justify-center text-base leading-none">{p.content.char}</div>
+            )}
+            {p.content.kind === 'shape' && (
+              <div
+                className="w-full h-full"
+                style={{
+                  background: p.content.color,
+                  borderRadius: p.content.shape === 'circle' ? '50%' : p.content.shape === 'square' ? '2px' : 0,
+                  clipPath:
+                    p.content.shape === 'triangle' ? 'polygon(50% 0%, 100% 100%, 0% 100%)' :
+                    p.content.shape === 'diamond' ? 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' :
+                    p.content.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' :
+                    'none',
+                  boxShadow: `0 0 6px ${p.content.color}`,
+                }}
+              />
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 });
