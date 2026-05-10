@@ -756,7 +756,24 @@ export function useGameState(
     }
 
     const word = foundWords[0];
-    const popKeys = new Set(word.positions.map((p) => `${p.row}-${p.col}`));
+    // Expand popped positions to include any adjacent ghost (dead) bubbles → cleansed.
+    const popPositions: Position[] = [...word.positions];
+    const popSet = new Set(popPositions.map(p => `${p.row}-${p.col}`));
+    for (const p of word.positions) {
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (const [dr, dc] of dirs) {
+        const nr = p.row + dr, nc = p.col + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        const key = `${nr}-${nc}`;
+        if (popSet.has(key)) continue;
+        if (currentGrid[nr][nc].dead) {
+          popPositions.push({ row: nr, col: nc });
+          popSet.add(key);
+        }
+      }
+    }
+    word.positions = popPositions;
+    const popKeys = popSet;
     setPoppingCells(popKeys);
     setLastFoundWord(word.word);
 
