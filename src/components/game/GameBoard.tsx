@@ -13,6 +13,8 @@ interface GameBoardProps {
   onSwipe?: (row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => void;
   bonusPopups?: BonusPopupData[];
   onBonusPopupDone?: (id: string) => void;
+  /** Visual state for the satellite (Adventure 2-3). */
+  laserCharge?: { ready: boolean; current: number; max: number; arming: boolean };
 }
 
 export interface GameBoardHandle {
