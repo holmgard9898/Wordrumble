@@ -676,6 +676,20 @@ export function useGameState(
         }
       }
 
+      // Asteroid destruction: any asteroid that ends up on the bottom row is destroyed.
+      let destroyedThisPass = 0;
+      const destroyRow = antigravity ? 0 : ROWS - 1;
+      for (let cc = 0; cc < COLS; cc++) {
+        if (newGrid[destroyRow][cc].asteroid) {
+          destroyedThisPass++;
+          newGrid[destroyRow][cc] = refillBubble(colors);
+          newCellPositions.push({ row: destroyRow, col: cc });
+        }
+      }
+      if (destroyedThisPass > 0) {
+        setAsteroidsDestroyed(n => n + destroyedThisPass);
+      }
+
       // Adventure: ensure required words remain formable.
       repairAfterRefill(newGrid, newCellPositions, colors);
 
