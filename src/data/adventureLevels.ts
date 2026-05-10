@@ -60,6 +60,10 @@ export interface AdventureLevel {
   ufos?: boolean;
   /** Collapsing cave: from move 5+, top tiles get replaced by immovable rocks each move. */
   collapsingCave?: boolean;
+  /** Adventure 3+: smitta-mekanik (infection + ghosts). */
+  infection?: boolean;
+  /** Adventure 3-3: powerups som placeras vid start (ex: ['swapcolor','swapcolor','swapletter']). */
+  startPowerups?: Array<'swapletter' | 'swapcolor'>;
   /** Fully pre-determined start grid per language. Overrides random generation. */
   presetGrid?: Partial<Record<GameLanguage, PresetCell[][]>>;
   /** Per-language max moves override (takes priority over `maxMoves`). */
@@ -652,6 +656,8 @@ export const adventureLevels: AdventureLevel[] = [
     mapPosition: { x: 32, y: 60 },
     connectsTo: ['adv-3-4'],
     maxMoves: 120,
+    infection: true,
+    startPowerups: ['swapcolor', 'swapcolor', 'swapletter'],
   },
   {
     id: 'adv-3-4', number: 4, icon: '🕷️', map: 3,
@@ -675,6 +681,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 42, y: 48 },
     connectsTo: ['adv-3-5'],
+    infection: true,
     maxMoves: 70,
   },
   {
@@ -713,6 +720,7 @@ export const adventureLevels: AdventureLevel[] = [
     },
     mapPosition: { x: 50, y: 35 },
     connectsTo: ['adv-3-6'],
+    infection: true,
     maxMoves: 130,
   },
   {
@@ -737,6 +745,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 42, y: 18 },
     connectsTo: ['adv-3-7'],
+    infection: true,
     maxMoves: 60,
   },
   {
@@ -761,6 +770,7 @@ export const adventureLevels: AdventureLevel[] = [
     showProgressBar: true,
     mapPosition: { x: 72, y: 33 },
     connectsTo: ['adv-3-8'],
+    infection: true,
     maxMoves: 50,
   },
   {

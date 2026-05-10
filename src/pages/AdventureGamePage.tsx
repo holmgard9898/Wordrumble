@@ -46,27 +46,26 @@ const AdventureGamePage = () => {
     const satellite = level.satellite === true;
     const ufos = level.ufos === true;
     const collapsingCave = level.collapsingCave === true;
+    const infection = level.infection === true;
+    const startPowerups = level.startPowerups;
     const presetGrid = level.presetGrid?.[settings.language];
     const maxMoves = level.maxMovesByLang?.[settings.language] ?? level.maxMoves;
+    const extras = { antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid, infection, startPowerups };
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+      return { targetWords: words, maxMoves, keepFormableWords: words, ...extras };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
       const hidden = level.goal.hiddenWord[settings.language];
-      return {
-        targetWords: thematic, maxMoves,
-        keepFormableWords: [hidden, ...thematic],
-        antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid,
-      };
+      return { targetWords: thematic, maxMoves, keepFormableWords: [hidden, ...thematic], ...extras };
     }
     if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
-      return { targetWords: [w], maxMoves, keepFormableWords: [w], antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+      return { targetWords: [w], maxMoves, keepFormableWords: [w], ...extras };
     }
-    if (maxMoves || antigravity || asteroids || satellite || ufos || collapsingCave || presetGrid) {
-      return { targetWords: [] as string[], maxMoves, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
+    if (maxMoves || antigravity || asteroids || satellite || ufos || collapsingCave || presetGrid || infection || startPowerups) {
+      return { targetWords: [] as string[], maxMoves, ...extras };
     }
     return undefined;
   }, [level, settings.language]);
@@ -84,6 +83,11 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
+  // Adventure 3-3 powerup activation state
+  const [powerupArming, setPowerupArming] = useState<{ kind: 'swapletter' | 'swapcolor'; row: number; col: number } | null>(null);
+  const [powerupTarget, setPowerupTarget] = useState<{ row: number; col: number } | null>(null);
+  const [powerupNewLetter, setPowerupNewLetter] = useState<string>('');
+  const [powerupNewColor, setPowerupNewColor] = useState<import('@/data/gameConstants').BubbleColor | null>(null);
 
   // Laser (satellite levels)
   const LASER_INTERVAL = 5;
@@ -268,8 +272,28 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
+    if (powerupArming) {
+      const cell = game.grid[row]?.[col];
+      if (cell && !cell.satellite && !cell.asteroid && !cell.ufo && !cell.rock && !cell.dead) {
+        if (row === powerupArming.row && col === powerupArming.col) {
+          setPowerupArming(null);
+          return;
+        }
+        setPowerupTarget({ row, col });
+        setPowerupNewLetter(cell.letter);
+        setPowerupNewColor(cell.color);
+      }
+      return;
+    }
+    // Tapping a powerup bubble (when nothing else selected) arms it.
+    if (!game.selectedBubble) {
+      const cell = game.grid[row]?.[col];
+      if (cell?.powerup === 'swapletter' || cell?.powerup === 'swapcolor') {
+        setPowerupArming({ kind: cell.powerup, row, col });
+        return;
+      }
+    }
     if (laserDud) {
-      // Satellite not charged → just shoot a red dud laser, no popup, no change.
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite) {
         setLaserShot({ row, col, color: 'red', id: `red-${Date.now()}` });
@@ -286,7 +310,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, powerupArming]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
@@ -684,6 +708,66 @@ const AdventureGamePage = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Powerup swap-letter / swap-color dialog (Adventure 3-3) */}
+      <Dialog open={!!powerupTarget} onOpenChange={(open) => { if (!open) { setPowerupTarget(null); } }}>
+        <DialogContent className="max-w-sm rounded-2xl border-purple-500/30" style={{ background: 'linear-gradient(135deg, rgba(40,15,55,0.97), rgba(20,8,35,0.97))' }}>
+          <DialogHeader>
+            <DialogTitle className="text-white text-center text-xl">
+              {powerupArming?.kind === 'swapcolor'
+                ? (settings.language === 'sv' ? '🎨 Byt färg' : '🎨 Swap color')
+                : (settings.language === 'sv' ? '🔤 Byt bokstav' : '🔤 Swap letter')}
+            </DialogTitle>
+            <DialogDescription className="text-white/70 text-center text-xs">
+              {powerupArming?.kind === 'swapcolor'
+                ? (settings.language === 'sv' ? 'Välj ny färg på vald bricka.' : 'Pick a new color for the selected tile.')
+                : (settings.language === 'sv' ? 'Välj ny bokstav. Färgen behålls.' : 'Pick a new letter. Color stays.')}
+            </DialogDescription>
+          </DialogHeader>
+
+          {powerupArming?.kind === 'swapcolor' ? (
+            <div className="grid grid-cols-5 gap-2 py-3">
+              {(['red','green','blue','yellow','pink'] as const).map(c => {
+                const styles = { red: 'hsl(0,75%,50%)', green: 'hsl(140,65%,42%)', blue: 'hsl(210,80%,52%)', yellow: 'hsl(45,90%,52%)', pink: 'hsl(330,75%,58%)' }[c];
+                const sel = powerupNewColor === c;
+                return (
+                  <button key={c} onClick={() => setPowerupNewColor(c)} className={`aspect-square rounded-full transition-all ${sel ? 'scale-110 ring-4 ring-white' : 'opacity-80'}`} style={{ background: styles, boxShadow: sel ? `0 0 14px ${styles}` : '0 2px 4px rgba(0,0,0,0.3)' }} />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 gap-1.5 py-1">
+              {alphabet.map(letter => {
+                const selected = powerupNewLetter === letter;
+                return (
+                  <button key={letter} onClick={() => setPowerupNewLetter(letter)} className={`aspect-square rounded-md font-bold text-sm transition-all ${selected ? 'bg-purple-500 text-white scale-110 shadow-[0_0_10px_hsl(280,90%,60%)]' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                    {letter}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="flex gap-2 mt-2">
+            <Button onClick={() => { setPowerupTarget(null); }} variant="outline" className="flex-1 gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-4 h-4" />{settings.language === 'sv' ? 'Avbryt' : 'Cancel'}
+            </Button>
+            <Button
+              onClick={() => {
+                if (!powerupArming || !powerupTarget) return;
+                if (powerupArming.kind === 'swapcolor' && powerupNewColor) {
+                  game.applyPowerupSwapColor?.(powerupArming.row, powerupArming.col, powerupTarget.row, powerupTarget.col, powerupNewColor);
+                } else if (powerupArming.kind === 'swapletter' && powerupNewLetter) {
+                  game.applyPowerupSwapLetter?.(powerupArming.row, powerupArming.col, powerupTarget.row, powerupTarget.col, powerupNewLetter);
+                }
+                setPowerupTarget(null);
+                setPowerupArming(null);
+              }}
+              className="flex-1 bg-purple-600 hover:bg-purple-500 text-white"
+            >OK</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };

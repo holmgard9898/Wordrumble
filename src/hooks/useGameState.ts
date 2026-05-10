@@ -27,6 +27,10 @@ export interface AdventureSeed {
   collapsingCave?: boolean;
   /** Fully pre-determined start grid (overrides random/seeded generation). */
   presetGrid?: Array<Array<{ l: string; c: BubbleColor }>>;
+  /** Adventure 3+: smitta-mekanik. Minst en infekterad bricka på brädet. */
+  infection?: boolean;
+  /** Adventure 3-3: powerups som ska placeras vid start. */
+  startPowerups?: Array<import('@/data/gameConstants').PowerupType>;
 }
 
 /** 0-indexed asteroid seed positions: row 3 (4th) cols 0,2,4,6; row 5 (6th) cols 1,3,5,7. */
@@ -392,7 +396,7 @@ function countPowerups(grid: BubbleData[][], types: ReadonlyArray<'x2' | 'x3' | 
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const p = grid[r][c].powerup;
-      if (p && types.includes(p)) count++;
+      if (p && (types as ReadonlyArray<string>).includes(p)) count++;
     }
   }
   return count;
@@ -427,6 +431,96 @@ function decrementBombs(grid: BubbleData[][]): { newGrid: BubbleData[][]; explod
     }
   }
   return { newGrid, exploded: false, explodedAt: null };
+}
+
+const INFECT_SPREAD_TURNS = 5;
+const INFECT_DIE_TURNS = 7;
+const GHOST_GRACE_TURNS = 5;
+
+function isOpenCell(b: BubbleData): boolean {
+  return !b.satellite && !b.asteroid && !b.ufo && !b.rock && !b.dead;
+}
+
+function infectCell(grid: BubbleData[][], r: number, c: number): void {
+  const b = grid[r][c];
+  if (!isOpenCell(b)) return;
+  if (b.infected !== undefined) return;
+  grid[r][c] = { ...b, infected: INFECT_SPREAD_TURNS, infectedDie: INFECT_DIE_TURNS };
+}
+
+function ensureInfection(grid: BubbleData[][]): void {
+  // If at least one infected/dead exists, no need to seed
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c].infected !== undefined || grid[r][c].dead) return;
+    }
+  }
+  const candidates: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (isOpenCell(grid[r][c]) && !grid[r][c].powerup && !grid[r][c].bomb) candidates.push({ row: r, col: c });
+  }
+  if (candidates.length === 0) return;
+  const p = candidates[Math.floor(Math.random() * candidates.length)];
+  infectCell(grid, p.row, p.col);
+}
+
+/** Tick infection clocks after each player swap. Returns score penalty (negative). */
+function tickInfection(grid: BubbleData[][]): number {
+  let penalty = 0;
+  // Snapshot positions of currently infected (so spread doesn't cascade in same tick)
+  const infectedNow: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (grid[r][c].infected !== undefined && !grid[r][c].dead) infectedNow.push({ row: r, col: c });
+  }
+  for (const { row: r, col: c } of infectedNow) {
+    const b = grid[r][c];
+    const nextSpread = (b.infected ?? INFECT_SPREAD_TURNS) - 1;
+    const nextDie = (b.infectedDie ?? INFECT_DIE_TURNS) - 1;
+    if (nextDie <= 0) {
+      // Become a ghost
+      grid[r][c] = { ...b, dead: true, deadAge: 0, infected: undefined, infectedDie: undefined };
+      continue;
+    }
+    if (nextSpread <= 0) {
+      // Spread to orthogonal neighbours, reset spread clock
+      grid[r][c] = { ...b, infected: INFECT_SPREAD_TURNS, infectedDie: nextDie };
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        infectCell(grid, nr, nc);
+      }
+    } else {
+      grid[r][c] = { ...b, infected: nextSpread, infectedDie: nextDie };
+    }
+  }
+  // Age ghosts and apply penalty
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    const b = grid[r][c];
+    if (b.dead) {
+      const age = (b.deadAge ?? 0) + 1;
+      grid[r][c] = { ...b, deadAge: age };
+      if (age > GHOST_GRACE_TURNS) penalty -= 1;
+    }
+  }
+  ensureInfection(grid);
+  return penalty;
+}
+
+function placeStartPowerups(grid: BubbleData[][], powerups: ReadonlyArray<import('@/data/gameConstants').PowerupType>): void {
+  const candidates: Position[] = [];
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+    if (isOpenCell(grid[r][c]) && !grid[r][c].powerup && !grid[r][c].bomb) candidates.push({ row: r, col: c });
+  }
+  // Shuffle
+  for (let i = candidates.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
+  }
+  for (let i = 0; i < powerups.length && i < candidates.length; i++) {
+    const p = candidates[i];
+    grid[p.row][p.col] = { ...grid[p.row][p.col], powerup: powerups[i] };
+  }
 }
 
 export function useGameState(
@@ -505,6 +599,8 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(g);
     if (adventureSeed?.satellite) placeSatellite(g);
     if (adventureSeed?.ufos) placeUfos(g);
+    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(g, adventureSeed.startPowerups);
+    if (adventureSeed?.infection) ensureInfection(g);
     return g;
   });
   const [selectedBubble, setSelectedBubble] = useState<Position | null>(null);
@@ -546,10 +642,10 @@ export function useGameState(
     for (let r = 0; r < ROWS; r++) {
       let c = 0;
       while (c < COLS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { c++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock || currentGrid[r][c].dead) { c++; continue; }
         const color = currentGrid[r][c].color;
         let end = c;
-        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && !currentGrid[r][end].rock && currentGrid[r][end].color === color) end++;
+        while (end < COLS && !currentGrid[r][end].asteroid && !currentGrid[r][end].satellite && !currentGrid[r][end].ufo && !currentGrid[r][end].rock && !currentGrid[r][end].dead && currentGrid[r][end].color === color) end++;
         const runLength = end - c;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -575,10 +671,10 @@ export function useGameState(
     for (let c = 0; c < COLS; c++) {
       let r = 0;
       while (r < ROWS) {
-        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock) { r++; continue; }
+        if (currentGrid[r][c].asteroid || currentGrid[r][c].satellite || currentGrid[r][c].ufo || currentGrid[r][c].rock || currentGrid[r][c].dead) { r++; continue; }
         const color = currentGrid[r][c].color;
         let end = r;
-        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && currentGrid[end][c].color === color) end++;
+        while (end < ROWS && !currentGrid[end][c].asteroid && !currentGrid[end][c].satellite && !currentGrid[end][c].ufo && !currentGrid[end][c].rock && !currentGrid[end][c].dead && currentGrid[end][c].color === color) end++;
         const runLength = end - r;
         if (runLength >= minWordLen) {
           for (let len = Math.min(runLength, MAX_WORD_LENGTH); len >= minWordLen; len--) {
@@ -660,7 +756,24 @@ export function useGameState(
     }
 
     const word = foundWords[0];
-    const popKeys = new Set(word.positions.map((p) => `${p.row}-${p.col}`));
+    // Expand popped positions to include any adjacent ghost (dead) bubbles → cleansed.
+    const popPositions: Position[] = [...word.positions];
+    const popSet = new Set(popPositions.map(p => `${p.row}-${p.col}`));
+    for (const p of word.positions) {
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (const [dr, dc] of dirs) {
+        const nr = p.row + dr, nc = p.col + dc;
+        if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+        const key = `${nr}-${nc}`;
+        if (popSet.has(key)) continue;
+        if (currentGrid[nr][nc].dead) {
+          popPositions.push({ row: nr, col: nc });
+          popSet.add(key);
+        }
+      }
+    }
+    word.positions = popPositions;
+    const popKeys = popSet;
     setPoppingCells(popKeys);
     setLastFoundWord(word.word);
 
@@ -854,10 +967,10 @@ export function useGameState(
   }, [pool, values]);
 
   const performSwap = useCallback((fromRow: number, fromCol: number, toRow: number, toCol: number) => {
-    // Asteroids/satellite/UFOs/rocks cannot be moved.
+    // Asteroids/satellite/UFOs/rocks/ghosts cannot be moved.
     const a = grid[fromRow][fromCol];
     const b = grid[toRow][toCol];
-    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock) {
+    if (a.asteroid || b.asteroid || a.satellite || b.satellite || a.ufo || b.ufo || a.rock || b.rock || a.dead || b.dead) {
       setSelectedBubble(null);
       return;
     }
@@ -880,6 +993,12 @@ export function useGameState(
         applyRockBatch(newGrid, ROCK_SCHEDULE[rocksPlacedRef.current]);
         rocksPlacedRef.current += 1;
       }
+    }
+
+    // Adventure 3 infection: tick smitta/ghosts after each player swap.
+    if (adventureSeed?.infection) {
+      const penalty = tickInfection(newGrid);
+      if (penalty !== 0) setScore(prev => Math.max(0, prev + penalty));
     }
 
     if (mode === 'bomb') {
@@ -925,7 +1044,7 @@ export function useGameState(
       return next;
     });
     setTimeout(() => checkForWords(newGrid), 200);
-  }, [grid, movesUsed, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, adventureSeed?.collapsingCave, tickUfos]);
+  }, [grid, movesUsed, checkForWords, findWords, popAndCascade, mode, vowelSet, maybeSpawnExtras, adventureSeed?.ufos, adventureSeed?.collapsingCave, adventureSeed?.infection, tickUfos]);
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (gameOver || isProcessing) return;
@@ -994,6 +1113,8 @@ export function useGameState(
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
     if (adventureSeed?.satellite) placeSatellite(newGrid);
     if (adventureSeed?.ufos) placeUfos(newGrid);
+    if (adventureSeed?.startPowerups && adventureSeed.startPowerups.length > 0) placeStartPowerups(newGrid, adventureSeed.startPowerups);
+    if (adventureSeed?.infection) ensureInfection(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
@@ -1061,6 +1182,41 @@ export function useGameState(
     });
   }, [gameOver, isProcessing, values, checkForWords]);
 
+  /** Adventure 3 powerup: change a target bubble's letter; consume the powerup at source cell. */
+  const applyPowerupSwapLetter = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newLetter: string) => {
+    if (gameOver || isProcessing) return;
+    const upper = newLetter.toUpperCase();
+    if (!upper) return;
+    setGrid(prev => {
+      const src = prev[srcRow]?.[srcCol];
+      const tgt = prev[tgtRow]?.[tgtCol];
+      if (!src || !tgt) return prev;
+      if (!src.powerup || (src.powerup !== 'swapletter' && src.powerup !== 'swapcolor')) return prev;
+      if (tgt.satellite || tgt.asteroid || tgt.ufo || tgt.rock || tgt.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[tgtRow][tgtCol] = { ...tgt, letter: upper, value: values[upper] ?? 1 };
+      ng[srcRow][srcCol] = { ...src, powerup: undefined };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, values, checkForWords]);
+
+  const applyPowerupSwapColor = useCallback((srcRow: number, srcCol: number, tgtRow: number, tgtCol: number, newColor: BubbleColor) => {
+    if (gameOver || isProcessing) return;
+    setGrid(prev => {
+      const src = prev[srcRow]?.[srcCol];
+      const tgt = prev[tgtRow]?.[tgtCol];
+      if (!src || !tgt) return prev;
+      if (!src.powerup || (src.powerup !== 'swapletter' && src.powerup !== 'swapcolor')) return prev;
+      if (tgt.satellite || tgt.asteroid || tgt.ufo || tgt.rock || tgt.dead) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[tgtRow][tgtCol] = { ...tgt, color: newColor };
+      ng[srcRow][srcCol] = { ...src, powerup: undefined };
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, checkForWords]);
+
   const bestWordEntry = usedWords.length > 0
     ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
     : null;
@@ -1075,6 +1231,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
-    asteroidsDestroyed, swapBubbleLetter,
+    asteroidsDestroyed, swapBubbleLetter, applyPowerupSwapLetter, applyPowerupSwapColor,
   };
 }

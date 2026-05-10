@@ -43,12 +43,16 @@ function BombBadge({ bomb }: { bomb: number }) {
   );
 }
 
-function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' }) {
+function PowerupBadge({ type }: { type: 'x2' | 'x3' | 'free5' | 'swapletter' | 'swapcolor' }) {
   const cfg = type === 'x2'
     ? { bg: 'linear-gradient(135deg, hsl(280, 80%, 55%), hsl(260, 75%, 40%))', label: '×2' }
     : type === 'x3'
     ? { bg: 'linear-gradient(135deg, hsl(45, 100%, 55%), hsl(30, 95%, 45%))', label: '×3' }
-    : { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' };
+    : type === 'free5'
+    ? { bg: 'linear-gradient(135deg, hsl(140, 75%, 50%), hsl(150, 70%, 35%))', label: '+5' }
+    : type === 'swapletter'
+    ? { bg: 'linear-gradient(135deg, hsl(200, 90%, 55%), hsl(220, 80%, 40%))', label: '🔤' }
+    : { bg: 'linear-gradient(135deg, hsl(320, 85%, 60%), hsl(280, 80%, 45%))', label: '🎨' };
   return (
     <span
       className="absolute -top-1 -right-1 px-1.5 h-5 md:h-6 rounded-full flex items-center justify-center text-[9px] md:text-[10px] font-extrabold animate-pulse z-20"
@@ -290,7 +294,28 @@ function UfoInner({ onClick }: BubbleProps) {
   );
 }
 
-export function Bubble(props: BubbleProps) {
+function GhostInner({ bubble, onClick }: BubbleProps) {
+  return (
+    <div
+      onClick={onClick}
+      className="relative w-full aspect-square rounded-full flex items-center justify-center select-none cursor-not-allowed touch-none"
+      style={{
+        background: 'radial-gradient(circle at 35% 30%, rgba(220,220,255,0.25), rgba(120,120,160,0.15) 60%, rgba(60,60,100,0.18))',
+        border: '1.5px dashed rgba(255,255,255,0.45)',
+        opacity: 0.45,
+        filter: 'blur(0.3px)',
+      }}
+      aria-label="ghost"
+    >
+      <span className="text-base md:text-lg lg:text-xl font-bold leading-none text-white" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>
+        {bubble.letter}
+      </span>
+      <span className="absolute -top-1 -left-1 text-base md:text-lg z-30 pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">👻</span>
+    </div>
+  );
+}
+
+function BubbleVisual(props: BubbleProps) {
   const { bubble, isSelected, isPopping, onClick, onTouchStart, onTouchEnd } = props;
   const colors = BUBBLE_COLOR_STYLES[bubble.color];
   const hasBomb = bubble.bomb !== undefined;
@@ -412,4 +437,32 @@ export function Bubble(props: BubbleProps) {
       {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color={colors.text} />}
     </button>
   );
+}
+export function Bubble(props: BubbleProps) {
+  const { bubble } = props;
+  if (bubble.dead) return <GhostInner {...props} />;
+  const inner = <BubbleVisual {...props} />;
+  if (bubble.infected !== undefined && !bubble.satellite && !bubble.asteroid && !bubble.ufo && !bubble.rock) {
+    const urgent = bubble.infected <= 1;
+    return (
+      <div className="relative w-full aspect-square">
+        {inner}
+        <span
+          className={`absolute -top-1 -left-1 text-[11px] md:text-xs z-30 pointer-events-none ${urgent ? 'animate-pulse' : ''}`}
+          style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.6))' }}
+        >
+          🦠
+        </span>
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            boxShadow: urgent
+              ? '0 0 12px hsla(110,90%,55%,0.95), inset 0 0 8px hsla(110,90%,45%,0.6)'
+              : '0 0 8px hsla(110,90%,50%,0.7), inset 0 0 6px hsla(110,90%,40%,0.4)',
+          }}
+        />
+      </div>
+    );
+  }
+  return inner;
 }
