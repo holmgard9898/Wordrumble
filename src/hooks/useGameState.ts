@@ -23,6 +23,8 @@ export interface AdventureSeed {
   satellite?: boolean;
   /** Place immovable UFOs (rows 4 & 6 alternating) that swap the bubble below them every move. */
   ufos?: boolean;
+  /** Collapsing cave: starting at move 5, top-row tiles get replaced by immovable rocks each move. */
+  collapsingCave?: boolean;
   /** Fully pre-determined start grid (overrides random/seeded generation). */
   presetGrid?: Array<Array<{ l: string; c: BubbleColor }>>;
 }
