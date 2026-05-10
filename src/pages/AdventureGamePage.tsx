@@ -94,6 +94,12 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
+  const { fireMode, lightning } = useGameEffects({
+    lastWordEvent: game.lastWordEvent,
+    movesUsed: game.movesUsed,
+    getCellRect,
+    containerEl: boardWrapperRef.current,
+  });
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
   // Adventure 3-3 free powerups (toolbar buttons, like rockets)
@@ -682,21 +688,24 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
-        <GameBoard
-          ref={boardRef}
-          grid={game.grid}
-          selectedBubble={game.selectedBubble}
-          poppingCells={game.poppingCells}
-          onBubbleClick={handleBubbleClick}
-          onSwipe={(rocketArming || laserArming || swapArming) ? undefined : game.handleSwipe}
-          bonusPopups={game.bonusPopups}
-          onBonusPopupDone={game.removeBonusPopup}
-          laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
-          onSatelliteClick={level.satellite ? handleSatelliteClick : undefined}
-          laserShot={laserShot}
-        />
-      </div>
+      <FireModeFrame active={fireMode}>
+        <div ref={boardWrapperRef} className={`relative flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
+          <GameBoard
+            ref={boardRef}
+            grid={game.grid}
+            selectedBubble={game.selectedBubble}
+            poppingCells={game.poppingCells}
+            onBubbleClick={handleBubbleClick}
+            onSwipe={(rocketArming || laserArming || swapArming) ? undefined : game.handleSwipe}
+            bonusPopups={game.bonusPopups}
+            onBonusPopupDone={game.removeBonusPopup}
+            laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
+            onSatelliteClick={level.satellite ? handleSatelliteClick : undefined}
+            laserShot={laserShot}
+          />
+          <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
+        </div>
+      </FireModeFrame>
 
       <div className="w-full pt-1.5 pb-4">
         <GameInfo
