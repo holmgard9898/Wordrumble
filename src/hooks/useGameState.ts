@@ -891,6 +891,7 @@ export function useGameState(
     const newGrid = createInitialGrid();
     if (mode === 'bomb') addBombsToGrid(newGrid, 1, vowelSet);
     if (adventureSeed?.asteroids) placeAsteroids(newGrid);
+    if (adventureSeed?.satellite) placeSatellite(newGrid);
     setGrid(newGrid);
     setSelectedBubble(null);
     setMovesLeft(adventureSeed?.maxMoves ?? getMaxMoves(mode));
@@ -907,7 +908,7 @@ export function useGameState(
     setFreeMovesRemaining(0);
     setExplodedAt(null);
     setAsteroidsDestroyed(0);
-  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids]);
+  }, [createInitialGrid, mode, vowelSet, adventureSeed?.maxMoves, adventureSeed?.asteroids, adventureSeed?.satellite]);
 
   const addMoves = useCallback((amount: number) => {
     if (amount <= 0) return;
@@ -940,6 +941,22 @@ export function useGameState(
     blockedWordsRef.current = new Set(blockedWords.map(w => w.toLowerCase()));
   }, []);
 
+  /** Adventure laser: replace one bubble's letter (color & flags preserved). */
+  const swapBubbleLetter = useCallback((row: number, col: number, newLetter: string) => {
+    if (gameOver || isProcessing) return;
+    const upper = newLetter.toUpperCase();
+    if (!upper) return;
+    setGrid(prev => {
+      const b = prev[row][col];
+      if (!b || b.satellite || b.asteroid) return prev;
+      const ng = prev.map(r => [...r]);
+      ng[row][col] = { ...b, letter: upper, value: values[upper] ?? 1 };
+      // Schedule a word-check on the new grid.
+      setTimeout(() => checkForWords(ng), 120);
+      return ng;
+    });
+  }, [gameOver, isProcessing, values, checkForWords]);
+
   const bestWordEntry = usedWords.length > 0
     ? usedWords.reduce((best, w) => w.score > best.score ? w : best, usedWords[0])
     : null;
@@ -954,6 +971,6 @@ export function useGameState(
     startFromState, restoreSavedGame, bestWordScore: bestWordEntry?.score ?? 0,
     bestWord: bestWordEntry?.word ?? null, movesUsed, bonusPopups, removeBonusPopup,
     freeMovesRemaining, explodedAt, addMoves, fireRocket, setKeepFormableWords,
-    asteroidsDestroyed,
+    asteroidsDestroyed, swapBubbleLetter,
   };
 }
