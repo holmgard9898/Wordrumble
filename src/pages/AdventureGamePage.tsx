@@ -15,13 +15,14 @@ import { InGameMenu } from '@/components/game/InGameMenu';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home, Rocket, X } from 'lucide-react';
+import { ArrowLeft, Menu, Trophy, Map as MapIcon, RotateCcw, Play, Video, Home, Rocket, X, Zap } from 'lucide-react';
 import { getLevelById, adventureLevels } from '@/data/adventureLevels';
 import { useAdventureProgress } from '@/hooks/useAdventureProgress';
 import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
 import { getTutorialSteps } from '@/data/tutorials';
+import { getLanguageConfig } from '@/data/languages';
 
 const AdventureGamePage = () => {
   const { levelId = '' } = useParams<{ levelId: string }>();
