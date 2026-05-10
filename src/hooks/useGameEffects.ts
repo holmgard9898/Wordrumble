@@ -3,15 +3,9 @@ import confetti from 'canvas-confetti';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BUBBLE_COLOR_STYLES, type BubbleColor, type Position } from '@/data/gameConstants';
 
-import onFireMp3 from '/audio/voice/on_fire.mp3?url';
-import wordGodMp3 from '/audio/voice/word_god.mp3?url';
-import fantasticMp3 from '/audio/voice/fantastic.mp3?url';
-import excellentMp3 from '/audio/voice/excellent.mp3?url';
-import amazingMp3 from '/audio/voice/amazing.mp3?url';
-import incredibleMp3 from '/audio/voice/incredible.mp3?url';
-
-const FIRE_VOICES = [onFireMp3, wordGodMp3, fantasticMp3];
-const COMBO_VOICES = [excellentMp3, amazingMp3, incredibleMp3];
+// Audio files live in /public/audio/voice/ and are served from site root.
+const FIRE_VOICES = ['/audio/voice/on_fire.mp3', '/audio/voice/word_god.mp3', '/audio/voice/fantastic.mp3'];
+const COMBO_VOICES = ['/audio/voice/excellent.mp3', '/audio/voice/amazing.mp3', '/audio/voice/incredible.mp3'];
 
 const FIRE_WINDOW_MOVES = 7;
 const FIRE_MIN_WORDS = 3;
