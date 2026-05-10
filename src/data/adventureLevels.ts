@@ -16,7 +16,9 @@ export type AdventureGoal =
   /** Find thematic words; each one reveals the next letter of `hiddenWord`. */
   | { type: 'hidden-word'; thematicWords: Record<GameLanguage, string[]>; hiddenWord: Record<GameLanguage, string> }
   /** Find a single specific word (translated per language). Used for puzzle levels. */
-  | { type: 'single-word'; word: Record<GameLanguage, string> };
+  | { type: 'single-word'; word: Record<GameLanguage, string> }
+  /** Two hidden words revealed letter by letter (hidden1 first, then hidden2) by finding thematic words. Player must form both on the board. */
+  | { type: 'two-hidden-words'; thematicWords: Record<GameLanguage, string[]>; hiddenWord1: Record<GameLanguage, string>; hiddenWord2: Record<GameLanguage, string> };
 
 /** Compact cell descriptor: { l: letter, c: color }. */
 export interface PresetCell { l: string; c: BubbleColor }
@@ -72,6 +74,8 @@ export interface AdventureLevel {
   storyIntro?: StoryCard[];
   /** When true, hide the generic mode tutorial steps and show only the storyIntro. */
   hideModeTutorial?: boolean;
+  /** Final celebration popup ("vi tog luftballong hem") when this level is completed. */
+  finalCelebration?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
