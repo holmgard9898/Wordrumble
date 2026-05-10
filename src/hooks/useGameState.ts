@@ -682,6 +682,7 @@ export function useGameState(
 
     const colors = getColorsForMode(mode);
     const antigravity = adventureSeed?.antigravity === true;
+    const satBounds = getSatelliteBounds(currentGrid);
 
     setTimeout(() => {
       setPoppingCells(new Set());
@@ -692,21 +693,43 @@ export function useGameState(
 
       for (const c of colsAffected) {
         const poppedRows = new Set(word.positions.filter((p) => p.col === c).map((p) => p.row));
-        const remaining: BubbleData[] = [];
-        for (let r = 0; r < ROWS; r++) if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
-        const newBubbles: BubbleData[] = [];
-        for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
-        if (antigravity) {
-          // Existing bubbles fall UP (stay at top); new bubbles spawn at BOTTOM.
-          const fullColumn = [...remaining, ...newBubbles];
-          for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
-          for (let i = 0; i < newBubbles.length; i++) {
-            newCellPositions.push({ row: ROWS - 1 - i, col: c });
+        const colHasSat = satBounds && satBounds.cols.has(c);
+
+        if (colHasSat && !antigravity) {
+          // Split column into upper [0..topRow-1] and lower [botRow+1..ROWS-1].
+          // New bubbles in the lower region spawn from just BELOW the satellite.
+          for (const region of [
+            { lo: 0, hi: satBounds!.topRow - 1 },
+            { lo: satBounds!.botRow + 1, hi: ROWS - 1 },
+          ]) {
+            if (region.lo > region.hi) continue;
+            const remaining: BubbleData[] = [];
+            for (let r = region.lo; r <= region.hi; r++) {
+              if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
+            }
+            const popCount = (region.hi - region.lo + 1) - remaining.length;
+            const newBubbles: BubbleData[] = [];
+            for (let i = 0; i < popCount; i++) newBubbles.push(refillBubble(colors));
+            const fullColumn = [...newBubbles, ...remaining];
+            for (let i = 0; i < fullColumn.length; i++) newGrid[region.lo + i][c] = fullColumn[i];
+            for (let i = 0; i < newBubbles.length; i++) newCellPositions.push({ row: region.lo + i, col: c });
           }
         } else {
-          const fullColumn = [...newBubbles, ...remaining];
-          for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
-          for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
+          const remaining: BubbleData[] = [];
+          for (let r = 0; r < ROWS; r++) if (!poppedRows.has(r)) remaining.push(newGrid[r][c]);
+          const newBubbles: BubbleData[] = [];
+          for (let i = 0; i < poppedRows.size; i++) newBubbles.push(refillBubble(colors));
+          if (antigravity) {
+            const fullColumn = [...remaining, ...newBubbles];
+            for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+            for (let i = 0; i < newBubbles.length; i++) {
+              newCellPositions.push({ row: ROWS - 1 - i, col: c });
+            }
+          } else {
+            const fullColumn = [...newBubbles, ...remaining];
+            for (let r = 0; r < ROWS; r++) newGrid[r][c] = fullColumn[r];
+            for (let r = 0; r < newBubbles.length; r++) newCellPositions.push({ row: r, col: c });
+          }
         }
       }
 
@@ -714,7 +737,7 @@ export function useGameState(
       let destroyedThisPass = 0;
       const destroyRow = antigravity ? 0 : ROWS - 1;
       for (let cc = 0; cc < COLS; cc++) {
-        if (newGrid[destroyRow][cc].asteroid || currentGrid[r][c].satellite) {
+        if (newGrid[destroyRow][cc].asteroid) {
           destroyedThisPass++;
           newGrid[destroyRow][cc] = refillBubble(colors);
           newCellPositions.push({ row: destroyRow, col: cc });
