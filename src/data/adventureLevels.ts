@@ -40,6 +40,8 @@ export interface AdventureLevel {
   freeRockets?: number;
   /** Antigravity twist: bubbles fall upward; new bubbles spawn from the bottom. */
   antigravity?: boolean;
+  /** Asteroid twist: place immovable asteroids on rows 4 & 6 (alternating cols). */
+  asteroids?: boolean;
 }
 
 // Helper: word lists curated to be of similar difficulty across languages.
