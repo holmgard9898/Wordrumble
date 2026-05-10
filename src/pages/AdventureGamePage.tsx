@@ -79,6 +79,31 @@ const AdventureGamePage = () => {
   const [rocketsLeft, setRocketsLeft] = useState(level?.freeRockets ?? 0);
   const [rocketArming, setRocketArming] = useState(false);
 
+  // Laser (satellite levels)
+  const LASER_INTERVAL = 5;
+  const [laserCharge, setLaserCharge] = useState(0); // 0..LASER_INTERVAL
+  const [laserArming, setLaserArming] = useState(false);
+  const [laserTarget, setLaserTarget] = useState<{ row: number; col: number; letter: string } | null>(null);
+  const [laserNewLetter, setLaserNewLetter] = useState<string>('');
+  const prevMovesUsedRef = useRef(0);
+  const laserReady = laserCharge >= LASER_INTERVAL;
+
+  // Track moves to charge the laser
+  useEffect(() => {
+    if (!level?.satellite) return;
+    const delta = game.movesUsed - prevMovesUsedRef.current;
+    prevMovesUsedRef.current = game.movesUsed;
+    if (delta > 0 && !laserReady) {
+      setLaserCharge(c => Math.min(LASER_INTERVAL, c + delta));
+    }
+  }, [game.movesUsed, level?.satellite, laserReady]);
+
+  // Reset laser on level change
+  useEffect(() => {
+    setLaserCharge(0); setLaserArming(false); setLaserTarget(null); setLaserNewLetter('');
+    prevMovesUsedRef.current = 0;
+  }, [level?.id]);
+
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   useBackgroundMusic(!showSuccess && !showMenu && !showIntro);
