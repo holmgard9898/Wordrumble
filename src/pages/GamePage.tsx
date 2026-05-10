@@ -212,51 +212,54 @@ const GamePage = () => {
 
       {/* ── Unified layout (mobile-style on all sizes) ── */}
       <div className="flex flex-col flex-1 w-full items-center min-h-0 px-1 max-w-md md:max-w-lg lg:max-w-2xl">
-        {/* Title + mode badge */}
-        <div className="w-full flex flex-col items-center pt-1 pb-2">
-          <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
-            <span className="text-yellow-400">Word</span>
-            <span className="text-white/90"> </span>
-            <span className="text-pink-400">Rumble</span>
-          </h1>
-          {badgeConfig && (
-            <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-3 mt-1" style={{ background: badgeConfig.color, border: `1px solid ${badgeConfig.border}` }}>
-              {BADGE_ICONS[badgeConfig.icon]}
-              <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: badgeConfig.border.replace('0.3', '1') }}>{MODE_LABELS[gameMode]}</span>
-            </div>
-          )}
-        </div>
+        <FireModeFrame active={fireMode}>
+          {/* Title + mode badge */}
+          <div className="w-full flex flex-col items-center pt-1 pb-2">
+            <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
+              <span className="text-yellow-400">Word</span>
+              <span className="text-white/90"> </span>
+              <span className="text-pink-400">Rumble</span>
+            </h1>
+            {badgeConfig && (
+              <div className="flex items-center justify-center gap-1.5 rounded-lg py-0.5 px-3 mt-1" style={{ background: badgeConfig.color, border: `1px solid ${badgeConfig.border}` }}>
+                {BADGE_ICONS[badgeConfig.icon]}
+                <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: badgeConfig.border.replace('0.3', '1') }}>{MODE_LABELS[gameMode]}</span>
+              </div>
+            )}
+          </div>
 
-        {/* Game board */}
-        <div className="flex items-start justify-center w-full">
-          <GameBoard
-            ref={boardRef}
-            grid={game.grid}
-            selectedBubble={game.selectedBubble}
-            poppingCells={game.poppingCells}
-            onBubbleClick={handleBubbleClick}
-            onSwipe={game.handleSwipe}
-            bonusPopups={game.bonusPopups}
-            onBonusPopupDone={game.removeBonusPopup}
-          />
-        </div>
+          {/* Game board */}
+          <div ref={boardWrapperRef} className="relative flex items-start justify-center w-full">
+            <GameBoard
+              ref={boardRef}
+              grid={game.grid}
+              selectedBubble={game.selectedBubble}
+              poppingCells={game.poppingCells}
+              onBubbleClick={handleBubbleClick}
+              onSwipe={game.handleSwipe}
+              bonusPopups={game.bonusPopups}
+              onBonusPopupDone={game.removeBonusPopup}
+            />
+            <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
+          </div>
 
-        {/* Info panel */}
-        <div className="w-full pt-1.5 pb-4">
-          <GameInfo
-            movesLeft={game.movesLeft}
-            score={game.score}
-            lastFoundWord={game.lastFoundWord}
-            onResetGame={handleReset}
-            onShowWords={() => setShowWords(true)}
-            usedWordsCount={game.usedWords.length}
-            mode={gameMode}
-            bestWordScore={game.bestWordScore}
-            bestWord={game.bestWord}
-            freeMovesRemaining={game.freeMovesRemaining}
-            hideBadge
-          />
-        </div>
+          {/* Info panel */}
+          <div className="w-full pt-1.5 pb-4">
+            <GameInfo
+              movesLeft={game.movesLeft}
+              score={game.score}
+              lastFoundWord={game.lastFoundWord}
+              onResetGame={handleReset}
+              onShowWords={() => setShowWords(true)}
+              usedWordsCount={game.usedWords.length}
+              mode={gameMode}
+              bestWordScore={game.bestWordScore}
+              bestWord={game.bestWord}
+              freeMovesRemaining={game.freeMovesRemaining}
+              hideBadge
+            />
+          </div>
+        </FireModeFrame>
       </div>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />
