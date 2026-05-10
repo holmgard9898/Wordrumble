@@ -544,14 +544,47 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : ''}`}>
+      {/* Free swap-letter / swap-color powerups (Adventure 3+) */}
+      {(initialSwapLetters > 0 || initialSwapColors > 0) && (
+        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+          {initialSwapLetters > 0 && (
+            <Button
+              onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
+              disabled={swapLettersLeft <= 0}
+              className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
+            >
+              {swapArming === 'letter'
+                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                : `🔤 × ${swapLettersLeft}`}
+            </Button>
+          )}
+          {initialSwapColors > 0 && (
+            <Button
+              onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
+              disabled={swapColorsLeft <= 0}
+              className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
+            >
+              {swapArming === 'color'
+                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                : `🎨 × ${swapColorsLeft}`}
+            </Button>
+          )}
+          {swapArming && (
+            <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      )}
+
+      <div className={`flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
         <GameBoard
           ref={boardRef}
           grid={game.grid}
           selectedBubble={game.selectedBubble}
           poppingCells={game.poppingCells}
           onBubbleClick={handleBubbleClick}
-          onSwipe={(rocketArming || laserArming) ? undefined : game.handleSwipe}
+          onSwipe={(rocketArming || laserArming || swapArming) ? undefined : game.handleSwipe}
           bonusPopups={game.bonusPopups}
           onBonusPopupDone={game.removeBonusPopup}
           laserCharge={level.satellite ? { ready: laserReady, current: laserCharge, max: LASER_INTERVAL, arming: laserArming || laserDud } : undefined}
