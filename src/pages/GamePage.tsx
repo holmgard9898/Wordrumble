@@ -5,6 +5,7 @@ import { useGameState } from '@/hooks/useGameState';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useCoins } from '@/hooks/useCoins';
 import { useUnlocks } from '@/hooks/useUnlocks';
+import { isForestSecretWord } from '@/data/secretUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
 import { useGameProgress } from '@/hooks/useGameProgress';
