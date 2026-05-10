@@ -39,9 +39,10 @@ const AdventureGamePage = () => {
   const levelMode = level?.mode ?? 'classic';
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
+    const antigravity = level.antigravity === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
@@ -51,9 +52,13 @@ const AdventureGamePage = () => {
         targetWords: thematic,
         maxMoves: level.maxMoves,
         keepFormableWords: [hidden, ...thematic],
+        antigravity,
       };
     }
-    return level.maxMoves ? { targetWords: [] as string[], maxMoves: level.maxMoves } : undefined;
+    if (level.maxMoves || antigravity) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity };
+    }
+    return undefined;
   }, [level, settings.language]);
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
