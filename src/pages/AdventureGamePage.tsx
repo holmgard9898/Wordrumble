@@ -337,6 +337,7 @@ const AdventureGamePage = () => {
               <div className="text-[11px] text-white/70 mt-1">
                 {level.goal.type === 'reach-score' && `${game.score} / ${level.goal.target}`}
                 {level.goal.type === 'survive-moves' && `${game.movesUsed} / ${level.goal.moves}`}
+                {level.goal.type === 'best-word-score' && `${game.bestWordScore ?? 0} / ${level.goal.target}`}
               </div>
             </div>
           )}
