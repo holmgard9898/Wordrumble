@@ -44,11 +44,12 @@ const AdventureGamePage = () => {
     const asteroids = level.asteroids === true;
     const satellite = level.satellite === true;
     const ufos = level.ufos === true;
+    const collapsingCave = level.collapsingCave === true;
     const presetGrid = level.presetGrid?.[settings.language];
     const maxMoves = level.maxMovesByLang?.[settings.language] ?? level.maxMoves;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos, presetGrid };
+      return { targetWords: words, maxMoves, keepFormableWords: words, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
@@ -56,15 +57,15 @@ const AdventureGamePage = () => {
       return {
         targetWords: thematic, maxMoves,
         keepFormableWords: [hidden, ...thematic],
-        antigravity, asteroids, satellite, ufos, presetGrid,
+        antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid,
       };
     }
     if (level.goal.type === 'single-word') {
       const w = level.goal.word[settings.language];
-      return { targetWords: [w], maxMoves, keepFormableWords: [w], antigravity, asteroids, satellite, ufos, presetGrid };
+      return { targetWords: [w], maxMoves, keepFormableWords: [w], antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
     }
-    if (maxMoves || antigravity || asteroids || satellite || ufos || presetGrid) {
-      return { targetWords: [] as string[], maxMoves, antigravity, asteroids, satellite, ufos, presetGrid };
+    if (maxMoves || antigravity || asteroids || satellite || ufos || collapsingCave || presetGrid) {
+      return { targetWords: [] as string[], maxMoves, antigravity, asteroids, satellite, ufos, collapsingCave, presetGrid };
     }
     return undefined;
   }, [level, settings.language]);
