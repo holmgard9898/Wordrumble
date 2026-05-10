@@ -142,6 +142,22 @@ const AdventureGamePage = () => {
     return level.goal.thematicWords[settings.language].map(w => w.toLowerCase());
   }, [level, settings.language]);
 
+  // Keep useGameState's "must remain formable" list in sync with what the
+  // player still needs to find. Words already used are dropped.
+  useEffect(() => {
+    if (!level) return;
+    const used = new Set(game.usedWords.map(w => w.word.toLowerCase()));
+    let remaining: string[] = [];
+    if (level.goal.type === 'find-words') {
+      remaining = level.goal.words[settings.language].filter(w => !used.has(w.toLowerCase()));
+    } else if (level.goal.type === 'hidden-word') {
+      const hidden = level.goal.hiddenWord[settings.language];
+      const thematic = level.goal.thematicWords[settings.language].filter(w => !used.has(w.toLowerCase()));
+      remaining = used.has(hidden.toLowerCase()) ? thematic : [hidden, ...thematic];
+    }
+    game.setKeepFormableWords(remaining);
+  }, [level, settings.language, game.usedWords, game.setKeepFormableWords]);
+
   // Number of hidden-word letters revealed = number of distinct thematic words found (capped at hidden word length)
   const hiddenFoundCount = useMemo(() => {
     if (!hiddenWord) return 0;
