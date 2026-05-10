@@ -126,6 +126,69 @@ export const GameBoard = forwardRef<GameBoardHandle, GameBoardProps>(function Ga
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [laserShot?.id]);
 
+  // ─── Pop particle bursts (themed) ───
+  const [particles, setParticles] = useState<Particle[]>([]);
+  const lastPopKeysRef = useRef<string>('');
+  useEffect(() => {
+    const keys = Array.from(poppingCells).sort().join('|');
+    if (!keys || keys === lastPopKeysRef.current) {
+      lastPopKeysRef.current = keys;
+      return;
+    }
+    lastPopKeysRef.current = keys;
+    const board = boardContainerRef.current;
+    if (!board) return;
+    const boardRect = board.getBoundingClientRect();
+    const newParticles: Particle[] = [];
+    poppingCells.forEach((key) => {
+      const [rs, cs] = key.split('-');
+      const r = +rs, c = +cs;
+      const el = cellRefs.current.get(key);
+      if (!el) return;
+      const cellRect = el.getBoundingClientRect();
+      const cx = cellRect.left + cellRect.width / 2 - boardRect.left;
+      const cy = cellRect.top + cellRect.height / 2 - boardRect.top;
+      const bubble = grid[r]?.[c];
+      if (!bubble) return;
+      const colorBg = BUBBLE_COLOR_STYLES[bubble.color]?.bg ?? '#fff';
+      const count = settings.tileStyle === 'sports' ? 4 : 8;
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const dist = 22 + Math.random() * 26;
+        let content: Particle['content'];
+        if (settings.tileStyle === 'sports') {
+          content = { kind: 'emoji', char: SPORTS_BALLS[bubble.color]?.emoji ?? '⚪' };
+        } else if (settings.tileStyle === 'shapes') {
+          content = { kind: 'shape', color: colorBg, shape: SHAPE_OF[bubble.color] };
+        } else if (settings.tileStyle === 'rubik') {
+          content = { kind: 'shape', color: colorBg, shape: 'square' };
+        } else if (settings.tileStyle === 'soapbubble') {
+          content = { kind: 'dot', color: 'rgba(255,255,255,0.85)' };
+        } else {
+          content = { kind: 'dot', color: colorBg };
+        }
+        newParticles.push({
+          id: `${key}-${i}-${Date.now()}-${Math.random()}`,
+          x: cx,
+          y: cy,
+          dx: Math.cos(angle) * dist,
+          dy: Math.sin(angle) * dist,
+          size: settings.tileStyle === 'sports' ? 14 : settings.tileStyle === 'shapes' ? 10 : 8,
+          delay: Math.random() * 30,
+          content,
+        });
+      }
+    });
+    if (newParticles.length === 0) return;
+    setParticles((prev) => [...prev, ...newParticles]);
+    const ids = new Set(newParticles.map(p => p.id));
+    const t = window.setTimeout(() => {
+      setParticles((prev) => prev.filter(p => !ids.has(p.id)));
+    }, 700);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [poppingCells]);
+
   return (
     <div
       ref={boardContainerRef}
