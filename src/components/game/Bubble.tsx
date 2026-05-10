@@ -5,7 +5,7 @@ interface BubbleProps {
   bubble: BubbleData;
   isSelected: boolean;
   isPopping: boolean;
-  onClick: () => void;
+  onClick?: () => void;
   onTouchStart?: (e: React.TouchEvent) => void;
   onTouchEnd?: (e: React.TouchEvent) => void;
 }
