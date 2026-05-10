@@ -126,6 +126,8 @@ const AdventureGamePage = () => {
     prevMovesUsedRef.current = 0;
   }, [level?.id]);
 
+  useEffect(() => { setSwapLettersLeft(initialSwapLetters); setSwapColorsLeft(initialSwapColors); setSwapArming(null); setSwapTarget(null); }, [level?.id, initialSwapLetters, initialSwapColors]);
+
   useEffect(() => { setRocketsLeft(level?.freeRockets ?? 0); setRocketArming(false); }, [level?.id, level?.freeRockets]);
 
   // Unlock shop item simply by reaching this level (e.g. Moon background on Moon Landing).
