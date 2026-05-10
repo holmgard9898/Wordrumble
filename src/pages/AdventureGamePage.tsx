@@ -282,26 +282,14 @@ const AdventureGamePage = () => {
       setRocketArming(false);
       return;
     }
-    if (powerupArming) {
+    if (swapArming) {
       const cell = game.grid[row]?.[col];
       if (cell && !cell.satellite && !cell.asteroid && !cell.ufo && !cell.rock && !cell.dead) {
-        if (row === powerupArming.row && col === powerupArming.col) {
-          setPowerupArming(null);
-          return;
-        }
-        setPowerupTarget({ row, col });
-        setPowerupNewLetter(cell.letter);
-        setPowerupNewColor(cell.color);
+        setSwapTarget({ row, col });
+        setSwapNewLetter(cell.letter);
+        setSwapNewColor(cell.color);
       }
       return;
-    }
-    // Tapping a powerup bubble (when nothing else selected) arms it.
-    if (!game.selectedBubble) {
-      const cell = game.grid[row]?.[col];
-      if (cell?.powerup === 'swapletter' || cell?.powerup === 'swapcolor') {
-        setPowerupArming({ kind: cell.powerup, row, col });
-        return;
-      }
     }
     if (laserDud) {
       const cell = game.grid[row]?.[col];
@@ -320,7 +308,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, powerupArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
