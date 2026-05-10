@@ -1,40 +1,66 @@
-# Mjukare bomb-spawn
+# Adventure 3-1: "The Crash" — Fixed-Board Puzzle Level
 
-Just nu: timers slumpas alltid 10–20, oavsett hur många bomber som redan finns eller om bokstaven är en sällsynt vokal. Enda skyddet är att om 3 bomber spawnar samtidigt höjs den lägsta till ≥13. Det är samma logik i singleplayer Bomb-läge och i äventyrsnivåer som kör `mode: 'bomb'` (en gemensam funktion `addBombsToGrid` i `src/hooks/useGameState.ts`).
+A short, hand-crafted puzzle level. Same start every time per language, single-word goal, storytelling intro.
 
-## Nya minimi-drag
+## Behavior
 
-Räkna "ordinal" = antal bomber som redan finns + bombens index i den nya batchen (1-baserat). Sätt minimum baserat på ordinal, och höj extra om bokstaven är en sällsynt vokal (LETTER_VALUES ≥ 4 — i praktiken inga standardvokaler i engelska poolen, men reglerna gäller om ett språkpaket ger en vokal ≥4p).
+- Board is 100% pre-determined per language (letters + colors fixed at start)
+- Goal: find one word — Swedish `LJUS`, translated correctly to each of the 11 languages (`light`, `licht`, `luz`, `lumière`, `luce`, `licht`, `lys`, `lys`, `valo`...)
+- Move limit per language, tuned so the obvious approach is ~2 moves short of solving, but a creative ~3-move trick (pop a 5+ letter word in a key column → a needed letter falls into reach) makes it solvable
+- The target word's letters all share ONE color on the board; other copies of those letters in other colors are decoys
+- Completion: as soon as the target word is found, level ends in success
+- Goal UI shows just `Hitta LJUS` / `Find LIGHT` (no list of multiple words)
 
-| Ordinal (= existerande + denna i batchen) | Min normal | Min sällsynt vokal (≥4p) |
-|---|---|---|
-| 1 | 10 | 12 |
-| 2 | 15 | 17 |
-| 3+ | 20 | 21 |
+## Storytelling intro (3 tutorial cards before the level starts)
 
-Exempel:
-- 0 bomber finns, 1 spawnar → min 10
-- 0 finns, 2 spawnar samtidigt → båda min 15
-- 0 finns, 3 spawnar samtidigt → alla tre min 20
-- 1 finns, 1 ny → min 15
-- 2 finns, 1 ny → min 20
+1. `AHHHH!!!` (translated: `Aaah!`, `¡Aaah!`, etc.)
+2. `Ser ut som vi kraschat... var är vi?` / `Looks like we crashed... where are we?`
+3. `Jag har en ficklampa... oj, vi är i en grotta. Mina batterier håller på att ta slut — vi måste hitta LJUS.` (translated, with the target word substituted in each language)
 
-Slumptal genereras fortfarande 10–20; om resultatet är under min höjs det till min. Tidigare specialregeln "om batch≥3, höj lägsta till 13" tas bort (ersätts av nya tabellen).
+Shown only the first time the player enters `adv-3-1` (using the existing `useTutorialSeen` mechanism with key `adv-3-1`).
 
-## Ändringar
+## Technical changes
 
-**`src/hooks/useGameState.ts`**
-- Uppdatera `addBombsToGrid(grid, count, vowelSet)`:
-  1. Räkna `existing = countBombs(grid)` innan tilldelning.
-  2. För varje ny bomb i batchen, beräkna `ordinal = existing + i + 1`.
-  3. Hämta basminimum från tabellen ovan.
-  4. Kolla `LETTER_VALUES[grid[p.row][p.col].letter] >= 4` → använd kolumnen sällsynt vokal.
-  5. Sätt timer = `max(randomTimer, minForOrdinal)`.
-- Ta bort gamla "if (toAdd >= 3) lowest≥13"-blocket.
+### `src/data/adventureLevels.ts`
 
-Gäller automatiskt både vanliga Bomb-läget och äventyrsnivåer eftersom båda går via samma funktion.
+- Add new optional fields on `AdventureLevel`:
+  - `presetGrid?: Record<GameLanguage, Array<Array<{ letter: string; color: BubbleColor }>>>` — 10×8 fixed start grid per language
+  - `maxMovesByLang?: Record<GameLanguage, number>` — overrides `maxMoves`
+  - `storyIntro?: Array<Record<GameLanguage, { title: string; body: string }>>` — ordered cards
+- Add new goal variant: `{ type: 'single-word'; word: Record<GameLanguage, string> }` (or reuse `find-words` with length-1 array + a `singleWordLabel` flag — implementation detail)
+- Replace existing `adv-3-1` config with the puzzle level (cave background, icon `🔦`, name something like "Kraschen" / "The Crash")
 
-## Att verifiera
+### `src/data/gameConstants.ts` / `src/hooks/useGameState.ts`
 
-- Befintligt test (om något) i `src/test/` passerar fortfarande.
-- Snabb manuell körning i Bomb-läget och i en äventyrs-bomb-nivå för att se att första bomben kan ha låg timer men efterföljande får högre.
+- `createGrid` accepts an optional `preset` param; when provided, builds the grid from the preset instead of randomising
+- `useGameState` plumbs `level.presetGrid?.[lang]` into the initial grid
+- Refill behaviour after pops stays random (only the start state is fixed) — confirm this matches the user's intent (see open question)
+
+### `src/pages/AdventureGamePage.tsx`
+
+- Read `maxMovesByLang?.[lang]` before falling back to `maxMoves`
+- Render the new `single-word` goal: header `Hitta LJUS` (translated), no word list, completion when that exact word is played
+- If `storyIntro` is set, show those cards via `TutorialModal` on first entry (key `adv-3-1`); skip the generic mode tutorial for this level
+
+### Per-language board design (initial Swedish draft)
+
+Swedish target `LJUS`, color = blue. Move limit = 10. Minimum "naive" solution = 12 swaps. Creative solution:
+- A blue `J` sits in row 0 (top) of column 4
+- Player spells a 5-letter blue word in column-adjacent rows using 3 swaps; the column pops, the `J` falls 4 rows down, and `LJUS` becomes formable in the remaining moves
+- I will design and verify each language's board (letters + colors) the same way: confirm by simulation that the minimum-moves solution exists at the stated cap and the naive path is ≥2 over
+
+### Tutorial / translations
+
+- Add the three story strings to `src/data/translations.ts` (or inline in the level config under `storyIntro`)
+- `src/components/TutorialModal.tsx` already supports custom step arrays — no component changes needed
+
+## Out of scope
+
+- No changes to the map graphic, portals, or other Adventure 3 levels
+- Background stays `cave` (already added)
+
+## Open questions before I implement
+
+1. After the player pops bubbles, should the **refill letters** also be deterministic (fully scripted level) or random (only the starting state is fixed)? Random keeps it simple; deterministic guarantees the puzzle but is much more work.
+2. Should I design all 11 language boards now, or ship Swedish + English first and iterate on the others?
+3. If the player runs out of moves without finding the word, normal "out of moves" failure — correct?
