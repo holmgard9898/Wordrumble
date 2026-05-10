@@ -65,13 +65,13 @@ function placeUfos(grid: BubbleData[][]): void {
   }
 }
 
-/** Returns per-column sorted row indices that are immovable (satellite or ufo). */
+/** Returns per-column sorted row indices that are immovable (satellite, ufo, or rock). */
 function getColumnBlockers(grid: BubbleData[][]): Map<number, number[]> {
   const map = new Map<number, number[]>();
   for (let c = 0; c < COLS; c++) {
     const rows: number[] = [];
     for (let r = 0; r < ROWS; r++) {
-      if (grid[r][c].satellite || grid[r][c].ufo) rows.push(r);
+      if (grid[r][c].satellite || grid[r][c].ufo || grid[r][c].rock) rows.push(r);
     }
     if (rows.length > 0) map.set(c, rows);
   }
