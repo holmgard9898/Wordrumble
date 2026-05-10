@@ -40,9 +40,10 @@ const AdventureGamePage = () => {
   const adventureSeed = useMemo(() => {
     if (!level) return undefined;
     const antigravity = level.antigravity === true;
+    const asteroids = level.asteroids === true;
     if (level.goal.type === 'find-words') {
       const words = level.goal.words[settings.language];
-      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity };
+      return { targetWords: words, maxMoves: level.maxMoves, keepFormableWords: words, antigravity, asteroids };
     }
     if (level.goal.type === 'hidden-word') {
       const thematic = level.goal.thematicWords[settings.language];
@@ -53,10 +54,11 @@ const AdventureGamePage = () => {
         maxMoves: level.maxMoves,
         keepFormableWords: [hidden, ...thematic],
         antigravity,
+        asteroids,
       };
     }
-    if (level.maxMoves || antigravity) {
-      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity };
+    if (level.maxMoves || antigravity || asteroids) {
+      return { targetWords: [] as string[], maxMoves: level.maxMoves, antigravity, asteroids };
     }
     return undefined;
   }, [level, settings.language]);
