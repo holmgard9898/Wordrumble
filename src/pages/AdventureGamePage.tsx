@@ -687,7 +687,7 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      <FireModeFrame active={fireMode}>
+      
         <div ref={boardWrapperRef} className={`relative flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
           <GameBoard
             ref={boardRef}
