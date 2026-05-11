@@ -933,10 +933,12 @@ const AdventureGamePage = () => {
                 if (!swapArming || !swapTarget) return;
                 if (swapArming === 'color' && swapNewColor) {
                   game.swapBubbleColor?.(swapTarget.row, swapTarget.col, swapNewColor);
-                  setSwapColorsLeft(n => Math.max(0, n - 1));
+                  if (swapColorsLeft > 0) setSwapColorsLeft(n => Math.max(0, n - 1));
+                  else consumePowerup('swapcolor');
                 } else if (swapArming === 'letter' && swapNewLetter) {
                   game.swapBubbleLetter?.(swapTarget.row, swapTarget.col, swapNewLetter);
-                  setSwapLettersLeft(n => Math.max(0, n - 1));
+                  if (swapLettersLeft > 0) setSwapLettersLeft(n => Math.max(0, n - 1));
+                  else consumePowerup('swapletter');
                 }
                 setSwapTarget(null);
                 setSwapArming(null);
