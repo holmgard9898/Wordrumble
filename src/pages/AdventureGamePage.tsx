@@ -704,7 +704,6 @@ const AdventureGamePage = () => {
           />
           <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
         </div>
-      </>
 
       <div className="w-full pt-1.5 pb-4">
         <GameInfo
