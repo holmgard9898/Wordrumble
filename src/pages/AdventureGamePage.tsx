@@ -4,6 +4,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
 import { useCoins } from '@/hooks/useCoins';
 import { useUnlocks } from '@/hooks/useUnlocks';
+import { usePowerupInventory } from '@/hooks/usePowerupInventory';
 import { isForestSecretWord } from '@/data/secretUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
@@ -81,6 +82,7 @@ const AdventureGamePage = () => {
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
+  const { inventory: powerupInv, consume: consumePowerup } = usePowerupInventory();
   const { markCompleted } = useAdventureProgress();
   const { playWordFound } = useSfx();
   const { showRewardedAd } = useAds();
