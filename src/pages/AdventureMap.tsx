@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowUp, ArrowDown, Check } from 'lucide-react';
@@ -23,6 +24,10 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
   const { settings } = useSettings();
   const { isUnlocked, isCompleted } = useAdventureProgress();
   const lang = settings.language;
+
+  useEffect(() => {
+    try { localStorage.setItem('wr-adventure-last-map', String(mapNumber)); } catch { /* ignore */ }
+  }, [mapNumber]);
 
   const levels = adventureLevels.filter(l => (l.map ?? 1) === mapNumber);
   const bgImage = mapNumber === 3 ? adventureMap3Bg : mapNumber === 2 ? adventureMapSpaceBg : adventureMapBg;
