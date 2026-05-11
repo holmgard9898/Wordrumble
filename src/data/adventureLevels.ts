@@ -711,7 +711,7 @@ export const adventureLevels: AdventureLevel[] = [
       hiddenWord: { en: 'FOREST', sv: 'SKOGEN', de: 'WALD', es: 'BOSQUE', fr: 'FORET', it: 'FORESTA', pt: 'FLORESTA', nl: 'WOUD', no: 'SKOGEN', da: 'SKOVEN', fi: 'METSA' },
       thematicWords: wl(
         ['owl', 'fox', 'oak', 'fern', 'deer', 'bark', 'twig'],
-        ['uggla', 'räv', 'ek', 'orm', 'björn', 'bark', 'kvist'],
+        ['uggla', 'räv', 'gran', 'orm', 'björn', 'bark', 'kvist'],
         ['eule', 'fuchs', 'eiche', 'farn', 'hirsch', 'rinde', 'zweig'],
         ['búho', 'zorro', 'roble', 'helecho', 'ciervo', 'corteza'],
         ['hibou', 'renard', 'chêne', 'fougère', 'cerf', 'écorce'],
@@ -719,7 +719,7 @@ export const adventureLevels: AdventureLevel[] = [
         ['mocho', 'raposa', 'carvalho', 'feto', 'cervo', 'casca'],
         ['uil', 'vos', 'eik', 'varen', 'hert', 'bast'],
         ['ugle', 'rev', 'eik', 'bregne', 'hjort', 'bark'],
-        ['ugle', 'ræv', 'eg', 'bregne', 'hjort', 'bark'],
+        ['ugle', 'ræv', 'bregne', 'hjort', 'bark'],
         ['pöllö', 'kettu', 'tammi', 'saniainen', 'hirvi', 'kuori'],
       ),
     },
