@@ -333,9 +333,12 @@ const AdventureGamePage = () => {
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (rocketArming) {
-      if (rocketsLeft > 0 && game.fireRocket) {
+      const hasFree = rocketsLeft > 0;
+      const hasInv = powerupInv.rocket > 0;
+      if ((hasFree || hasInv) && game.fireRocket) {
         game.fireRocket(col);
-        setRocketsLeft(n => n - 1);
+        if (hasFree) setRocketsLeft(n => n - 1);
+        else consumePowerup('rocket');
       }
       setRocketArming(false);
       return;
@@ -366,7 +369,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming, powerupInv.rocket, consumePowerup]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
