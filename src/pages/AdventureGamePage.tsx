@@ -616,25 +616,28 @@ const AdventureGamePage = () => {
       </div>
 
       {/* Rocket powerup bar */}
-      {(level.freeRockets ?? 0) > 0 && (
-        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
-          <Button
-            onClick={() => setRocketArming(v => !v)}
-            disabled={rocketsLeft <= 0}
-            className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
-          >
-            <Rocket className="w-4 h-4" />
-            {rocketArming
-              ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
-              : `🚀 × ${rocketsLeft}`}
-          </Button>
-          {rocketArming && (
-            <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
+      {((level.freeRockets ?? 0) > 0 || powerupInv.rocket > 0) && (() => {
+        const total = rocketsLeft + powerupInv.rocket;
+        return (
+          <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+            <Button
+              onClick={() => setRocketArming(v => !v)}
+              disabled={total <= 0}
+              className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
+            >
+              <Rocket className="w-4 h-4" />
+              {rocketArming
+                ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
+                : `🚀 × ${total}`}
             </Button>
-          )}
-        </div>
-      )}
+            {rocketArming && (
+              <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Laser powerup bar (satellite levels) */}
       {level.satellite && (
@@ -659,38 +662,45 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      {/* Free swap-letter / swap-color powerups (Adventure 3+) */}
-      {(initialSwapLetters > 0 || initialSwapColors > 0) && (
-        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
-          {initialSwapLetters > 0 && (
-            <Button
-              onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
-              disabled={swapLettersLeft <= 0}
-              className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
-            >
-              {swapArming === 'letter'
-                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
-                : `🔤 × ${swapLettersLeft}`}
-            </Button>
-          )}
-          {initialSwapColors > 0 && (
-            <Button
-              onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
-              disabled={swapColorsLeft <= 0}
-              className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
-            >
-              {swapArming === 'color'
-                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
-                : `🎨 × ${swapColorsLeft}`}
-            </Button>
-          )}
-          {swapArming && (
-            <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Swap-letter / swap-color powerups (level + bought) */}
+      {(() => {
+        const lettersTotal = swapLettersLeft + powerupInv.swapletter;
+        const colorsTotal = swapColorsLeft + powerupInv.swapcolor;
+        const showLetter = initialSwapLetters > 0 || powerupInv.swapletter > 0;
+        const showColor = initialSwapColors > 0 || powerupInv.swapcolor > 0;
+        if (!showLetter && !showColor) return null;
+        return (
+          <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+            {showLetter && (
+              <Button
+                onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
+                disabled={lettersTotal <= 0}
+                className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
+              >
+                {swapArming === 'letter'
+                  ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                  : `🔤 × ${lettersTotal}`}
+              </Button>
+            )}
+            {showColor && (
+              <Button
+                onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
+                disabled={colorsTotal <= 0}
+                className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
+              >
+                {swapArming === 'color'
+                  ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                  : `🎨 × ${colorsTotal}`}
+              </Button>
+            )}
+            {swapArming && (
+              <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        );
+      })()}
 
       
         <div ref={boardWrapperRef} className={`relative flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
