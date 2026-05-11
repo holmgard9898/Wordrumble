@@ -4,13 +4,7 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { BUBBLE_COLOR_STYLES, type BubbleColor, type Position } from '@/data/gameConstants';
 
 // Audio files live in /public/audio/voice/ and are served from site root.
-const FIRE_VOICES = ['/audio/voice/on_fire.mp3', '/audio/voice/word_god.mp3', '/audio/voice/fantastic.mp3'];
 const COMBO_VOICES = ['/audio/voice/excellent.mp3', '/audio/voice/amazing.mp3', '/audio/voice/incredible.mp3'];
-
-const FIRE_WINDOW_MOVES = 7;
-const FIRE_MIN_WORDS = 3;
-const FIRE_MIN_SCORE = 26; // > 25
-const FIRE_DURATION_MS = 10_000;
 
 type WordEvent = {
   id: number;
@@ -35,16 +29,9 @@ export function useGameEffects(opts: {
   getCellRect: GetCellRect;
   containerEl: HTMLElement | null;
 }) {
-  const { lastWordEvent, movesUsed, getCellRect, containerEl } = opts;
+  const { lastWordEvent, movesUsed, getCellRect } = opts;
   const { settings } = useSettings();
   const lastIdRef = useRef<number>(0);
-  const movesRef = useRef<number>(movesUsed);
-  movesRef.current = movesUsed;
-
-  // Sliding window of word events (per move)
-  const windowRef = useRef<{ move: number; score: number }[]>([]);
-  const [fireMode, setFireMode] = useState(false);
-  const fireTimerRef = useRef<number | null>(null);
   const [lightning, setLightning] = useState<LightningEvent | null>(null);
 
   const playVoice = useCallback((url: string) => {
@@ -56,21 +43,11 @@ export function useGameEffects(opts: {
     } catch {}
   }, [settings.sfxEnabled, settings.sfxVolume]);
 
-  const triggerFire = useCallback(() => {
-    setFireMode(true);
-    playVoice(FIRE_VOICES[Math.floor(Math.random() * FIRE_VOICES.length)]);
-    if (fireTimerRef.current != null) window.clearTimeout(fireTimerRef.current);
-    fireTimerRef.current = window.setTimeout(() => setFireMode(false), FIRE_DURATION_MS);
-  }, [playVoice]);
-
-  // Reset on game reset (movesUsed reset to 0 from non-zero)
+  // Reset on game reset
   const prevMovesRef = useRef(movesUsed);
   useEffect(() => {
     if (movesUsed === 0 && prevMovesRef.current !== 0) {
-      windowRef.current = [];
-      setFireMode(false);
       setLightning(null);
-      if (fireTimerRef.current != null) window.clearTimeout(fireTimerRef.current);
     }
     prevMovesRef.current = movesUsed;
   }, [movesUsed]);
@@ -80,13 +57,6 @@ export function useGameEffects(opts: {
     if (!lastWordEvent) return;
     if (lastWordEvent.id === lastIdRef.current) return;
     lastIdRef.current = lastWordEvent.id;
-
-    const move = movesRef.current;
-    // Add to sliding window, prune
-    windowRef.current.push({ move, score: lastWordEvent.score });
-    windowRef.current = windowRef.current.filter(
-      (e) => move - e.move < FIRE_WINDOW_MOVES,
-    );
 
     const len = lastWordEvent.length;
 
@@ -108,7 +78,6 @@ export function useGameEffects(opts: {
           scalar: 1.1,
           ticks: 220,
         });
-        // Secondary burst
         window.setTimeout(() => {
           confetti({
             particleCount: 70,
@@ -122,10 +91,8 @@ export function useGameEffects(opts: {
           });
         }, 220);
       }
-      // Combo voice
       playVoice(COMBO_VOICES[Math.floor(Math.random() * COMBO_VOICES.length)]);
     } else if (len === 7) {
-      // ─── Lightning for 7 ───
       setLightning({
         id: lastWordEvent.id,
         positions: lastWordEvent.positions,
@@ -135,18 +102,10 @@ export function useGameEffects(opts: {
         setLightning((cur) => (cur && cur.id === lastWordEvent.id ? null : cur));
       }, 900);
     }
-
-    // ─── Fire mode check ───
-    if (!fireMode) {
-      const sum = windowRef.current.reduce((a, b) => a + b.score, 0);
-      if (windowRef.current.length >= FIRE_MIN_WORDS && sum > FIRE_MIN_SCORE - 1) {
-        triggerFire();
-      }
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastWordEvent?.id]);
 
-  return { fireMode, lightning };
+  return { lightning };
 }
 
 export function getColorHex(color: BubbleColor): string {
