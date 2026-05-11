@@ -24,7 +24,6 @@ import { TutorialModal } from '@/components/TutorialModal';
 import { getTutorialSteps } from '@/data/tutorials';
 import { useTutorialSeen } from '@/hooks/useTutorialSeen';
 import { useGameEffects } from '@/hooks/useGameEffects';
-import { FireModeFrame } from '@/components/game/FireModeFrame';
 import { LightningOverlay } from '@/components/game/LightningOverlay';
 
 export type GameMode = 'classic' | 'surge' | 'fiveplus' | 'bomb' | 'oneword';
@@ -70,7 +69,7 @@ const GamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
-  const { fireMode, lightning } = useGameEffects({
+  const { lightning } = useGameEffects({
     lastWordEvent: game.lastWordEvent,
     movesUsed: game.movesUsed,
     getCellRect,
@@ -212,7 +211,7 @@ const GamePage = () => {
 
       {/* ── Unified layout (mobile-style on all sizes) ── */}
       <div className="flex flex-col flex-1 w-full items-center min-h-0 px-1 max-w-md md:max-w-lg lg:max-w-2xl">
-        <FireModeFrame active={fireMode}>
+        <>
           {/* Title + mode badge */}
           <div className="w-full flex flex-col items-center pt-1 pb-2">
             <h1 className="text-3xl tracking-wide" style={{ fontFamily: '"Fredoka One", cursive' }}>
@@ -259,7 +258,7 @@ const GamePage = () => {
               hideBadge
             />
           </div>
-        </FireModeFrame>
+        </>
       </div>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} />

@@ -12,6 +12,7 @@ import MultiplayerGamePage from "./pages/MultiplayerGamePage";
 import SettingsPage from "./pages/SettingsPage";
 import Statistics from "./pages/Statistics";
 import Shop from "./pages/Shop";
+import PowerupShop from "./pages/PowerupShop";
 import AuthPage from "./pages/AuthPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import NotFound from "./pages/NotFound";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/statistics" element={<Statistics />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/powerups" element={<PowerupShop />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/info" element={<InfoPage />} />

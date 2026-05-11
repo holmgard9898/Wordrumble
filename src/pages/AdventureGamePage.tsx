@@ -4,6 +4,7 @@ import { useDictionary } from '@/hooks/useDictionary';
 import { useGameState } from '@/hooks/useGameState';
 import { useCoins } from '@/hooks/useCoins';
 import { useUnlocks } from '@/hooks/useUnlocks';
+import { usePowerupInventory } from '@/hooks/usePowerupInventory';
 import { isForestSecretWord } from '@/data/secretUnlocks';
 import { useSfx } from '@/hooks/useSfx';
 import { useBackgroundMusic } from '@/hooks/useBackgroundMusic';
@@ -12,7 +13,6 @@ import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
 import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { useGameEffects } from '@/hooks/useGameEffects';
-import { FireModeFrame } from '@/components/game/FireModeFrame';
 import { LightningOverlay } from '@/components/game/LightningOverlay';
 import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
@@ -82,6 +82,7 @@ const AdventureGamePage = () => {
   const game = useGameState(isValidWord, levelMode, settings.language, adventureSeed);
   const { addCoins } = useCoins();
   const { unlock } = useUnlocks();
+  const { inventory: powerupInv, consume: consumePowerup } = usePowerupInventory();
   const { markCompleted } = useAdventureProgress();
   const { playWordFound } = useSfx();
   const { showRewardedAd } = useAds();
@@ -94,7 +95,7 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
-  const { fireMode, lightning } = useGameEffects({
+  const { lightning } = useGameEffects({
     lastWordEvent: game.lastWordEvent,
     movesUsed: game.movesUsed,
     getCellRect,
@@ -332,9 +333,12 @@ const AdventureGamePage = () => {
 
   const handleBubbleClick = useCallback((row: number, col: number) => {
     if (rocketArming) {
-      if (rocketsLeft > 0 && game.fireRocket) {
+      const hasFree = rocketsLeft > 0;
+      const hasInv = powerupInv.rocket > 0;
+      if ((hasFree || hasInv) && game.fireRocket) {
         game.fireRocket(col);
-        setRocketsLeft(n => n - 1);
+        if (hasFree) setRocketsLeft(n => n - 1);
+        else consumePowerup('rocket');
       }
       setRocketArming(false);
       return;
@@ -365,7 +369,7 @@ const AdventureGamePage = () => {
       return;
     }
     game.handleBubbleClick(row, col);
-  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming]);
+  }, [game, rocketArming, rocketsLeft, laserArming, laserDud, swapArming, powerupInv.rocket, consumePowerup]);
 
   const handleSatelliteClick = useCallback(() => {
     if (rocketArming) return;
@@ -612,25 +616,28 @@ const AdventureGamePage = () => {
       </div>
 
       {/* Rocket powerup bar */}
-      {(level.freeRockets ?? 0) > 0 && (
-        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
-          <Button
-            onClick={() => setRocketArming(v => !v)}
-            disabled={rocketsLeft <= 0}
-            className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
-          >
-            <Rocket className="w-4 h-4" />
-            {rocketArming
-              ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
-              : `🚀 × ${rocketsLeft}`}
-          </Button>
-          {rocketArming && (
-            <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
+      {((level.freeRockets ?? 0) > 0 || powerupInv.rocket > 0) && (() => {
+        const total = rocketsLeft + powerupInv.rocket;
+        return (
+          <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+            <Button
+              onClick={() => setRocketArming(v => !v)}
+              disabled={total <= 0}
+              className={`gap-2 ${rocketArming ? 'bg-orange-500 hover:bg-orange-400' : 'bg-indigo-600 hover:bg-indigo-500'} text-white disabled:opacity-40`}
+            >
+              <Rocket className="w-4 h-4" />
+              {rocketArming
+                ? (settings.language === 'sv' ? 'Välj kolumn…' : 'Pick a column…')
+                : `🚀 × ${total}`}
             </Button>
-          )}
-        </div>
-      )}
+            {rocketArming && (
+              <Button onClick={() => setRocketArming(false)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Laser powerup bar (satellite levels) */}
       {level.satellite && (
@@ -655,40 +662,47 @@ const AdventureGamePage = () => {
         </div>
       )}
 
-      {/* Free swap-letter / swap-color powerups (Adventure 3+) */}
-      {(initialSwapLetters > 0 || initialSwapColors > 0) && (
-        <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
-          {initialSwapLetters > 0 && (
-            <Button
-              onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
-              disabled={swapLettersLeft <= 0}
-              className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
-            >
-              {swapArming === 'letter'
-                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
-                : `🔤 × ${swapLettersLeft}`}
-            </Button>
-          )}
-          {initialSwapColors > 0 && (
-            <Button
-              onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
-              disabled={swapColorsLeft <= 0}
-              className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
-            >
-              {swapArming === 'color'
-                ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
-                : `🎨 × ${swapColorsLeft}`}
-            </Button>
-          )}
-          {swapArming && (
-            <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
-              <X className="w-3.5 h-3.5" />
-            </Button>
-          )}
-        </div>
-      )}
+      {/* Swap-letter / swap-color powerups (level + bought) */}
+      {(() => {
+        const lettersTotal = swapLettersLeft + powerupInv.swapletter;
+        const colorsTotal = swapColorsLeft + powerupInv.swapcolor;
+        const showLetter = initialSwapLetters > 0 || powerupInv.swapletter > 0;
+        const showColor = initialSwapColors > 0 || powerupInv.swapcolor > 0;
+        if (!showLetter && !showColor) return null;
+        return (
+          <div className="w-full max-w-md px-3 pb-2 flex items-center justify-center gap-2">
+            {showLetter && (
+              <Button
+                onClick={() => setSwapArming(swapArming === 'letter' ? null : 'letter')}
+                disabled={lettersTotal <= 0}
+                className={`gap-2 ${swapArming === 'letter' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-blue-600 hover:bg-blue-500'} text-white disabled:opacity-40`}
+              >
+                {swapArming === 'letter'
+                  ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                  : `🔤 × ${lettersTotal}`}
+              </Button>
+            )}
+            {showColor && (
+              <Button
+                onClick={() => setSwapArming(swapArming === 'color' ? null : 'color')}
+                disabled={colorsTotal <= 0}
+                className={`gap-2 ${swapArming === 'color' ? 'bg-orange-500 hover:bg-orange-400' : 'bg-purple-600 hover:bg-purple-500'} text-white disabled:opacity-40`}
+              >
+                {swapArming === 'color'
+                  ? (settings.language === 'sv' ? 'Välj bricka…' : 'Pick a tile…')
+                  : `🎨 × ${colorsTotal}`}
+              </Button>
+            )}
+            {swapArming && (
+              <Button onClick={() => setSwapArming(null)} variant="outline" size="sm" className="gap-1 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            )}
+          </div>
+        );
+      })()}
 
-      <FireModeFrame active={fireMode}>
+      
         <div ref={boardWrapperRef} className={`relative flex items-center justify-center w-full ${rocketArming ? 'ring-4 ring-orange-400/60 ring-offset-0 rounded-xl' : laserArming ? 'ring-4 ring-emerald-400/60 ring-offset-0 rounded-xl' : swapArming ? 'ring-4 ring-purple-400/60 ring-offset-0 rounded-xl' : ''}`}>
           <GameBoard
             ref={boardRef}
@@ -705,7 +719,6 @@ const AdventureGamePage = () => {
           />
           <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
         </div>
-      </FireModeFrame>
 
       <div className="w-full pt-1.5 pb-4">
         <GameInfo
@@ -920,10 +933,12 @@ const AdventureGamePage = () => {
                 if (!swapArming || !swapTarget) return;
                 if (swapArming === 'color' && swapNewColor) {
                   game.swapBubbleColor?.(swapTarget.row, swapTarget.col, swapNewColor);
-                  setSwapColorsLeft(n => Math.max(0, n - 1));
+                  if (swapColorsLeft > 0) setSwapColorsLeft(n => Math.max(0, n - 1));
+                  else consumePowerup('swapcolor');
                 } else if (swapArming === 'letter' && swapNewLetter) {
                   game.swapBubbleLetter?.(swapTarget.row, swapTarget.col, swapNewLetter);
-                  setSwapLettersLeft(n => Math.max(0, n - 1));
+                  if (swapLettersLeft > 0) setSwapLettersLeft(n => Math.max(0, n - 1));
+                  else consumePowerup('swapletter');
                 }
                 setSwapTarget(null);
                 setSwapArming(null);

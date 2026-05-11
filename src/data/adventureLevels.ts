@@ -587,6 +587,7 @@ export const adventureLevels: AdventureLevel[] = [
     hideModeTutorial: true,
     mapPosition: { x: 18, y: 88 },
     connectsTo: ['adv-3-2'],
+    unlocksShopItem: 'bg-cave',
   },
   {
     id: 'adv-3-2', number: 2, icon: '💎', map: 3,
