@@ -13,7 +13,6 @@ import { GameInfo } from '@/components/game/GameInfo';
 import { WordHistory } from '@/components/game/WordHistory';
 import { InGameMenu } from '@/components/game/InGameMenu';
 import { useGameEffects } from '@/hooks/useGameEffects';
-import { FireModeFrame } from '@/components/game/FireModeFrame';
 import { LightningOverlay } from '@/components/game/LightningOverlay';
 import { VersusHeader } from '@/components/multiplayer/VersusHeader';
 import { Button } from '@/components/ui/button';
@@ -88,7 +87,7 @@ const MultiplayerGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
-  const { fireMode, lightning } = useGameEffects({
+  const { lightning } = useGameEffects({
     lastWordEvent: game.lastWordEvent,
     movesUsed: game.movesUsed,
     getCellRect,
@@ -462,7 +461,7 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <FireModeFrame active={fireMode}>
+      <>
         <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
           <div ref={boardWrapperRef} className="relative">
             <GameBoard
@@ -488,7 +487,7 @@ const MultiplayerGamePage = () => {
           bestWord={game.bestWord}
           />
         </div>
-      </FireModeFrame>
+      </>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />

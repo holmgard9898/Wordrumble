@@ -12,7 +12,6 @@ import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
 import { GameBoard, type GameBoardHandle } from '@/components/game/GameBoard';
 import { useGameEffects } from '@/hooks/useGameEffects';
-import { FireModeFrame } from '@/components/game/FireModeFrame';
 import { LightningOverlay } from '@/components/game/LightningOverlay';
 import { GameInfo } from '@/components/game/GameInfo';
 import { InGameMenu } from '@/components/game/InGameMenu';
@@ -94,7 +93,7 @@ const AdventureGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
-  const { fireMode, lightning } = useGameEffects({
+  const { lightning } = useGameEffects({
     lastWordEvent: game.lastWordEvent,
     movesUsed: game.movesUsed,
     getCellRect,
@@ -705,7 +704,7 @@ const AdventureGamePage = () => {
           />
           <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
         </div>
-      </FireModeFrame>
+      </>
 
       <div className="w-full pt-1.5 pb-4">
         <GameInfo
