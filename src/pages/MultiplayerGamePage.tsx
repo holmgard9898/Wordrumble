@@ -18,7 +18,6 @@ import { VersusHeader } from '@/components/multiplayer/VersusHeader';
 import { Button } from '@/components/ui/button';
 import { Menu, ArrowLeft, Trophy, Swords, Clock, Loader2, Volume2, VolumeX, Music, Flag } from 'lucide-react';
 import { useTranslation } from '@/hooks/useTranslation';
-import { toast } from 'sonner';
 import { BubbleData, BUBBLE_COLORS, REDUCED_COLORS } from '@/data/gameConstants';
 import { getLanguageConfig } from '@/data/languages';
 import { createWordlessGrid } from '@/utils/gridGeneration';
