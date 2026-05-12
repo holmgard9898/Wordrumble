@@ -28,6 +28,7 @@ const MultiplayerMenu = () => {
   const [modePickerContext, setModePickerContext] = useState<'random' | { userId: string; name: string }>('random');
   const [searching, setSearching] = useState(false);
   const [queuedMode, setQueuedMode] = useState<string | null>(null);
+  const [searchStartedAt, setSearchStartedAt] = useState<string | null>(null);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
   useEffect(() => {
