@@ -67,12 +67,12 @@ const MultiplayerMenu = () => {
   };
 
   const startRandomMatch = async (mode: MatchMode) => {
-    setSearching(true); setQueuedMode(mode);
+    setSearching(true); setQueuedMode(mode); setSearchStartedAt(new Date().toISOString());
     try {
       const { data, error } = await supabase.functions.invoke('find-match', { body: { mode } });
       if (error) throw error;
       if (data.status === 'matched') { setSearching(false); toast.success(t.matchFound); navigate(`/match/${data.match.id}`); }
-    } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); }
+    } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); }
   };
 
   const challengeFriendWithMode = async (mode: MatchMode, friend: { userId: string; name: string }) => {
