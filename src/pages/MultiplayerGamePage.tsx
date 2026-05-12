@@ -52,7 +52,6 @@ const MODE_LABELS: Record<string, string> = {
 
 function getMovesForPhase(mode: string, phase: number): number {
   if (mode === 'classic' || mode === 'fiveplus') {
-    // Phase 1: 25, Phase 2: 50, Phase 3: 25
     if (phase === 1) return 25;
     if (phase === 2) return 50;
     return 25;
@@ -81,7 +80,6 @@ const MultiplayerGamePage = () => {
   const { isValidWord, loading: dictLoading } = useDictionary(settings.language);
   const { playSwap, playWordFound, playGameOver } = useSfx();
 
-  // Determine game mode from match
   const gameMode: GameMode = (match?.mode || 'classic') as GameMode;
   const colors = gameMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
 
@@ -89,6 +87,7 @@ const MultiplayerGamePage = () => {
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
+  
   const { lightning } = useGameEffects({
     lastWordEvent: game.lastWordEvent,
     movesUsed: game.movesUsed,
@@ -102,7 +101,6 @@ const MultiplayerGamePage = () => {
 
   useBackgroundMusic(gameStarted && !showMenu);
 
-  // Load match data
   useEffect(() => {
     if (!matchId || !user) return;
     loadMatch();
@@ -138,7 +136,6 @@ const MultiplayerGamePage = () => {
 
     setMatch(data as unknown as MatchData);
 
-    // Load opponent + my profile
     const opponentId = data.player1_id === user?.id ? data.player2_id : data.player1_id;
     const profileIds = [user?.id, opponentId].filter(Boolean) as string[];
     if (profileIds.length) {
@@ -160,25 +157,21 @@ const MultiplayerGamePage = () => {
     setLoadingMatch(false);
   };
 
-  // Start game when it's my turn
   useEffect(() => {
     if (!match || !user || dictLoading || gameStarted) return;
     if (match.current_turn !== user.id) return;
     if (match.status !== 'active') return;
 
-    // Determine grid for this phase
     let grid: BubbleData[][];
     const roundGrids = (match.round_grids || {}) as Record<string, any>;
     const currentPhase = match.current_phase || 1;
     const isClassicLike = match.mode === 'classic' || match.mode === 'fiveplus';
 
     if (isClassicLike && currentPhase > 1) {
-      // Phase 2 or 3: use previous phase's final grid
       const prevPhaseKey = `r${match.current_round}_p${currentPhase - 1}`;
       if (roundGrids[prevPhaseKey]) {
         grid = roundGrids[prevPhaseKey] as BubbleData[][];
       } else {
-        // Fallback: generate fresh grid without starting words
         grid = createWordlessGrid({
           isValidWord,
           minWordLength: gameMode === 'fiveplus' ? 5 : 3,
@@ -188,7 +181,6 @@ const MultiplayerGamePage = () => {
         });
       }
     } else {
-      // Phase 1 or non-classic: check for stored starting grid
       const startKey = `r${match.current_round}_start`;
       if (roundGrids[startKey]) {
         grid = roundGrids[startKey] as BubbleData[][];
@@ -200,7 +192,6 @@ const MultiplayerGamePage = () => {
           pool: langConfig.letterPool,
           values: langConfig.letterValues,
         });
-        // Save starting grid
         const newGrids = { ...roundGrids, [startKey]: grid };
         supabase.from('matches').update({ round_grids: newGrids }).eq('id', match.id);
       }
@@ -223,7 +214,6 @@ const MultiplayerGamePage = () => {
     if (hadSelection) playSwap();
   }, [game, playSwap]);
 
-  // Submit turn when game is over
   useEffect(() => {
     if (game.gameOver && gameStarted && match && !submitting) {
       submitTurn();
@@ -259,7 +249,6 @@ const MultiplayerGamePage = () => {
     }
   };
 
-  // Loading states
   if (loadingMatch || dictLoading) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center gap-4 ${bg.className}`} style={bg.style}>
@@ -276,7 +265,6 @@ const MultiplayerGamePage = () => {
   const myScore = isPlayer1 ? match.player1_score : match.player2_score;
   const opponentScore = isPlayer1 ? match.player2_score : match.player1_score;
 
-  // Get opponent's words from the current round to show as blocked
   const opponentRoundsData = (isPlayer1 ? match.player2_rounds_data : match.player1_rounds_data) || [];
   const opponentWordsThisRound = opponentRoundsData
     .filter((rd: any) => rd.round === match.current_round)
@@ -285,7 +273,6 @@ const MultiplayerGamePage = () => {
       score: typeof w === 'string' ? 0 : (w.score || 0),
     })));
 
-  // Match completed
   if (match.status === 'completed') {
     const iWon = match.winner_id === user?.id;
     const draw = !match.winner_id;
@@ -308,7 +295,6 @@ const MultiplayerGamePage = () => {
           </div>
         </div>
 
-        {/* Round breakdown */}
         <div className="rounded-xl p-4 w-full max-w-md" style={{ background: 'rgba(255,255,255,0.05)' }}>
           <p className="text-white/70 text-sm mb-2">Omgångar</p>
           {(isPlayer1 ? match.player1_rounds_data : match.player2_rounds_data).map((rd: any, i: number) => {
@@ -335,7 +321,6 @@ const MultiplayerGamePage = () => {
     );
   }
 
-  // Waiting for opponent's turn
   if (!isMyTurn && !gameStarted) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
@@ -367,7 +352,6 @@ const MultiplayerGamePage = () => {
     );
   }
 
-  // Just submitted turn
   if (submitting || (game.gameOver && !isMyTurn)) {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center p-4 gap-6 ${bg.className}`} style={bg.style}>
@@ -388,7 +372,6 @@ const MultiplayerGamePage = () => {
     );
   }
 
-  // Build per-round results for dots
   const myRoundsData: any[] = (isPlayer1 ? match.player1_rounds_data : match.player2_rounds_data) || [];
   const opRoundsData: any[] = (isPlayer1 ? match.player2_rounds_data : match.player1_rounds_data) || [];
   const totalRounds = match.total_rounds || 2;
@@ -407,23 +390,19 @@ const MultiplayerGamePage = () => {
   });
   const opponentPlayedCurrent = opRoundsData.some((r: any) => r.round === match.current_round);
 
-  // Playing phase
   return (
     <div className={`min-h-screen flex flex-col items-center p-2 md:p-4 ${bg.className}`} style={bg.style}>
-      {/* Top bar: sound/music left, centered title, menu right */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-2 px-1 gap-2">
         <div className="flex items-center gap-1 flex-1">
           <button
             onClick={() => updateSettings({ sfxEnabled: !settings.sfxEnabled })}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Toggle sound"
           >
             {settings.sfxEnabled ? <Volume2 className="w-5 h-5 text-white/80" /> : <VolumeX className="w-5 h-5 text-white/40" />}
           </button>
           <button
             onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label="Toggle music"
           >
             <Music className={`w-5 h-5 ${settings.musicEnabled ? 'text-white/80' : 'text-white/40'}`} />
           </button>
@@ -441,14 +420,11 @@ const MultiplayerGamePage = () => {
               if (!match || !user) return;
               if (!confirm(t.forfeitConfirm)) return;
               const winnerId = match.player1_id === user.id ? match.player2_id : match.player1_id;
-              const { error } = await supabase.from('matches').update({ status: 'forfeit', winner_id: winnerId }).eq('id', match.id);
-              if (error) { toast.error('Error'); return; }
+              await supabase.from('matches').update({ status: 'forfeit', winner_id: winnerId }).eq('id', match.id);
               toast.success(t.forfeitMatch);
               navigate('/challenge');
             }}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-            aria-label={t.forfeitMatch}
-            title={t.forfeitMatch}
           >
             <Flag className="w-5 h-5 text-white/80" />
           </button>
@@ -458,13 +434,11 @@ const MultiplayerGamePage = () => {
         </div>
       </div>
 
-      {/* Mode + round indicator */}
       <div className="w-full max-w-4xl text-center mb-2 px-1">
         <span className="text-white/50 text-xs md:text-sm">{MODE_LABELS[match.mode]} • Omg {match.current_round}/{match.total_rounds}</span>
       </div>
 
-      {/* Versus header */}
-      <div className="w-full max-w-4xl mb-2 md:mb-4">
+      <div className="w-full max-w-4xl mb-4 md:mb-6">
         <VersusHeader
           opponentName={opponentName}
           opponentAvatarUrl={opponentAvatarUrl}
@@ -479,33 +453,39 @@ const MultiplayerGamePage = () => {
         />
       </div>
 
-      <>
-        <div className="flex flex-col lg:flex-row gap-3 md:gap-6 items-center lg:items-start w-full max-w-4xl justify-center">
-          <div ref={boardWrapperRef} className="relative">
-            <GameBoard
-              ref={boardRef}
-              grid={game.grid}
-              selectedBubble={game.selectedBubble}
-              poppingCells={game.poppingCells}
-              onBubbleClick={handleBubbleClick}
-              onSwipe={game.handleSwipe}
-            />
-            <LightningOverlay event={lightning} getCellRect={getCellRect} containerEl={boardWrapperRef.current} />
-          </div>
-        <GameInfo
-          movesLeft={game.movesLeft}
-          score={game.score}
-          lastFoundWord={game.lastFoundWord}
-          onResetGame={() => {}}
-          onShowWords={() => setShowWords(true)}
-          usedWordsCount={game.usedWords.length}
-          blockedWordsCount={opponentWordsThisRound.length}
-          mode={gameMode}
-          bestWordScore={game.bestWordScore}
-          bestWord={game.bestWord}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-8 items-center lg:items-start w-full max-w-4xl justify-center flex-1">
+        <div ref={boardWrapperRef} className="relative w-full max-w-[min(100%,450px)] md:max-w-[500px]">
+          <GameBoard
+            ref={boardRef}
+            grid={game.grid}
+            selectedBubble={game.selectedBubble}
+            poppingCells={game.poppingCells}
+            onBubbleClick={handleBubbleClick}
+            onSwipe={game.handleSwipe}
+          />
+          <LightningOverlay 
+            key={game.lastWordEvent?.timestamp}
+            event={lightning} 
+            getCellRect={getCellRect} 
+            containerEl={boardWrapperRef.current} 
           />
         </div>
-      </>
+        
+        <div className="w-full max-w-[min(100%,450px)] lg:w-72">
+          <GameInfo
+            movesLeft={game.movesLeft}
+            score={game.score}
+            lastFoundWord={game.lastFoundWord}
+            onResetGame={() => {}}
+            onShowWords={() => setShowWords(true)}
+            usedWordsCount={game.usedWords.length}
+            blockedWordsCount={opponentWordsThisRound.length}
+            mode={gameMode}
+            bestWordScore={game.bestWordScore}
+            bestWord={game.bestWord}
+          />
+        </div>
+      </div>
 
       <WordHistory open={showWords} onOpenChange={setShowWords} words={game.usedWords} blockedWords={opponentWordsThisRound} />
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
