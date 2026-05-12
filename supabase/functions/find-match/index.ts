@@ -10,6 +10,8 @@ const ROWS = 10;
 const COLS = 8;
 const BUBBLE_COLORS = ["red", "green", "blue", "yellow", "pink"];
 const REDUCED_COLORS = ["red", "green", "blue"];
+const ALL_MODES = ["classic", "surge", "fiveplus", "oneword"] as const;
+type Mode = typeof ALL_MODES[number];
 
 const SV_LETTER_POOL =
   "AAAAAAAABBDDDDDEEEEEEEFFGGGHIIIIIJKKKLLLLLMMMNNNNNNOOOOOOPPRRRRRRRRSSSSSSSSSTTTTTTTTTUUUVVXYÅÅÄÄÖÖ";
@@ -47,6 +49,10 @@ function getTotalRounds(mode: string): number {
   return mode === "surge" ? 3 : 2;
 }
 
+function pickRandomMode(): Mode {
+  return ALL_MODES[Math.floor(Math.random() * ALL_MODES.length)];
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -63,9 +69,8 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-
-    // User client for auth check
     const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY")!;
+
     const userClient = createClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -78,56 +83,79 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const mode = body.mode;
-    if (!["classic", "surge", "fiveplus", "oneword"].includes(mode)) {
+    const requestedMode = body.mode;
+    const isRandom = requestedMode === "random";
+    if (!isRandom && !ALL_MODES.includes(requestedMode)) {
       return new Response(JSON.stringify({ error: "Invalid mode" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Admin client for cross-user operations
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Check if user already in queue
+    // Step 1: Try to join an OPEN match (player2_id IS NULL, status='active')
+    const openModes: string[] = isRandom ? [...ALL_MODES] : [requestedMode];
+    const { data: openMatches } = await admin
+      .from("matches")
+      .select("*")
+      .is("player2_id", null)
+      .eq("status", "active")
+      .in("mode", openModes)
+      .neq("player1_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1);
+
+    if (openMatches && openMatches.length > 0) {
+      const open = openMatches[0];
+      const { data: joined, error: joinErr } = await admin
+        .from("matches")
+        .update({ player2_id: user.id })
+        .eq("id", open.id)
+        .is("player2_id", null) // race-safety
+        .select()
+        .single();
+      if (!joinErr && joined) {
+        await admin.from("matchmaking_queue").delete().eq("user_id", user.id);
+        return new Response(
+          JSON.stringify({ status: "matched", match: joined }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const pickedMode: Mode = isRandom ? pickRandomMode() : (requestedMode as Mode);
+
+    // Check if user already in queue for this mode
     const { data: existing } = await admin
       .from("matchmaking_queue")
       .select("id")
       .eq("user_id", user.id)
-      .eq("mode", mode);
+      .eq("mode", pickedMode);
 
-    if (existing && existing.length > 0) {
-      // Already queued, look for match
-    }
-
-    // Look for another player in the queue with same mode (not self)
+    // Step 2: Look for another player in queue (same picked mode)
     const { data: candidates } = await admin
       .from("matchmaking_queue")
       .select("*")
-      .eq("mode", mode)
+      .eq("mode", pickedMode)
       .neq("user_id", user.id)
       .order("joined_at", { ascending: true })
       .limit(1);
 
     if (candidates && candidates.length > 0) {
       const opponent = candidates[0];
-
-      // Generate grids for all rounds
-      const totalRounds = getTotalRounds(mode);
+      const totalRounds = getTotalRounds(pickedMode);
       const grids = [];
-      for (let i = 0; i < totalRounds; i++) {
-        grids.push(createGrid(mode));
-      }
+      for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode));
 
-      // Create match
       const { data: match, error: matchError } = await admin
         .from("matches")
         .insert({
-          mode,
-          player1_id: opponent.user_id, // Earlier queuer is player1
+          mode: pickedMode,
+          player1_id: opponent.user_id,
           player2_id: user.id,
           status: "active",
-          current_turn: opponent.user_id, // Player 1 goes first
+          current_turn: opponent.user_id,
           current_round: 1,
           total_rounds: totalRounds,
           round_grids: grids,
@@ -145,7 +173,6 @@ Deno.serve(async (req) => {
         });
       }
 
-      // Remove both from queue
       await admin.from("matchmaking_queue").delete().eq("id", opponent.id);
       await admin.from("matchmaking_queue").delete().eq("user_id", user.id);
 
@@ -155,16 +182,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // No match found - add to queue if not already there
     if (!existing || existing.length === 0) {
       await admin.from("matchmaking_queue").insert({
         user_id: user.id,
-        mode,
+        mode: pickedMode,
       });
     }
 
     return new Response(
-      JSON.stringify({ status: "queued" }),
+      JSON.stringify({ status: "queued", mode: pickedMode }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
