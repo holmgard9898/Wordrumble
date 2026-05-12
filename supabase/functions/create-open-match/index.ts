@@ -69,18 +69,49 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const requested = body.mode;
     const isRandom = requested === "random";
-    if (!isRandom && !ALL_MODES.includes(requested)) {
-      return new Response(JSON.stringify({ error: "Invalid mode" }), {
-        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    
     const admin = createClient(supabaseUrl, serviceKey);
     const pickedMode: Mode = isRandom
       ? ALL_MODES[Math.floor(Math.random() * ALL_MODES.length)]
       : (requested as Mode);
 
-    // Avoid creating duplicate open matches: re-use any existing open match by this user in this mode
+    // --- NY MATCHMAKING-LOGIK START ---
+    
+    // 1. Kolla om det redan finns en öppen match i detta läge som väntar på en motståndare
+    const { data: openMatch, error: searchError } = await admin
+      .from("matches")
+      .select("*")
+      .is("player2_id", null)       // Ingen motståndare än
+      .neq("player1_id", user.id)   // Det ska inte vara min egen match
+      .eq("mode", pickedMode)       // Samma spelläge
+      .eq("status", "active")
+      .order('created_at', { ascending: true }) // Ta den som väntat längst
+      .limit(1)
+      .maybeSingle();
+
+    if (openMatch) {
+      // 2. Vi hittade en match! Uppdatera den för att "hoppa in" som player 2
+      const { data: joinedMatch, error: joinError } = await admin
+        .from("matches")
+        .update({ 
+          player2_id: user.id 
+        })
+        .eq("id", openMatch.id)
+        .select()
+        .single();
+
+      if (!joinError) {
+        await admin.from("matchmaking_queue").delete().eq("user_id", user.id);
+        return new Response(
+          JSON.stringify({ status: "joined", match: joinedMatch }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+    
+    // --- NY MATCHMAKING-LOGIK SLUT ---
+
+    // Om ingen match hittades, kör din gamla logik: kolla om man själv redan har en öppen match
     const { data: existingOpen } = await admin
       .from("matches")
       .select("*")
@@ -98,6 +129,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Skapa en helt ny match om inget hittades
     const totalRounds = getTotalRounds(pickedMode);
     const grids = [];
     for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode));
