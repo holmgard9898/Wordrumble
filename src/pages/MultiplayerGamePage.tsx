@@ -435,7 +435,23 @@ const MultiplayerGamePage = () => {
           <span className="text-pink-400">Rumble</span>
         </h1>
 
-        <div className="flex items-center justify-end flex-1">
+        <div className="flex items-center justify-end flex-1 gap-1">
+          <button
+            onClick={async () => {
+              if (!match || !user) return;
+              if (!confirm(t.forfeitConfirm)) return;
+              const winnerId = match.player1_id === user.id ? match.player2_id : match.player1_id;
+              const { error } = await supabase.from('matches').update({ status: 'forfeit', winner_id: winnerId }).eq('id', match.id);
+              if (error) { toast.error('Error'); return; }
+              toast.success(t.forfeitMatch);
+              navigate('/challenge');
+            }}
+            className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            aria-label={t.forfeitMatch}
+            title={t.forfeitMatch}
+          >
+            <Flag className="w-5 h-5 text-white/80" />
+          </button>
           <button onClick={() => setShowMenu(true)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
             <Menu className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </button>
