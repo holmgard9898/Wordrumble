@@ -741,6 +741,8 @@ const translations = {
   // ─── Coin rewards ───
   loss: { en: 'Loss', sv: 'Förlust', de: 'Niederlage', es: 'Derrota', fr: 'Défaite', it: 'Sconfitta', pt: 'Derrota', nl: 'Verlies', no: 'Tap', da: 'Nederlag', fi: 'Tappio' },
   opponentForfeit: { en: 'Opponent forfeited', sv: 'Motståndaren gav upp', de: 'Gegner aufgegeben', es: 'El oponente se retiró', fr: "L'adversaire a abandonné", it: "L'avversario si è ritirato", pt: 'Oponente desistiu', nl: 'Tegenstander opgegeven', no: 'Motstanderen ga opp', da: 'Modstanderen opgav', fi: 'Vastustaja luovutti' },
+  forfeitMatch: { en: 'Forfeit match', sv: 'Ge upp matchen', de: 'Match aufgeben', es: 'Abandonar partida', fr: 'Abandonner le match', it: 'Abbandona partita', pt: 'Desistir da partida', nl: 'Wedstrijd opgeven', no: 'Gi opp kampen', da: 'Opgiv kampen', fi: 'Luovuta ottelu' },
+  forfeitConfirm: { en: 'Forfeit this match? Your opponent will win.', sv: 'Ge upp matchen? Motståndaren vinner.', de: 'Match aufgeben? Gegner gewinnt.', es: '¿Abandonar? El oponente gana.', fr: 'Abandonner ? L\'adversaire gagne.', it: 'Abbandonare? L\'avversario vince.', pt: 'Desistir? O oponente vence.', nl: 'Opgeven? Tegenstander wint.', no: 'Gi opp? Motstanderen vinner.', da: 'Opgiv? Modstanderen vinder.', fi: 'Luovutatko? Vastustaja voittaa.' },
   draw: { en: 'Draw', sv: 'Oavgjort', de: 'Unentschieden', es: 'Empate', fr: 'Match nul', it: 'Pareggio', pt: 'Empate', nl: 'Gelijkspel', no: 'Uavgjort', da: 'Uafgjort', fi: 'Tasapeli' },
   win: { en: 'Win', sv: 'Vinst', de: 'Sieg', es: 'Victoria', fr: 'Victoire', it: 'Vittoria', pt: 'Vitória', nl: 'Overwinning', no: 'Seier', da: 'Sejr', fi: 'Voitto' },
 
