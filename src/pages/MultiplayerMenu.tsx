@@ -45,13 +45,13 @@ const MultiplayerMenu = () => {
   useEffect(() => { if (!loading && !user) navigate('/auth'); }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (!searching || !queuedMode || !user) return;
+    if (!searching || !queuedMode || !user || !searchStartedAt) return;
     const interval = setInterval(async () => {
-      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('mode', queuedMode as MatchMode).order('created_at', { ascending: false }).limit(1);
+      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('mode', queuedMode as MatchMode).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
       if (matches && matches.length > 0) { setSearching(false); toast.success(t.matchFound); navigate(`/match/${matches[0].id}`); }
     }, 2000);
     return () => clearInterval(interval);
-  }, [searching, queuedMode, user, navigate, t.matchFound]);
+  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
