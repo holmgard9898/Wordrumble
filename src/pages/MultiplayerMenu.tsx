@@ -47,11 +47,33 @@ const MultiplayerMenu = () => {
   useEffect(() => {
     if (!searching || !queuedMode || !user || !searchStartedAt) return;
     const interval = setInterval(async () => {
-      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('mode', queuedMode as MatchMode).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
+      const dbModes: ('classic' | 'surge' | 'fiveplus' | 'oneword')[] = queuedMode === 'random'
+        ? ['classic', 'surge', 'fiveplus', 'oneword']
+        : [queuedMode as 'classic' | 'surge' | 'fiveplus' | 'oneword'];
+      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').in('mode', dbModes).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
       if (matches && matches.length > 0) { setSearching(false); toast.success(t.matchFound); navigate(`/match/${matches[0].id}`); }
     }, 2000);
     return () => clearInterval(interval);
   }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt]);
+
+  // After 5s of searching with no match, open a "Quizkampen-style" match the user can play immediately
+  useEffect(() => {
+    if (!searching || !queuedMode || !user) return;
+    const timeout = setTimeout(async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-open-match', { body: { mode: queuedMode } });
+        if (error) throw error;
+        if (data?.match?.id) {
+          setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
+          toast.success(t.startingOpenMatch);
+          navigate(`/match/${data.match.id}`);
+        }
+      } catch {
+        // keep polling silently
+      }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [searching, queuedMode, user, navigate, t.startingOpenMatch]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
@@ -63,7 +85,7 @@ const MultiplayerMenu = () => {
 
   const handleModeSelected = async (mode: MatchMode) => {
     if (modePickerContext === 'random') await startRandomMatch(mode);
-    else await challengeFriendWithMode(mode, modePickerContext);
+    else if (mode !== 'random') await challengeFriendWithMode(mode, modePickerContext);
   };
 
   const startRandomMatch = async (mode: MatchMode) => {
@@ -75,7 +97,7 @@ const MultiplayerMenu = () => {
     } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); }
   };
 
-  const challengeFriendWithMode = async (mode: MatchMode, friend: { userId: string; name: string }) => {
+  const challengeFriendWithMode = async (mode: Exclude<MatchMode, 'random'>, friend: { userId: string; name: string }) => {
     const totalRounds = mode === 'surge' ? 3 : 2;
     const { data: match, error } = await supabase.from('matches').insert({
       mode, player1_id: user.id, player2_id: friend.userId, status: 'waiting', current_turn: user.id,
