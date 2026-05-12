@@ -87,7 +87,7 @@ const MultiplayerMenu = () => {
     navigate(`/match/${match.id}`);
   };
 
-  const cancelSearch = async () => { await supabase.from('matchmaking_queue').delete().eq('user_id', user.id); setSearching(false); setQueuedMode(null); };
+  const cancelSearch = async () => { await supabase.from('matchmaking_queue').delete().eq('user_id', user.id); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); };
 
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 pt-8 pb-20 ${bg.className}`} style={bg.style}>
