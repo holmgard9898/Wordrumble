@@ -146,7 +146,7 @@ export function MatchList() {
             const myTurn = isMyTurn(match);
             const sent = isSentInvitation(match);
             return (
-              <button key={match.id} onClick={() => navigate(`/match/${match.id}`)} className="w-full rounded-xl p-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99]" style={{ background: myTurn ? 'rgba(34,197,94,0.15)' : sent ? 'rgba(234,179,8,0.1)' : 'rgba(255,255,255,0.06)', border: `1px solid ${myTurn ? 'rgba(34,197,94,0.3)' : sent ? 'rgba(234,179,8,0.2)' : 'rgba(255,255,255,0.1)'}` }}>
+              <button key={match.id} onClick={() => navigate(`/match/${match.id}`)} className="w-full rounded-xl p-4 text-left transition-all hover:scale-[1.01] active:scale-[0.99] backdrop-blur-2xl shadow-lg" style={{ background: myTurn ? 'rgba(15,55,30,0.88)' : sent ? 'rgba(60,40,5,0.85)' : 'rgba(20,18,40,0.88)', border: `1px solid ${myTurn ? 'rgba(34,197,94,0.5)' : sent ? 'rgba(234,179,8,0.45)' : 'rgba(255,255,255,0.18)'}` }}>
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
