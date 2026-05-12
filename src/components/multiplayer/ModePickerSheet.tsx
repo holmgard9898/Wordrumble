@@ -1,4 +1,4 @@
-import { Timer, Zap, Star, Trophy, Lock } from 'lucide-react';
+import { Timer, Zap, Star, Trophy, Lock, Shuffle } from 'lucide-react';
 import {
   Drawer, DrawerContent, DrawerHeader, DrawerTitle,
 } from '@/components/ui/drawer';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 
-export type MatchMode = 'classic' | 'surge' | 'fiveplus' | 'oneword';
+export type MatchMode = 'classic' | 'surge' | 'fiveplus' | 'oneword' | 'random';
 
 interface ModePickerSheetProps {
   open: boolean;
@@ -26,6 +26,7 @@ export function ModePickerSheet({ open, onOpenChange, onSelect, title }: ModePic
   const [lockedMode, setLockedMode] = useState<MatchMode | null>(null);
 
   const MODES = [
+    { id: 'random' as MatchMode, icon: Shuffle, label: t.randomMode, color: '168,85,247', desc: t.randomModeDesc, alwaysUnlocked: true },
     { id: 'classic' as MatchMode, icon: Timer, label: t.modeClassic, color: '59,130,246', desc: t.mpClassicDesc },
     { id: 'surge' as MatchMode, icon: Zap, label: t.modeSurge, color: '234,179,8', desc: t.mpSurgeDesc },
     { id: 'fiveplus' as MatchMode, icon: Star, label: t.modeFiveplus, color: '34,211,238', desc: t.mpFiveplusDesc },
@@ -43,7 +44,7 @@ export function ModePickerSheet({ open, onOpenChange, onSelect, title }: ModePic
           </DrawerHeader>
           <div className="px-4 pb-6 space-y-3">
             {MODES.map(mode => {
-              const locked = !isModeUnlocked(mode.id);
+              const locked = !mode.alwaysUnlocked && !isModeUnlocked(mode.id);
               return (
                 <button
                   key={mode.id}
