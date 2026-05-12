@@ -119,7 +119,7 @@ export function MatchList() {
         <>
           <p className="text-yellow-400/80 text-xs font-semibold uppercase tracking-wider mb-2">{t.matchInvitations} ({incoming.length})</p>
           {incoming.map((match) => (
-            <div key={match.id} className="w-full rounded-xl p-4" style={{ background: 'rgba(234,179,8,0.15)', border: '1px solid rgba(234,179,8,0.3)' }}>
+            <div key={match.id} className="w-full rounded-xl p-4 backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(60,40,5,0.85)', border: '1px solid rgba(234,179,8,0.5)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
