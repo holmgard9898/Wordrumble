@@ -39,7 +39,21 @@ export function MatchList() {
     if (!user) return;
     const { data } = await supabase.from('matches').select('*').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).in('status', ['active', 'waiting']).order('last_move_at', { ascending: false });
     if (data) {
-      setMatches(data as unknown as MatchRow[]);
+      // Auto-forfeit matches where the player whose turn it is has exceeded 48h
+      const FORTY_EIGHT_H = 48 * 60 * 60 * 1000;
+      const now = Date.now();
+      const expired = (data as any[]).filter(m => m.status === 'active' && m.current_turn && (now - new Date(m.last_move_at).getTime()) > FORTY_EIGHT_H);
+      if (expired.length > 0) {
+        await Promise.all(expired.map(m => {
+          const winnerId = m.current_turn === m.player1_id ? m.player2_id : m.player1_id;
+          return supabase.from('matches').update({ status: 'forfeit', winner_id: winnerId }).eq('id', m.id);
+        }));
+        const expiredIds = new Set(expired.map(m => m.id));
+        const remaining = (data as any[]).filter(m => !expiredIds.has(m.id));
+        setMatches(remaining as MatchRow[]);
+      } else {
+        setMatches(data as unknown as MatchRow[]);
+      }
       const opponentIds = new Set<string>();
       data.forEach((m: any) => { if (m.player1_id !== user.id) opponentIds.add(m.player1_id); if (m.player2_id && m.player2_id !== user.id) opponentIds.add(m.player2_id); });
       if (opponentIds.size > 0) {
