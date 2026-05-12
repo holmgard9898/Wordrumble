@@ -180,20 +180,20 @@ const Statistics = () => {
             ) : (
               <div className="space-y-3">
                 <div className="flex gap-2">
-                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
-                    <p className="text-green-400 text-xs font-semibold">{t.wins}</p>
+                  <div className="flex-1 rounded-xl p-3 text-center backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(15,55,30,0.88)', border: '1px solid rgba(34,197,94,0.5)' }}>
+                    <p className="text-green-300 text-xs font-semibold">{t.wins}</p>
                     <p className="text-white text-2xl font-bold">{onlineStats.wins}</p>
                   </div>
-                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)' }}>
-                    <p className="text-red-400 text-xs font-semibold">{t.losses}</p>
+                  <div className="flex-1 rounded-xl p-3 text-center backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(60,15,15,0.88)', border: '1px solid rgba(239,68,68,0.5)' }}>
+                    <p className="text-red-300 text-xs font-semibold">{t.losses}</p>
                     <p className="text-white text-2xl font-bold">{onlineStats.losses}</p>
                   </div>
-                  <div className="flex-1 rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <p className="text-white/50 text-xs font-semibold">{t.draws}</p>
+                  <div className="flex-1 rounded-xl p-3 text-center backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(20,18,40,0.9)', border: '1px solid rgba(255,255,255,0.25)' }}>
+                    <p className="text-white/80 text-xs font-semibold">{t.draws}</p>
                     <p className="text-white text-2xl font-bold">{onlineStats.draws}</p>
                   </div>
                 </div>
-                <div className="rounded-2xl p-4 space-y-3" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                <div className="rounded-2xl p-4 space-y-3 backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(15,18,35,0.85)', border: '1px solid rgba(255,255,255,0.12)' }}>
                   <div className="flex justify-between items-center"><span className="text-white/50 text-sm">{t.matchesPlayed}</span><span className="text-white font-semibold">{onlineStats.totalMatches}</span></div>
                   <div className="flex justify-between items-center"><span className="text-white/50 text-sm">{t.winRate}</span><span className="text-white font-semibold">{winRate}%</span></div>
                   <div className="flex justify-between items-center"><span className="text-white/50 text-sm">{t.totalPoints}</span><span className="text-white font-semibold">{onlineStats.totalScore}</span></div>

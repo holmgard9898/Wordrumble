@@ -28,6 +28,7 @@ const MultiplayerMenu = () => {
   const [modePickerContext, setModePickerContext] = useState<'random' | { userId: string; name: string }>('random');
   const [searching, setSearching] = useState(false);
   const [queuedMode, setQueuedMode] = useState<string | null>(null);
+  const [searchStartedAt, setSearchStartedAt] = useState<string | null>(null);
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
 
   useEffect(() => {
@@ -44,13 +45,13 @@ const MultiplayerMenu = () => {
   useEffect(() => { if (!loading && !user) navigate('/auth'); }, [loading, user, navigate]);
 
   useEffect(() => {
-    if (!searching || !queuedMode || !user) return;
+    if (!searching || !queuedMode || !user || !searchStartedAt) return;
     const interval = setInterval(async () => {
-      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('mode', queuedMode as MatchMode).order('created_at', { ascending: false }).limit(1);
+      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('mode', queuedMode as MatchMode).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
       if (matches && matches.length > 0) { setSearching(false); toast.success(t.matchFound); navigate(`/match/${matches[0].id}`); }
     }, 2000);
     return () => clearInterval(interval);
-  }, [searching, queuedMode, user, navigate, t.matchFound]);
+  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
@@ -66,12 +67,12 @@ const MultiplayerMenu = () => {
   };
 
   const startRandomMatch = async (mode: MatchMode) => {
-    setSearching(true); setQueuedMode(mode);
+    setSearching(true); setQueuedMode(mode); setSearchStartedAt(new Date().toISOString());
     try {
       const { data, error } = await supabase.functions.invoke('find-match', { body: { mode } });
       if (error) throw error;
       if (data.status === 'matched') { setSearching(false); toast.success(t.matchFound); navigate(`/match/${data.match.id}`); }
-    } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); }
+    } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); }
   };
 
   const challengeFriendWithMode = async (mode: MatchMode, friend: { userId: string; name: string }) => {
@@ -86,7 +87,7 @@ const MultiplayerMenu = () => {
     navigate(`/match/${match.id}`);
   };
 
-  const cancelSearch = async () => { await supabase.from('matchmaking_queue').delete().eq('user_id', user.id); setSearching(false); setQueuedMode(null); };
+  const cancelSearch = async () => { await supabase.from('matchmaking_queue').delete().eq('user_id', user.id); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); };
 
   return (
     <div className={`min-h-screen flex flex-col items-center p-4 pt-8 pb-20 ${bg.className}`} style={bg.style}>
@@ -106,18 +107,18 @@ const MultiplayerMenu = () => {
         <>
           <div className="w-full max-w-md space-y-3 mb-6">
             <p className="text-white/50 text-xs font-semibold uppercase tracking-wider">{t.challenge}</p>
-            <button onClick={handleRandomClick} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98]" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
-              <Shuffle className="w-6 h-6 text-purple-400" />
-              <div className="text-left"><div className="text-white font-bold text-base">{t.randomOpponent}</div><div className="text-white/40 text-xs">{t.meetRandomPlayer}</div></div>
+            <button onClick={handleRandomClick} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(30,18,60,0.85)', border: '1px solid rgba(168,85,247,0.45)' }}>
+              <Shuffle className="w-6 h-6 text-purple-300" />
+              <div className="text-left"><div className="text-white font-bold text-base">{t.randomOpponent}</div><div className="text-white/70 text-xs">{t.meetRandomPlayer}</div></div>
             </button>
-            <button onClick={() => { playClick(); setFriendDrawerOpen(true); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
-              <Users className="w-6 h-6 text-purple-400" />
-              <div className="text-left flex-1"><div className="text-white font-bold text-base">{t.friend}</div><div className="text-white/40 text-xs">{t.challengeFriend}</div></div>
+            <button onClick={() => { playClick(); setFriendDrawerOpen(true); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] relative backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(30,18,60,0.85)', border: '1px solid rgba(168,85,247,0.45)' }}>
+              <Users className="w-6 h-6 text-purple-300" />
+              <div className="text-left flex-1"><div className="text-white font-bold text-base">{t.friend}</div><div className="text-white/70 text-xs">{t.challengeFriend}</div></div>
               {pendingRequestCount > 0 && <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold animate-pulse"><Bell className="w-3 h-3" /> {pendingRequestCount}</span>}
             </button>
-            <button onClick={() => { playClick(); toast.info(t.comingSoon + '!'); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] opacity-60" style={{ background: 'rgba(147,51,234,0.15)', border: '1px solid rgba(147,51,234,0.3)' }}>
-              <Bot className="w-6 h-6 text-purple-400" />
-              <div className="text-left"><div className="text-white font-bold text-base">{t.computer}</div><div className="text-white/40 text-xs">{t.playVsAI}</div></div>
+            <button onClick={() => { playClick(); toast.info(t.comingSoon + '!'); }} className="w-full rounded-3xl p-4 flex items-center gap-4 transition-all hover:scale-[1.01] active:scale-[0.98] opacity-70 backdrop-blur-2xl shadow-lg" style={{ background: 'rgba(30,18,60,0.85)', border: '1px solid rgba(168,85,247,0.45)' }}>
+              <Bot className="w-6 h-6 text-purple-300" />
+              <div className="text-left"><div className="text-white font-bold text-base">{t.computer}</div><div className="text-white/70 text-xs">{t.playVsAI}</div></div>
             </button>
           </div>
           <MatchList />
