@@ -464,7 +464,7 @@ const MultiplayerGamePage = () => {
             onSwipe={game.handleSwipe}
           />
           <LightningOverlay 
-            key={game.lastWordEvent?.timestamp}
+            key={game.lastWordEvent?.id}
             event={lightning} 
             getCellRect={getCellRect} 
             containerEl={boardWrapperRef.current} 
