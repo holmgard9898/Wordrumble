@@ -95,9 +95,9 @@ const DailyChallengePage = () => {
     if (hadSelection) playSwap();
   }, [game, playSwap, isOver]);
 
-  const handleSwipe = useCallback((from: { row: number; col: number }, to: { row: number; col: number }) => {
+  const handleSwipe = useCallback((row: number, col: number, direction: 'up' | 'down' | 'left' | 'right') => {
     if (isOver) return;
-    game.handleSwipe(from, to);
+    game.handleSwipe(row, col, direction);
   }, [game, isOver]);
 
   const handleRetry = useCallback(() => {
