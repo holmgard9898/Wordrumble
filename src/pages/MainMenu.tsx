@@ -16,6 +16,15 @@ const MainMenu = () => {
   const { playClick } = useSfx();
   const bg = useGameBackground();
   const { t } = useTranslation();
+  const { shouldShowPopup, markPopupShown } = useDailyChallenge();
+  const [popupOpen, setPopupOpen] = useState(false);
+
+  useEffect(() => {
+    if (shouldShowPopup) {
+      const id = setTimeout(() => { setPopupOpen(true); markPopupShown(); }, 600);
+      return () => clearTimeout(id);
+    }
+  }, [shouldShowPopup, markPopupShown]);
 
   const go = (path: string) => { playClick(); navigate(path); };
 
@@ -53,6 +62,8 @@ const MainMenu = () => {
           <MenuButton onClick={() => go('/settings')} icon={<Settings className="w-4 h-4" />} label={t.settingsTitle} gradient="purple" size="md" />
         </div>
       </div>
+
+      <DailyChallengePopup open={popupOpen} onOpenChange={setPopupOpen} />
     </div>
   );
 };
