@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Gamepad2, Swords, ShoppingBag, BarChart3, Settings, Map } from 'lucide-react';
 import { useSfx } from '@/hooks/useSfx';
 import { useGameBackground } from '@/hooks/useGameBackground';
 import { useMenuMusic } from '@/hooks/useMenuMusic';
 import { useTranslation } from '@/hooks/useTranslation';
+import { useDailyChallenge } from '@/hooks/useDailyChallenge';
+import { DailyChallengePopup } from '@/components/DailyChallengePopup';
 import { MenuButton } from '@/components/MenuButton';
 import logoUrl from '@/assets/word-rumble-logo.png';
 

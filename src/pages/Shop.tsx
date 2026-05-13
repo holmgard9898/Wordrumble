@@ -165,7 +165,7 @@ const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: '
 
         <div>
           <h2 className="text-lg font-semibold text-white/80 text-center mb-3">{t.other}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {miscShopItems.map(item => (
               <button key={item.id} onClick={() => {
                 if (item.type === 'action') handleWatchAd();
