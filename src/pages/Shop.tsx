@@ -165,7 +165,7 @@ const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: '
 
         <div>
           <h2 className="text-lg font-semibold text-white/80 text-center mb-3">{t.other}</h2>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {miscShopItems.map(item => (
               <button key={item.id} onClick={() => {
                 if (item.type === 'action') handleWatchAd();
@@ -173,8 +173,8 @@ const ArrowBtn = ({ direction, disabled, onClick: onArrowClick }: { direction: '
               }} className="relative rounded-2xl overflow-hidden transition-all hover:scale-[1.03] active:scale-[0.97] bg-slate-900/60 backdrop-blur-xl border border-white/10 shadow-2xl" style={{ border: '3px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.4)' }}>
                 <div className="aspect-[4/3] flex flex-col items-center justify-center gap-1 p-3">
                   <span className="text-3xl">{item.icon}</span>
-                  <span className="text-white text-sm font-semibold">{item.id === 'watch-ad' ? t.shopWatchAd : item.id === 'adventure-mode' ? t.shopAdventure : item.name}</span>
-                  <span className="text-white/50 text-[11px] leading-tight text-center">{item.id === 'watch-ad' ? t.shopWatchAdDesc : item.id === 'adventure-mode' ? t.shopAdventureDesc : item.description}</span>
+                  <span className="text-white text-sm font-semibold">{item.id === 'watch-ad' ? t.shopWatchAd : item.id === 'adventure-mode' ? t.shopAdventure : item.id === 'daily-challenge' ? (settings.language === 'sv' ? 'Daglig utmaning' : 'Daily challenge') : item.id === 'powerups' ? (settings.language === 'sv' ? 'Powerups' : 'Powerups') : item.name}</span>
+                  <span className="text-white/50 text-[11px] leading-tight text-center">{item.id === 'watch-ad' ? t.shopWatchAdDesc : item.id === 'adventure-mode' ? t.shopAdventureDesc : item.id === 'daily-challenge' ? (settings.language === 'sv' ? 'Ny utmaning varje dag. Tjäna upp till 50 mynt.' : 'A new challenge every day. Earn up to 50 coins.') : item.description}</span>
                 </div>
               </button>
             ))}

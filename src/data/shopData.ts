@@ -58,4 +58,5 @@ export interface MiscShopItem {
 export const miscShopItems: MiscShopItem[] = [
   { id: 'watch-ad', name: 'Watch ad', description: 'Watch a video (~30s) and get 10 coins', icon: '📺', type: 'action', actionLabel: 'Watch video' },
   { id: 'powerups', name: 'Powerups', description: 'Buy powerups for Adventure mode', icon: '⚡', type: 'navigate', navigateTo: '/shop/powerups' },
+  { id: 'daily-challenge', name: 'Daily challenge', description: 'A new challenge every day. Earn up to 50 coins.', icon: '📅', type: 'navigate', navigateTo: '/daily' },
 ];
