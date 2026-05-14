@@ -4,6 +4,7 @@ import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BackButton } from '@/components/MenuButton';
+import { SeoHead } from '@/components/SeoHead';
 import { getTutorialSteps } from '@/data/tutorials';
 import type { GameMode } from '@/pages/GamePage';
 
