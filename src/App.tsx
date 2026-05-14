@@ -31,6 +31,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <RouteSeo />
           <Routes>
             <Route path="/" element={<MainMenu />} />
             <Route path="/play" element={<SingleplayerMenu />} />
