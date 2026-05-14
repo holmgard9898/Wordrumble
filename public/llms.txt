@@ -1,0 +1,19 @@
+# Word Rumble
+
+> Word Rumble is a free bubble word puzzle game. Swap colorful bubbles to form words, score points, and compete in adventure and multiplayer modes.
+
+## Pages
+
+- [Home](/): Main menu with quick access to all game modes.
+- [Play](/play): Singleplayer modes — Classic, Word Surge, and more.
+- [Challenge](/challenge): Asynchronous multiplayer matches against other players.
+- [Adventure](/adventure): Story-driven adventure levels with unique mechanics.
+- [Daily Challenge](/daily): A new puzzle every day with star-based coin rewards.
+- [Shop](/shop): Spend coins on power-ups, themes, and unlockables.
+- [Statistics](/statistics): Player stats, high scores, and multiplayer record.
+- [How to play](/info): Tutorial and game rules.
+
+## Optional
+
+- [Settings](/settings): Language, audio, and app preferences.
+- [Privacy](/privacy): Privacy policy.

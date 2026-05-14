@@ -4,6 +4,7 @@ import { useGameBackground } from '@/hooks/useGameBackground';
 import { useTranslation } from '@/hooks/useTranslation';
 import { useSettings } from '@/contexts/SettingsContext';
 import { BackButton } from '@/components/MenuButton';
+import { SeoHead } from '@/components/SeoHead';
 import { getTutorialSteps } from '@/data/tutorials';
 import type { GameMode } from '@/pages/GamePage';
 
@@ -21,8 +22,28 @@ const InfoPage = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
 
+  const faqEntities = MODES.flatMap(({ mode, nameKey }) => {
+    const steps = getTutorialSteps(mode, settings.language);
+    return steps.map((s) => ({
+      "@type": "Question",
+      name: `${t[nameKey]}: ${s.title}`,
+      acceptedAnswer: { "@type": "Answer", text: s.body },
+    }));
+  });
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqEntities,
+  };
+
   return (
     <div className={`min-h-screen p-4 ${bg.className}`} style={bg.style}>
+      <SeoHead
+        title={settings.language === 'sv' ? 'Hur man spelar' : 'How to play'}
+        description={settings.language === 'sv' ? 'Lär dig spelets alla lägen — Klassisk, Word Surge, 5+, Ett ord och Bombläge.' : 'Learn every Word Rumble mode — Classic, Word Surge, 5+, One Word, and Bomb.'}
+        path="/info"
+        jsonLd={faqLd}
+      />
       <div className="max-w-md mx-auto">
         <div className="flex items-center gap-2 text-white mb-4 mt-2">
           <Info className="w-6 h-6 text-blue-300" />
