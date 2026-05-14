@@ -43,6 +43,11 @@ const MainMenu = () => {
       className={`h-[100dvh] overflow-hidden flex flex-col items-center justify-end pt-[6vh] pb-[14vh] px-4 ${bg.className}`}
       style={{ ...bg.style, backgroundPosition: 'center 55%', backgroundSize: 'cover' }}
     >
+      <SeoHead
+        title="Word Rumble — Bubble Word Puzzle Game"
+        description="Play Word Rumble: swap colorful bubbles to form words, beat adventure levels, and challenge friends in async multiplayer."
+        path="/"
+      />
       {/* Här har jag ändrat mt-[22vh] till mt-[30vh] för att sänka loggan */}
       <div className="w-full max-w-[16rem] sm:max-w-[18rem] flex justify-center mt-[40vh] mb-[-4vh]">
         <img
