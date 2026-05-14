@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import AdventureMap from "./pages/AdventureMap";
 import AdventureGamePage from "./pages/AdventureGamePage";
 import InfoPage from "./pages/InfoPage";
+import { RouteSeo } from "./components/RouteSeo";
 
 const queryClient = new QueryClient();
 
