@@ -747,10 +747,13 @@ const AdventureGamePage = () => {
         const conceptIds = level.hideModeTutorial ? [] : getLevelConcepts(level);
         const unseenConcepts = conceptIds.filter(id => !isSeen(id));
         const conceptSteps = unseenConcepts.flatMap(id => getConceptSteps(id, settings.language));
+        const showGenericSwipe = level.id === 'adv-1' && !genericSwipeSeen;
+        const genericSteps = showGenericSwipe ? getGenericSwipeSteps(settings.language) : [];
         return (
           <TutorialModal
             open={showIntro}
             steps={[
+              ...genericSteps,
               ...((level.storyIntro ?? []).map((card) => ({
                 title: card.title[settings.language] ?? card.title.en ?? '',
                 body: card.body[settings.language] ?? card.body.en ?? '',
@@ -764,6 +767,7 @@ const AdventureGamePage = () => {
             onClose={() => {
               setShowIntro(false);
               if (unseenConcepts.length) markSeen(unseenConcepts);
+              if (showGenericSwipe) markGenericSwipeSeen();
             }}
           />
         );
