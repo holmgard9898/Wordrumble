@@ -266,8 +266,14 @@ const GamePage = () => {
       <InGameMenu open={showMenu} onClose={() => setShowMenu(false)} />
       <TutorialModal
         open={showTutorial}
-        steps={getTutorialSteps(gameMode, settings.language)}
-        onClose={() => { markTutorialSeen(); setShowTutorial(false); }}
+        steps={getTutorialSteps(gameMode, settings.language, {
+          includeGenericSwipe: gameMode === 'classic' && !genericSwipeSeen,
+        })}
+        onClose={() => {
+          markTutorialSeen();
+          if (gameMode === 'classic') markGenericSwipeSeen();
+          setShowTutorial(false);
+        }}
       />
       {game.gameOver && (
         <GameOverOverlay score={finalScore} wordsFound={game.usedWords.length} mode={gameMode} onRestart={handleReset} bestWord={game.bestWord} bestWordScore={game.bestWordScore} coinReward={coinReward} explosionPx={explosionPx} />
