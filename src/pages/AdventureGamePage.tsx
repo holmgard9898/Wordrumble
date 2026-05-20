@@ -26,6 +26,8 @@ import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
 import { getLevelConcepts, getConceptSteps } from '@/data/adventureConcepts';
+import { getGenericSwipeSteps } from '@/data/tutorials';
+import { useTutorialSeen } from '@/hooks/useTutorialSeen';
 import { useSeenAdventureConcepts } from '@/hooks/useSeenAdventureConcepts';
 import { getLanguageConfig } from '@/data/languages';
 
