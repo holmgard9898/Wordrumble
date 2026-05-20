@@ -90,6 +90,7 @@ const AdventureGamePage = () => {
   const { showRewardedAd } = useAds();
   const [showIntro, setShowIntro] = useState(true);
   const { isSeen, markSeen } = useSeenAdventureConcepts();
+  const { seen: genericSwipeSeen, markSeen: markGenericSwipeSeen } = useTutorialSeen('generic-swipe');
   const [showMenu, setShowMenu] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [watchingAd, setWatchingAd] = useState(false);
