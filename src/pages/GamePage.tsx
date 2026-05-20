@@ -76,6 +76,7 @@ const GamePage = () => {
     containerEl: boardWrapperRef.current,
   });
   const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialSeen(`mode-${gameMode}`);
+  const { seen: genericSwipeSeen, markSeen: markGenericSwipeSeen } = useTutorialSeen('generic-swipe');
   const [showTutorial, setShowTutorial] = useState(!tutorialSeen);
   useEffect(() => { setShowTutorial(!tutorialSeen); }, [tutorialSeen, gameMode]);
 
