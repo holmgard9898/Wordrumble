@@ -20,6 +20,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
     const v = value?.[0] ?? 0;
     const pct = ((v - min) / (max - min)) * 100;
 
+    const emit = (val: number) => onValueChange([val]);
     return (
       <div className={cn("relative flex w-full items-center py-2", className)}>
         <input
@@ -29,12 +30,14 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
           max={max}
           step={step}
           value={v}
-          onChange={(e) => onValueChange([Number(e.target.value)])}
+          onChange={(e) => emit(Number(e.target.value))}
+          onInput={(e) => emit(Number((e.target as HTMLInputElement).value))}
           className="wr-slider w-full h-3 appearance-none rounded-full cursor-pointer outline-none"
           style={{
             background: `linear-gradient(to right, #ffffff 0%, #ffffff ${pct}%, rgba(0,0,0,0.45) ${pct}%, rgba(0,0,0,0.45) 100%)`,
             border: "1px solid rgba(255,255,255,0.15)",
-            touchAction: "none",
+            touchAction: "manipulation",
+            WebkitTapHighlightColor: "transparent",
           }}
         />
       </div>
