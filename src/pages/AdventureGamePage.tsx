@@ -26,6 +26,8 @@ import { useAds } from '@/hooks/useAds';
 import { useSavedGame } from '@/hooks/useSavedGame';
 import { TutorialModal, type TutorialStep } from '@/components/TutorialModal';
 import { getLevelConcepts, getConceptSteps } from '@/data/adventureConcepts';
+import { getGenericSwipeSteps } from '@/data/tutorials';
+import { useTutorialSeen } from '@/hooks/useTutorialSeen';
 import { useSeenAdventureConcepts } from '@/hooks/useSeenAdventureConcepts';
 import { getLanguageConfig } from '@/data/languages';
 
@@ -88,6 +90,7 @@ const AdventureGamePage = () => {
   const { showRewardedAd } = useAds();
   const [showIntro, setShowIntro] = useState(true);
   const { isSeen, markSeen } = useSeenAdventureConcepts();
+  const { seen: genericSwipeSeen, markSeen: markGenericSwipeSeen } = useTutorialSeen('generic-swipe');
   const [showMenu, setShowMenu] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [watchingAd, setWatchingAd] = useState(false);
@@ -744,10 +747,13 @@ const AdventureGamePage = () => {
         const conceptIds = level.hideModeTutorial ? [] : getLevelConcepts(level);
         const unseenConcepts = conceptIds.filter(id => !isSeen(id));
         const conceptSteps = unseenConcepts.flatMap(id => getConceptSteps(id, settings.language));
+        const showGenericSwipe = level.id === 'adv-1' && !genericSwipeSeen;
+        const genericSteps = showGenericSwipe ? getGenericSwipeSteps(settings.language) : [];
         return (
           <TutorialModal
             open={showIntro}
             steps={[
+              ...genericSteps,
               ...((level.storyIntro ?? []).map((card) => ({
                 title: card.title[settings.language] ?? card.title.en ?? '',
                 body: card.body[settings.language] ?? card.body.en ?? '',
@@ -761,6 +767,7 @@ const AdventureGamePage = () => {
             onClose={() => {
               setShowIntro(false);
               if (unseenConcepts.length) markSeen(unseenConcepts);
+              if (showGenericSwipe) markGenericSwipeSeen();
             }}
           />
         );
