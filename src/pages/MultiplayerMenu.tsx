@@ -12,6 +12,7 @@ import { FriendDrawer } from '@/components/multiplayer/FriendDrawer';
 import { ModePickerSheet, type MatchMode } from '@/components/multiplayer/ModePickerSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSettings } from '@/contexts/SettingsContext';
 import { BubbleTitle } from '@/components/BubbleTitle';
 import { BackButton } from '@/components/MenuButton';
 
@@ -22,6 +23,7 @@ const MultiplayerMenu = () => {
   const bg = useGameBackground();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+  const { settings } = useSettings();
 
   const [friendDrawerOpen, setFriendDrawerOpen] = useState(false);
   const [modePickerOpen, setModePickerOpen] = useState(false);
@@ -50,18 +52,18 @@ const MultiplayerMenu = () => {
       const dbModes: ('classic' | 'surge' | 'fiveplus' | 'oneword')[] = queuedMode === 'random'
         ? ['classic', 'surge', 'fiveplus', 'oneword']
         : [queuedMode as 'classic' | 'surge' | 'fiveplus' | 'oneword'];
-      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').in('mode', dbModes).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
+      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('language', settings.language).in('mode', dbModes).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
       if (matches && matches.length > 0) { setSearching(false); toast.success(t.matchFound); navigate(`/match/${matches[0].id}`); }
     }, 2000);
     return () => clearInterval(interval);
-  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt]);
+  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt, settings.language]);
 
   // After 5s of searching with no match, open a "Quizkampen-style" match the user can play immediately
   useEffect(() => {
     if (!searching || !queuedMode || !user) return;
     const timeout = setTimeout(async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('create-open-match', { body: { mode: queuedMode } });
+        const { data, error } = await supabase.functions.invoke('create-open-match', { body: { mode: queuedMode, language: settings.language } });
         if (error) throw error;
         if (data?.match?.id) {
           setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
@@ -73,7 +75,19 @@ const MultiplayerMenu = () => {
       }
     }, 5000);
     return () => clearTimeout(timeout);
-  }, [searching, queuedMode, user, navigate, t.startingOpenMatch]);
+  }, [searching, queuedMode, user, navigate, t.startingOpenMatch, settings.language]);
+
+  // Auto-cancel sökning om språk byts mitt i
+  const currentLang = settings.language;
+  useEffect(() => {
+    if (!user) return;
+    if (!searching) return;
+    // Trigga avbryt när språk ändras
+    supabase.from('matchmaking_queue').delete().eq('user_id', user.id);
+    setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
+    toast.info('Sökning avbruten – språk ändrades');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLang]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
@@ -91,7 +105,7 @@ const MultiplayerMenu = () => {
   const startRandomMatch = async (mode: MatchMode) => {
     setSearching(true); setQueuedMode(mode); setSearchStartedAt(new Date().toISOString());
     try {
-      const { data, error } = await supabase.functions.invoke('find-match', { body: { mode } });
+      const { data, error } = await supabase.functions.invoke('find-match', { body: { mode, language: settings.language } });
       if (error) throw error;
       if (data.status === 'matched') { setSearching(false); toast.success(t.matchFound); navigate(`/match/${data.match.id}`); }
     } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); }
@@ -100,7 +114,7 @@ const MultiplayerMenu = () => {
   const challengeFriendWithMode = async (mode: Exclude<MatchMode, 'random'>, friend: { userId: string; name: string }) => {
     const totalRounds = mode === 'surge' ? 3 : 2;
     const { data: match, error } = await supabase.from('matches').insert({
-      mode, player1_id: user.id, player2_id: friend.userId, status: 'waiting', current_turn: user.id,
+      mode, language: settings.language, player1_id: user.id, player2_id: friend.userId, status: 'waiting', current_turn: user.id,
       current_round: 1, total_rounds: totalRounds, round_grids: [], shared_used_words: [],
       player1_rounds_data: [], player2_rounds_data: [],
     }).select().single();

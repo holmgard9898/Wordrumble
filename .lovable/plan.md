@@ -1,51 +1,73 @@
-## Mörka Skogen (adv-3-3) — ny powerup + smitta
+## Mål
 
-### Del 1: Nivån adv-3-3
-- Behåll samma config som tidigare (klassisk, samma drag och målord som du valt). Lägg till på brädet:
-  - 2× powerup `swapcolor` (ny)
-  - 1× powerup `swapletter` (befintlig)
-  - 1 startsmittad bokstav
+Just nu ignorerar matchmakingen språk helt — alla spelare hamnar i samma kö och alla brickor genereras med svensk bokstavspool på servern. Vi gör matchmakingen språk-strikt och låser varje match till det språk den startades med.
 
-### Del 2: Ny powerup `swapcolor`
-- Lägg till `'swapcolor'` i `PowerupType` (`gameConstants.ts`).
-- `Bubble.tsx`: ny `PowerupBadge` variant — visa t.ex. `🎨` med lila gradient.
-- I `useGameState.ts` / popup-flödet (där `swapletter` triggar val-modal): trigga en motsvarande **välj färg**-popup när en bricka med `swapcolor` ingår i ett ord. Användaren väljer ny färg på en valfri bricka på brädet (samma UX som byt bokstav, fast färgknappar med de 5 bubbel-färgerna).
-- Återanvänd existerande modal-komponent för byt bokstav som mall — skapa `ColorSwapPopup.tsx` om enklare.
+## Vad som ändras
 
-### Del 3: Smitta (infection) — endast adventure 3
-Ny fält på `BubbleData`:
-- `infected?: number` — drag kvar tills smittan sprids (start 5)
-- `dead?: boolean` — bokstaven är spöke
-- `deadCounter?: number` — drag sedan död (efter 5 → −1 poäng/drag)
+### 1. Databas (migration)
 
-Regler:
-1. Vid nivåstart: minst 1 slumpmässig bokstav får `infected = 5`.
-2. Efter varje spelarens drag, för varje smittad bricka: dekrementera räknaren.
-   - Vid 0: alla 4 ortogonala grannar (ej rocks/asteroider/satelliter/spöken) blir smittade (`infected = 5`). Den ursprungliga brickans räknare blir `7` (tid till död).
-   - Faktiskt enklare modell enligt brief: håll **två** räknare per smittad: `spreadIn` (5) och `dieIn` (7). När `spreadIn` når 0 sprids smitta; när `dieIn` når 0 dör brickan.
-3. När en smittad bricka används i ett ord → smittan rensas (bricka poppar som vanligt).
-4. När död: `dead = true`, `deadCounter = 0`, ej klickbar/swappbar/del av ord. Render: opacity ~0.45, behåll bokstaven, lägg 👻-overlay.
-5. Varje drag: `deadCounter++`. När `deadCounter > 5` → totalpoäng −1 per drag tills brickan rensas (visa flytande `−1` popup på den brickan).
-6. Spöken kan rensas genom att en intilliggande swap orsakar att en boost/bomb poppar dem? Brief säger "om den inte kombineras i ett ord" — så spöket måste poppas via ord. Eftersom dead inte kan ingå i ord behövs en mekanik. **Tolkning**: bomb/explosion eller kaskad pop på sammanstötande popping rensar spöket. Enklast: när intilliggande pop sker rensas spöket också. Implementeras genom att utvidga pop-set med adjacenta `dead`-brickor.
+- Lägg till kolumn `language text NOT NULL DEFAULT 'sv'` på `matchmaking_queue` och `matches`.
+- Backfill: alla befintliga rader får `'sv'` (det är det enda språket som faktiskt funkat hittills).
+- Index på `matchmaking_queue (mode, language)` och `matches (status, mode, language, player2_id)` för snabb sökning.
+- Uppdatera triggern `enforce_matches_update_rules` så `language` läggs till i listan över oföränderliga fält (klient kan inte byta språk på en pågående match).
 
-### Del 4: Plumbing
-- `adventureLevels.ts`: adv-3-3 får `infection: true` flagga + powerup-placeringar.
-- `AdventureGamePage.tsx`: skicka `infection` flaggan vidare till `useGameState`.
-- `useGameState.ts`: hook in infection-tick i `performSwap` efter pop-resolution.
-- `Bubble.tsx`: rendera infected (grön glöd/sjuk-tint), dead (genomskinlig + 👻).
-- `BonusMovePopup` redan stödjer custom label → används för `−1` per spöke.
+### 2. Edge functions: `find-match` och `create-open-match`
 
-### Tekniska detaljer
-- Byt-färg modalen: identisk layout som byt-bokstav, 5 stora färgknappar (samma `BUBBLE_COLOR_STYLES`).
-- Smittans visuella: `box-shadow: 0 0 8px hsl(110, 80%, 40%)` + liten `🦠` badge bottom-left.
-- Spöke: opacity 0.45, blur(0.5px), `👻` badge top-left, ingen `value` visas, ej `cursor-pointer`.
-- Ord-detektion (`findWords`): exkludera `dead` brickor (samma sätt som `rock`).
-- Kolumn-blockerare: spöken **blockerar inte** refill (de kan rensas), så lämnas utanför `getColumnBlockers`.
+- Ta emot `language` i body (validera mot vitlistan av språk).
+- Filtrera öppna matcher och kö-rader på både `mode` och `language`.
+- Duplicera letterPool + letterValues från `src/data/languages.ts` in i funktionen (en map per språk) och använd rätt pool när rutnät genereras.
+- Skriv `language` på nya rader i `matches` och `matchmaking_queue`.
 
-### Filer som ändras
-- `src/data/gameConstants.ts` — `PowerupType`, `BubbleData` (infected/dead/deadCounter)
-- `src/components/game/Bubble.tsx` — render infected/dead, ny powerup-badge
-- `src/components/game/ColorSwapPopup.tsx` — ny
-- `src/hooks/useGameState.ts` — infection-tick, swapcolor flöde, spök poäng-drain
-- `src/data/adventureLevels.ts` — adv-3-3 config
-- `src/pages/AdventureGamePage.tsx` — skicka infection flagga
+### 3. Klient
+
+- I `MultiplayerMenu.tsx` (och `NewMatchFlow.tsx` om den används): skicka `settings.language` med varje `find-match` / `create-open-match`-anrop.
+- Polling-querien som väntar på match filtreras på `language = settings.language` så vi inte plockar upp en match på fel språk.
+- `MatchList.tsx` visar små språkflaggor och kan filtreras / sorteras så användaren ser vilka matcher som är på vilket språk.
+
+### 4. Spela på rätt språk inuti en match
+
+- `MultiplayerGamePage.tsx`: hämta `match.language` från DB och använd det språket för ordlista, bokstavsvärden och `validCharPattern` istället för användarens aktuella UI-språk. Då fungerar din situation: en tysk match som du startade förblir tysk även om du byter UI till svenska efteråt.
+- Visa språkflaggan i `VersusHeader` så det är tydligt.
+
+### 5. Edge case: språk-byte mitt i sökning
+
+- Om användaren byter språk i settings medan `searching` är true: avbryt sökningen automatiskt (ta bort sig från kön) och visa toast "Sökning avbruten – språk ändrades". Förhindrar att man hamnar i fel kö.
+
+## Vad som inte ändras
+
+- Singleplayer-spel påverkas inte.
+- AI-matcher (`is_ai_match`) skapas redan klient-side i användarens språk — får bara `language` ifylld korrekt.
+- Existerande pågående matcher fortsätter spelas på svenska (backfill).
+
+## Teknisk detalj
+
+```text
+matchmaking_queue
+  + language text not null default 'sv'
+
+matches
+  + language text not null default 'sv'
+  + index (status, mode, language, player2_id)
+```
+
+Edge function (förenklat):
+```ts
+const { mode, language } = body;
+const cfg = LANG_CONFIGS[language];
+// filter: .eq("language", language).eq("mode", pickedMode)
+// generate grid using cfg.letterPool / cfg.letterValues
+// insert: { mode, language, ... }
+```
+
+Klient (förenklat):
+```ts
+await supabase.functions.invoke('find-match', {
+  body: { mode, language: settings.language }
+});
+```
+
+## Svar på din direkta fråga
+
+Idag: **nej**, det filtreras inte på språk, så ja — en tysk spelare och en svensk spelare kan matchas, och brädet servern genererar är dessutom alltid svenskt (ÅÄÖ). Det är troligen därför du såg konstiga matcher i statistiken. Att du inte hittade någon när du sökte slumpvis berodde antagligen bara på tom kö, inte språkfilter.
+
+Efter den här ändringen: matcher du startar låses till språket du har när du söker, och de visas bara för andra spelare som har samma språk valt.
