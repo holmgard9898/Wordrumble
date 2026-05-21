@@ -23,6 +23,7 @@ const MultiplayerMenu = () => {
   const bg = useGameBackground();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
+  const { settings } = useSettings();
 
   const [friendDrawerOpen, setFriendDrawerOpen] = useState(false);
   const [modePickerOpen, setModePickerOpen] = useState(false);
