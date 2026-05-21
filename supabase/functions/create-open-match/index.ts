@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { LANG_POOLS, isValidLanguage, type GameLanguage } from "../_shared/languagePools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,24 +14,17 @@ const REDUCED_COLORS = ["red", "green", "blue"];
 const ALL_MODES = ["classic", "surge", "fiveplus", "oneword"] as const;
 type Mode = typeof ALL_MODES[number];
 
-const SV_LETTER_POOL =
-  "AAAAAAAABBDDDDDEEEEEEEFFGGGHIIIIIJKKKLLLLLMMMNNNNNNOOOOOOPPRRRRRRRRSSSSSSSSSTTTTTTTTTUUUVVXYÅÅÄÄÖÖ";
-const SV_LETTER_VALUES: Record<string, number> = {
-  A: 1, B: 4, C: 8, D: 1, E: 1, F: 3, G: 2, H: 3, I: 1, J: 7,
-  K: 2, L: 1, M: 2, N: 1, O: 2, P: 4, R: 1, S: 1, T: 1,
-  U: 4, V: 3, X: 8, Y: 7, Z: 10, Å: 4, Ä: 4, Ö: 4,
-};
-
-function createGrid(mode: string) {
+function createGrid(mode: string, language: GameLanguage) {
   const colors = mode === "fiveplus" ? REDUCED_COLORS : BUBBLE_COLORS;
+  const { pool, values } = LANG_POOLS[language];
   let counter = 0;
   const grid = [];
   for (let r = 0; r < ROWS; r++) {
     const row = [];
     for (let c = 0; c < COLS; c++) {
-      const letter = SV_LETTER_POOL[Math.floor(Math.random() * SV_LETTER_POOL.length)];
+      const letter = pool[Math.floor(Math.random() * pool.length)];
       const color = colors[Math.floor(Math.random() * colors.length)];
-      row.push({ id: `b-${counter++}`, letter, value: SV_LETTER_VALUES[letter] ?? 1, color });
+      row.push({ id: `b-${counter++}`, letter, value: values[letter] ?? 1, color });
     }
     grid.push(row);
   }
@@ -68,39 +62,37 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const requested = body.mode;
+    const language: GameLanguage = isValidLanguage(body.language) ? body.language : "sv";
     const isRandom = requested === "random";
-    
+
     const admin = createClient(supabaseUrl, serviceKey);
     const pickedMode: Mode = isRandom
       ? ALL_MODES[Math.floor(Math.random() * ALL_MODES.length)]
       : (requested as Mode);
 
-    // --- NY MATCHMAKING-LOGIK START ---
-    
-    // 1. Kolla om det redan finns en öppen match i detta läge som väntar på en motståndare
-    const { data: openMatch, error: searchError } = await admin
+    // 1. Hitta öppen match i samma språk + läge
+    const { data: openMatch } = await admin
       .from("matches")
       .select("*")
-      .is("player2_id", null)       // Ingen motståndare än
-      .neq("player1_id", user.id)   // Det ska inte vara min egen match
-      .eq("mode", pickedMode)       // Samma spelläge
+      .is("player2_id", null)
+      .neq("player1_id", user.id)
+      .eq("mode", pickedMode)
+      .eq("language", language)
       .eq("status", "active")
-      .order('created_at', { ascending: true }) // Ta den som väntat längst
+      .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
 
     if (openMatch) {
-      // 2. Vi hittade en match! Uppdatera den för att "hoppa in" som player 2
       const { data: joinedMatch, error: joinError } = await admin
         .from("matches")
-        .update({ 
-          player2_id: user.id 
-        })
+        .update({ player2_id: user.id })
         .eq("id", openMatch.id)
+        .is("player2_id", null)
         .select()
         .single();
 
-      if (!joinError) {
+      if (!joinError && joinedMatch) {
         await admin.from("matchmaking_queue").delete().eq("user_id", user.id);
         return new Response(
           JSON.stringify({ status: "joined", match: joinedMatch }),
@@ -108,10 +100,8 @@ Deno.serve(async (req) => {
         );
       }
     }
-    
-    // --- NY MATCHMAKING-LOGIK SLUT ---
 
-    // Om ingen match hittades, kör din gamla logik: kolla om man själv redan har en öppen match
+    // 2. Har vi redan egen öppen match i detta läge + språk?
     const { data: existingOpen } = await admin
       .from("matches")
       .select("*")
@@ -119,6 +109,7 @@ Deno.serve(async (req) => {
       .is("player2_id", null)
       .eq("status", "active")
       .eq("mode", pickedMode)
+      .eq("language", language)
       .limit(1);
 
     if (existingOpen && existingOpen.length > 0) {
@@ -129,13 +120,14 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Skapa en helt ny match om inget hittades
+    // 3. Skapa ny öppen match
     const totalRounds = getTotalRounds(pickedMode);
     const grids = [];
-    for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode));
+    for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode, language));
 
     const { data: match, error } = await admin.from("matches").insert({
       mode: pickedMode,
+      language,
       player1_id: user.id,
       player2_id: null,
       status: "active",
