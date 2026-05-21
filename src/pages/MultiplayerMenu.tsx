@@ -105,7 +105,7 @@ const MultiplayerMenu = () => {
   const startRandomMatch = async (mode: MatchMode) => {
     setSearching(true); setQueuedMode(mode); setSearchStartedAt(new Date().toISOString());
     try {
-      const { data, error } = await supabase.functions.invoke('find-match', { body: { mode } });
+      const { data, error } = await supabase.functions.invoke('find-match', { body: { mode, language: settings.language } });
       if (error) throw error;
       if (data.status === 'matched') { setSearching(false); toast.success(t.matchFound); navigate(`/match/${data.match.id}`); }
     } catch { toast.error(t.couldNotSearch); setSearching(false); setQueuedMode(null); setSearchStartedAt(null); }
@@ -114,7 +114,7 @@ const MultiplayerMenu = () => {
   const challengeFriendWithMode = async (mode: Exclude<MatchMode, 'random'>, friend: { userId: string; name: string }) => {
     const totalRounds = mode === 'surge' ? 3 : 2;
     const { data: match, error } = await supabase.from('matches').insert({
-      mode, player1_id: user.id, player2_id: friend.userId, status: 'waiting', current_turn: user.id,
+      mode, language: settings.language, player1_id: user.id, player2_id: friend.userId, status: 'waiting', current_turn: user.id,
       current_round: 1, total_rounds: totalRounds, round_grids: [], shared_used_words: [],
       player1_rounds_data: [], player2_rounds_data: [],
     }).select().single();
