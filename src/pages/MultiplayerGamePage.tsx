@@ -27,6 +27,7 @@ import { toast } from 'sonner';
 interface MatchData {
   id: string;
   mode: 'classic' | 'surge' | 'fiveplus' | 'oneword';
+  language: string;
   status: string;
   current_turn: string | null;
   current_round: number;
