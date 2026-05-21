@@ -85,7 +85,7 @@ const MultiplayerMenu = () => {
     // Trigga avbryt när språk ändras
     supabase.from('matchmaking_queue').delete().eq('user_id', user.id);
     setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
-    toast.info(t.searchCancelledLanguageChanged ?? 'Sökning avbruten – språk ändrades');
+    toast.info('Sökning avbruten – språk ändrades');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentLang]);
 
