@@ -78,12 +78,16 @@ const MultiplayerMenu = () => {
   }, [searching, queuedMode, user, navigate, t.startingOpenMatch, settings.language]);
 
   // Auto-cancel sökning om språk byts mitt i
+  const currentLang = settings.language;
   useEffect(() => {
+    if (!user) return;
     if (!searching) return;
-    return () => {
-      // cleanup när språk ändras → körs vid nästa effect-pass
-    };
-  }, [settings.language]);
+    // Trigga avbryt när språk ändras
+    supabase.from('matchmaking_queue').delete().eq('user_id', user.id);
+    setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
+    toast.info(t.searchCancelledLanguageChanged ?? 'Sökning avbruten – språk ändrades');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLang]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
