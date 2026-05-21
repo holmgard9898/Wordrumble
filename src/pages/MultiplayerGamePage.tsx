@@ -71,6 +71,9 @@ const MultiplayerGamePage = () => {
   const langConfig = getLanguageConfig(settings.language);
 
   const [match, setMatch] = useState<MatchData | null>(null);
+  const matchLanguage = (match?.language as any) || settings.language;
+  const langConfig = getLanguageConfig(matchLanguage);
+
   const [opponentName, setOpponentName] = useState('Motståndare');
   const [opponentAvatarUrl, setOpponentAvatarUrl] = useState<string | null>(null);
   const [myName, setMyName] = useState('Du');
@@ -78,13 +81,13 @@ const MultiplayerGamePage = () => {
   const [loadingMatch, setLoadingMatch] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const { isValidWord, loading: dictLoading } = useDictionary(settings.language);
+  const { isValidWord, loading: dictLoading } = useDictionary(matchLanguage);
   const { playSwap, playWordFound, playGameOver } = useSfx();
 
   const gameMode: GameMode = (match?.mode || 'classic') as GameMode;
   const colors = gameMode === 'fiveplus' ? REDUCED_COLORS : BUBBLE_COLORS;
 
-  const game = useGameState(isValidWord, gameMode, settings.language);
+  const game = useGameState(isValidWord, gameMode, matchLanguage);
   const boardRef = useRef<GameBoardHandle | null>(null);
   const boardWrapperRef = useRef<HTMLDivElement | null>(null);
   const getCellRect = useCallback((row: number, col: number) => boardRef.current?.getCellRect(row, col) ?? null, []);
