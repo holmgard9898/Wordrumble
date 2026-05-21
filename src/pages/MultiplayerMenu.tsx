@@ -12,6 +12,7 @@ import { FriendDrawer } from '@/components/multiplayer/FriendDrawer';
 import { ModePickerSheet, type MatchMode } from '@/components/multiplayer/ModePickerSheet';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSettings } from '@/contexts/SettingsContext';
 import { BubbleTitle } from '@/components/BubbleTitle';
 import { BackButton } from '@/components/MenuButton';
 
