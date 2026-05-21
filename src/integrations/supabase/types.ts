@@ -82,6 +82,7 @@ export type Database = {
           current_turn: string | null
           id: string
           is_ai_match: boolean
+          language: string
           last_move_at: string
           mode: Database["public"]["Enums"]["match_mode"]
           player1_id: string
@@ -105,6 +106,7 @@ export type Database = {
           current_turn?: string | null
           id?: string
           is_ai_match?: boolean
+          language?: string
           last_move_at?: string
           mode: Database["public"]["Enums"]["match_mode"]
           player1_id: string
@@ -128,6 +130,7 @@ export type Database = {
           current_turn?: string | null
           id?: string
           is_ai_match?: boolean
+          language?: string
           last_move_at?: string
           mode?: Database["public"]["Enums"]["match_mode"]
           player1_id?: string
@@ -149,18 +152,21 @@ export type Database = {
         Row: {
           id: string
           joined_at: string
+          language: string
           mode: Database["public"]["Enums"]["match_mode"]
           user_id: string
         }
         Insert: {
           id?: string
           joined_at?: string
+          language?: string
           mode: Database["public"]["Enums"]["match_mode"]
           user_id: string
         }
         Update: {
           id?: string
           joined_at?: string
+          language?: string
           mode?: Database["public"]["Enums"]["match_mode"]
           user_id?: string
         }
