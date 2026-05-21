@@ -68,7 +68,7 @@ const MultiplayerGamePage = () => {
   const { settings, updateSettings } = useSettings();
   const bg = useGameBackground();
   const { t } = useTranslation();
-  const langConfig = getLanguageConfig(settings.language);
+  
 
   const [match, setMatch] = useState<MatchData | null>(null);
   const matchLanguage = (match?.language as any) || settings.language;
