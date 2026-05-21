@@ -52,11 +52,11 @@ const MultiplayerMenu = () => {
       const dbModes: ('classic' | 'surge' | 'fiveplus' | 'oneword')[] = queuedMode === 'random'
         ? ['classic', 'surge', 'fiveplus', 'oneword']
         : [queuedMode as 'classic' | 'surge' | 'fiveplus' | 'oneword'];
-      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').in('mode', dbModes).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
+      const { data: matches } = await supabase.from('matches').select('id').or(`player1_id.eq.${user.id},player2_id.eq.${user.id}`).eq('status', 'active').eq('language', settings.language).in('mode', dbModes).gte('created_at', searchStartedAt).order('created_at', { ascending: false }).limit(1);
       if (matches && matches.length > 0) { setSearching(false); toast.success(t.matchFound); navigate(`/match/${matches[0].id}`); }
     }, 2000);
     return () => clearInterval(interval);
-  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt]);
+  }, [searching, queuedMode, user, navigate, t.matchFound, searchStartedAt, settings.language]);
 
   // After 5s of searching with no match, open a "Quizkampen-style" match the user can play immediately
   useEffect(() => {
