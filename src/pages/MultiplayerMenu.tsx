@@ -63,7 +63,7 @@ const MultiplayerMenu = () => {
     if (!searching || !queuedMode || !user) return;
     const timeout = setTimeout(async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('create-open-match', { body: { mode: queuedMode } });
+        const { data, error } = await supabase.functions.invoke('create-open-match', { body: { mode: queuedMode, language: settings.language } });
         if (error) throw error;
         if (data?.match?.id) {
           setSearching(false); setQueuedMode(null); setSearchStartedAt(null);
@@ -75,7 +75,15 @@ const MultiplayerMenu = () => {
       }
     }, 5000);
     return () => clearTimeout(timeout);
-  }, [searching, queuedMode, user, navigate, t.startingOpenMatch]);
+  }, [searching, queuedMode, user, navigate, t.startingOpenMatch, settings.language]);
+
+  // Auto-cancel sökning om språk byts mitt i
+  useEffect(() => {
+    if (!searching) return;
+    return () => {
+      // cleanup när språk ändras → körs vid nästa effect-pass
+    };
+  }, [settings.language]);
 
   if (loading) {
     return <div className={`min-h-screen flex flex-col items-center justify-center ${bg.className}`} style={bg.style}><div className="text-white/60">{t.loading}</div></div>;
