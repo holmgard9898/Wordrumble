@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { LANG_POOLS, isValidLanguage, type GameLanguage } from "../_shared/languagePools.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,20 +14,10 @@ const REDUCED_COLORS = ["red", "green", "blue"];
 const ALL_MODES = ["classic", "surge", "fiveplus", "oneword"] as const;
 type Mode = typeof ALL_MODES[number];
 
-const SV_LETTER_POOL =
-  "AAAAAAAABBDDDDDEEEEEEEFFGGGHIIIIIJKKKLLLLLMMMNNNNNNOOOOOOPPRRRRRRRRSSSSSSSSSTTTTTTTTTUUUVVXYÅÅÄÄÖÖ";
-const SV_LETTER_VALUES: Record<string, number> = {
-  A: 1, B: 4, C: 8, D: 1, E: 1, F: 3, G: 2, H: 3, I: 1, J: 7,
-  K: 2, L: 1, M: 2, N: 1, O: 2, P: 4, R: 1, S: 1, T: 1,
-  U: 4, V: 3, X: 8, Y: 7, Z: 10, Å: 4, Ä: 4, Ö: 4,
-};
-
-function createGrid(mode: string) {
+function createGrid(mode: string, language: GameLanguage) {
   const colors = mode === "fiveplus" ? REDUCED_COLORS : BUBBLE_COLORS;
-  const pool = SV_LETTER_POOL;
-  const values = SV_LETTER_VALUES;
+  const { pool, values } = LANG_POOLS[language];
   let counter = 0;
-
   const grid = [];
   for (let r = 0; r < ROWS; r++) {
     const row = [];
@@ -84,6 +75,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const requestedMode = body.mode;
+    const language: GameLanguage = isValidLanguage(body.language) ? body.language : "sv";
     const isRandom = requestedMode === "random";
     if (!isRandom && !ALL_MODES.includes(requestedMode)) {
       return new Response(JSON.stringify({ error: "Invalid mode" }), {
@@ -94,13 +86,14 @@ Deno.serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    // Step 1: Try to join an OPEN match (player2_id IS NULL, status='active')
+    // Step 1: Try to join an OPEN match in the SAME LANGUAGE
     const openModes: string[] = isRandom ? [...ALL_MODES] : [requestedMode];
     const { data: openMatches } = await admin
       .from("matches")
       .select("*")
       .is("player2_id", null)
       .eq("status", "active")
+      .eq("language", language)
       .in("mode", openModes)
       .neq("player1_id", user.id)
       .order("created_at", { ascending: true })
@@ -112,7 +105,7 @@ Deno.serve(async (req) => {
         .from("matches")
         .update({ player2_id: user.id })
         .eq("id", open.id)
-        .is("player2_id", null) // race-safety
+        .is("player2_id", null)
         .select()
         .single();
       if (!joinErr && joined) {
@@ -126,18 +119,20 @@ Deno.serve(async (req) => {
 
     const pickedMode: Mode = isRandom ? pickRandomMode() : (requestedMode as Mode);
 
-    // Check if user already in queue for this mode
+    // Step 2: Check existing queue entry (mode + language)
     const { data: existing } = await admin
       .from("matchmaking_queue")
       .select("id")
       .eq("user_id", user.id)
-      .eq("mode", pickedMode);
+      .eq("mode", pickedMode)
+      .eq("language", language);
 
-    // Step 2: Look for another player in queue (same picked mode)
+    // Step 3: Look for another player in queue (same mode + language)
     const { data: candidates } = await admin
       .from("matchmaking_queue")
       .select("*")
       .eq("mode", pickedMode)
+      .eq("language", language)
       .neq("user_id", user.id)
       .order("joined_at", { ascending: true })
       .limit(1);
@@ -146,12 +141,13 @@ Deno.serve(async (req) => {
       const opponent = candidates[0];
       const totalRounds = getTotalRounds(pickedMode);
       const grids = [];
-      for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode));
+      for (let i = 0; i < totalRounds; i++) grids.push(createGrid(pickedMode, language));
 
       const { data: match, error: matchError } = await admin
         .from("matches")
         .insert({
           mode: pickedMode,
+          language,
           player1_id: opponent.user_id,
           player2_id: user.id,
           status: "active",
@@ -183,14 +179,17 @@ Deno.serve(async (req) => {
     }
 
     if (!existing || existing.length === 0) {
+      // Rensa eventuella queue-rader i andra språk/mode för denna user
+      await admin.from("matchmaking_queue").delete().eq("user_id", user.id);
       await admin.from("matchmaking_queue").insert({
         user_id: user.id,
         mode: pickedMode,
+        language,
       });
     }
 
     return new Response(
-      JSON.stringify({ status: "queued", mode: pickedMode }),
+      JSON.stringify({ status: "queued", mode: pickedMode, language }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
