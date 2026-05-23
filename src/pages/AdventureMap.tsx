@@ -193,8 +193,8 @@ const AdventureMap = ({ mapNumber = 1 }: Props) => {
         )}
       </div>
 
-      <Button onClick={() => { playClick(); navigate(mapNumber > 1 ? (mapNumber === 2 ? '/adventure' : `/adventure/map/${mapNumber - 1}`) : '/'); }} variant="ghost" className="gap-2" style={{ color: '#5a3a1a' }}>
-        <ArrowLeft className="w-4 h-4" /> {mapNumber > 1 ? `🗺️ ${t.adventureTitle} ${mapNumber === 2 ? 'I' : 'II'}` : t.mainMenu}
+      <Button onClick={() => { playClick(); navigate('/'); }} variant="ghost" className="gap-2" style={{ color: '#5a3a1a' }}>
+        <ArrowLeft className="w-4 h-4" /> {t.mainMenu}
       </Button>
     </div>
   );
