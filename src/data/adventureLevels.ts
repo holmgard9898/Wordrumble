@@ -825,7 +825,7 @@ export const adventureLevels: AdventureLevel[] = [
     },
     mapPosition: { x: 88, y: 12 },
     connectsTo: [],
-    infection: true,
+    infection: false,
     maxMoves: 250,
     finalCelebration: true,
   },
