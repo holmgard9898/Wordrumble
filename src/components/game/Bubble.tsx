@@ -406,7 +406,7 @@ function BubbleVisual(props: BubbleProps) {
     );
   }
 
-  // Default bubble style
+  // Default bubble style - "Gelatinous glass"
   return (
     <button
       onClick={onClick}
@@ -419,26 +419,41 @@ function BubbleVisual(props: BubbleProps) {
         ${isSelected ? 'ring-4 ring-white scale-110 z-10' : ''}
       `}
       style={{
-        background: `radial-gradient(circle at 35% 30%, ${colors.highlight}, ${colors.bg} 60%, ${colors.border})`,
+        background: `radial-gradient(circle at 32% 24%, ${colors.highlight} 0%, ${colors.bg} 45%, ${colors.border} 100%)`,
+        border: '1.5px solid rgba(255,255,255,0.35)',
         boxShadow: isSelected
-          ? `0 0 20px ${colors.bg}, inset 0 -3px 6px ${colors.border}`
+          ? `0 0 22px ${colors.bg}, inset 0 -6px 10px ${colors.border}, inset 0 6px 10px rgba(255,255,255,0.45)`
           : hasBomb
-            ? `inset 0 -3px 6px ${colors.border}, 0 2px 8px rgba(255,80,0,0.5), 0 0 12px rgba(255,80,0,0.3)`
-            : `inset 0 -3px 6px ${colors.border}, 0 2px 4px rgba(0,0,0,0.3)`,
+            ? `inset 0 -6px 10px ${colors.border}, inset 0 5px 9px rgba(255,255,255,0.4), 0 6px 14px rgba(0,0,0,0.45), 0 0 14px rgba(255,80,0,0.45)`
+            : `inset 0 -6px 10px ${colors.border}, inset 0 5px 9px rgba(255,255,255,0.4), 0 6px 14px rgba(0,0,0,0.45), 0 0 10px ${colors.bg}55`,
         color: '#fff',
       }}
     >
+      {/* Main glossy shine */}
       <div
-        className="absolute top-0.5 left-1.5 w-3 h-2 md:w-4 md:h-3 rounded-full opacity-60"
-        style={{ background: `radial-gradient(ellipse, rgba(255,255,255,0.8), transparent)` }}
+        className="absolute top-1 left-2 w-5 h-3 md:w-6 md:h-3.5 rounded-full opacity-80 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse, rgba(255,255,255,0.95), rgba(255,255,255,0) 70%)',
+          filter: 'blur(0.5px)',
+          transform: 'rotate(-18deg)',
+        }}
       />
-      <span className="text-base md:text-lg lg:text-xl font-bold leading-none" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}>
+      {/* Bottom inner glow */}
+      <div
+        className="absolute bottom-1 left-1/2 -translate-x-1/2 w-3/5 h-1/4 rounded-full opacity-40 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse, ${colors.highlight}, transparent 70%)`, filter: 'blur(3px)' }}
+      />
+      <span
+        className="relative text-xl md:text-2xl lg:text-3xl font-black leading-none z-10"
+        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.45), 0 0 6px rgba(0,0,0,0.25)' }}
+      >
         {bubble.letter}
       </span>
       {hasBomb ? <BombBadge bomb={bubble.bomb!} /> : powerup ? <PowerupBadge type={powerup} /> : <ValueBadge value={bubble.value} color={colors.text} />}
     </button>
   );
 }
+
 export function Bubble(props: BubbleProps) {
   const { bubble } = props;
   if (bubble.dead) return <GhostInner {...props} />;
